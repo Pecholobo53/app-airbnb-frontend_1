@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Airbnb Custom Colors */
+  --primario-100: #d4eaf7;
+  --primario-200: #b6ccd8;
+  --primario-300: #3b3c3d;
+  --acento-100: #71c4ef;
+  --acento-200: #00668c;
+  --texto-100: #1d1c1c;
+  --texto-200: #313d44;
+  --bg-100: #fffefb;
+  --bg-200: #f5f4f1;
+  --bg-300: #cccbc8;
+  
+  /* RGB versions for Tailwind opacity support */
+  --primario-100-rgb: 212 234 247;
+  --primario-200-rgb: 182 204 216;
+  --primario-300-rgb: 59 60 61;
+  --acento-100-rgb: 113 196 239;
+  --acento-200-rgb: 0 102 140;
+  --texto-100-rgb: 29 28 28;
+  --texto-200-rgb: 49 61 68;
+  --bg-100-rgb: 255 254 251;
+  --bg-200-rgb: 245 244 241;
+  --bg-300-rgb: 204 203 200;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-[var(--bg-100)] text-[var(--texto-100)];
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+  }
+
+  /* TODO: Revisar si necesitamos más estilos base */
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--acento-200)] hover:bg-[var(--acento-100)] text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg;
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--primario-100)] hover:bg-[var(--primario-200)] text-[var(--texto-100)] px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-md;
+  }
+  
+  /* FIXME: Verificar que estos estilos de tarjeta funcionen bien en todos los navegadores */
+  .promo-card {
+    @apply bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-bg-300/30;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, var(--acento-200), var(--acento-100));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
