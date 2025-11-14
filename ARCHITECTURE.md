@@ -715,3 +715,5 @@ Escalado a 100 páginas
 
 Este documento describe la arquitectura actual del proyecto. Para cambios arquitectónicos mayores, consultar con el equipo técnico. 🏗️
 
+
+

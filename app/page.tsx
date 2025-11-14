@@ -1,5 +1,7 @@
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
+import SearchSection from '@/components/search/SearchSection';
+import QuickFilters from '@/components/search/QuickFilters';
 import PromotionsSection from '@/components/PromotionsSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
@@ -10,6 +12,8 @@ import Footer from '@/components/Footer';
  * Estructura:
  * - Header: Navegación minimalista
  * - Hero: Promoción principal con CTA
+ * - Search: Barra de búsqueda principal
+ * - QuickFilters: Filtros rápidos por tipo
  * - Promotions: Grid de ofertas especiales
  * - Features: Beneficios y garantías
  * - Footer: Enlaces y información de contacto
@@ -23,6 +27,8 @@ export default function HomePage() {
     <main className="min-h-screen">
       <Header />
       <HeroSection />
+      <SearchSection />
+      <QuickFilters />
       <PromotionsSection />
       <FeaturesSection />
       <Footer />

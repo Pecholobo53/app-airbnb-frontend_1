@@ -2,6 +2,8 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
 import OfferTopBar from '@/components/OfferTopBar';
+import { AuthProvider } from '@/lib/auth/auth-context';
+import { Toaster } from '@/components/ui/sonner';
 
 const dmSans = DM_Sans({ 
   subsets: ['latin'],
@@ -22,13 +24,16 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${dmSans.variable} font-sans antialiased`}>
-        <OfferTopBar 
-          discount="40%" 
-          maxUsers={10}
-          showTimer={true}
-          timerMinutes={60}
-        />
-        {children}
+        <AuthProvider>
+          <OfferTopBar 
+            discount="40%" 
+            maxUsers={10}
+            showTimer={true}
+            timerMinutes={60}
+          />
+          {children}
+          <Toaster richColors position="top-center" />
+        </AuthProvider>
       </body>
     </html>
   );
