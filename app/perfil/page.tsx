@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
+import { User } from '@/types/auth';
 import AuthGuard from '@/components/auth/AuthGuard';
 import Footer from '@/components/Footer';
 import UserAvatar from '@/components/auth/UserAvatar';
@@ -20,6 +21,7 @@ function PerfilContent() {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
 
   const {
     register,
@@ -36,11 +38,38 @@ function PerfilContent() {
 
   const onSubmit = async (data: UpdateProfileFormData) => {
     setIsLoading(true);
-    const success = await updateUser(data);
-    setIsLoading(false);
-
-    if (success) {
-      setIsEditing(false);
+    
+    try {
+      console.log('📝 Datos del formulario:', data);
+      console.log('🖼️ Avatar preview:', previewAvatar ? 'Sí' : 'No');
+      
+      // Preparar datos para actualizar
+      const updateData: Partial<User> = {
+        name: data.name,
+        phone: data.phone || undefined,
+      };
+      
+      // Solo agregar avatar si hay uno nuevo
+      if (previewAvatar) {
+        updateData.avatar = previewAvatar;
+        console.log('✅ Avatar agregado a updateData');
+      }
+      
+      console.log('📤 Enviando datos:', updateData);
+      
+      const success = await updateUser(updateData);
+      
+      if (success) {
+        console.log('✅ Perfil actualizado exitosamente');
+        setPreviewAvatar(null);
+        setIsEditing(false);
+      } else {
+        console.error('❌ Error: updateUser retornó false');
+      }
+    } catch (error) {
+      console.error('❌ Error en onSubmit:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -49,7 +78,32 @@ function PerfilContent() {
       name: user?.name || '',
       phone: user?.phone || '',
     });
+    setPreviewAvatar(null);
     setIsEditing(false);
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamaño (máximo 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('La imagen debe ser menor de 2MB');
+      return;
+    }
+
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      alert('El archivo debe ser una imagen');
+      return;
+    }
+
+    // Crear preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewAvatar(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   if (!user) return null;
@@ -76,10 +130,52 @@ function PerfilContent() {
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <UserAvatar user={user} size="lg" />
+                    {/* Avatar con opción de cambiar foto */}
+                    <div className="relative group">
+                      <UserAvatar user={user} size="lg" previewSrc={previewAvatar} />
+                      {isEditing && (
+                        <label 
+                          htmlFor="avatar-upload" 
+                          className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <svg 
+                            className="w-6 h-6 text-white" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
+                            />
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" 
+                            />
+                          </svg>
+                        </label>
+                      )}
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                        disabled={!isEditing || isLoading}
+                      />
+                    </div>
                     <div>
                       <CardTitle className="text-2xl">{user.name}</CardTitle>
                       <CardDescription>{user.email}</CardDescription>
+                      {isEditing && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Pasa el cursor sobre la foto para cambiarla
+                        </p>
+                      )}
                     </div>
                   </div>
                   {!isEditing && (

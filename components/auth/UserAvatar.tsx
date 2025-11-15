@@ -8,9 +8,15 @@ interface UserAvatarProps {
   user: User;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  previewSrc?: string | null;
 }
 
-export default function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProps) {
+export default function UserAvatar({ 
+  user, 
+  size = 'md', 
+  className = '',
+  previewSrc = null
+}: UserAvatarProps) {
   const sizeClasses = {
     sm: 'h-8 w-8 text-xs',
     md: 'h-10 w-10 text-sm',
@@ -25,11 +31,14 @@ export default function UserAvatar({ user, size = 'md', className = '' }: UserAv
     return name.substring(0, 2).toUpperCase();
   };
 
+  // Usar preview si existe, sino el avatar del usuario
+  const avatarSrc = previewSrc || user.avatar;
+
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
-      {user.avatar && (
+      {avatarSrc && (
         <AvatarImage 
-          src={user.avatar} 
+          src={avatarSrc} 
           alt={user.name}
         />
       )}

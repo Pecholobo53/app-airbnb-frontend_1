@@ -110,10 +110,6 @@ export const updateProfileSchema = z.object({
     .regex(/^[+]?[\d\s()-]{9,20}$/, 'Número de teléfono inválido')
     .optional()
     .or(z.literal('')),
-  avatar: z
-    .string()
-    .url('URL de avatar inválida')
-    .optional(),
 });
 
 export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;

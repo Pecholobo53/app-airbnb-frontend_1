@@ -22,14 +22,6 @@ export default function OfferTopBar({
   const [timeLeft, setTimeLeft] = useState(timerMinutes * 60);
   const [spotsLeft, setSpotsLeft] = useState(maxUsers);
 
-  // Verificar localStorage al montar
-  useEffect(() => {
-    const isClosed = localStorage.getItem('offerTopBarClosed');
-    if (isClosed === 'true') {
-      setIsVisible(false);
-    }
-  }, []);
-
   // Timer de cuenta regresiva
   useEffect(() => {
     if (!showTimer || !isVisible) return;
@@ -58,7 +50,6 @@ export default function OfferTopBar({
   }, [isVisible]);
 
   const handleClose = () => {
-    localStorage.setItem('offerTopBarClosed', 'true');
     setIsVisible(false);
   };
 
@@ -69,10 +60,12 @@ export default function OfferTopBar({
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!isVisible) return null;
-
   return (
-    <div className="sticky top-16 z-40 w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden">
+    <div 
+      className={`w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden transition-all duration-300 ${
+        isVisible ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3 gap-4">
           {/* Contenido principal */}
