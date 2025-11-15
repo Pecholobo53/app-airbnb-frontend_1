@@ -74,12 +74,12 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
           </div>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
+      <PopoverContent className="w-80 bg-white" align="start">
         <div className="space-y-4">
           {/* Adultos */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-sm">Adultos</p>
+              <p className="font-medium text-sm text-gray-900">Adultos</p>
               <p className="text-xs text-gray-500">16+ años</p>
             </div>
             <div className="flex items-center gap-3">
@@ -92,7 +92,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
               >
                 <Minus className="h-3 w-3" />
               </Button>
-              <span className="w-8 text-center font-medium">
+              <span className="w-8 text-center font-medium text-gray-900">
                 {localGuests.adults}
               </span>
               <Button
@@ -110,7 +110,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
           {/* Niños */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-sm">Niños</p>
+              <p className="font-medium text-sm text-gray-900">Niños</p>
               <p className="text-xs text-gray-500">2-12 años</p>
             </div>
             <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
               >
                 <Minus className="h-3 w-3" />
               </Button>
-              <span className="w-8 text-center font-medium">
+              <span className="w-8 text-center font-medium text-gray-900">
                 {localGuests.children}
               </span>
               <Button
@@ -141,7 +141,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
           {/* Bebés */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-sm">Bebés</p>
+              <p className="font-medium text-sm text-gray-900">Bebés</p>
               <p className="text-xs text-gray-500">Menos de 2 años</p>
             </div>
             <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
               >
                 <Minus className="h-3 w-3" />
               </Button>
-              <span className="w-8 text-center font-medium">
+              <span className="w-8 text-center font-medium text-gray-900">
                 {localGuests.infants}
               </span>
               <Button

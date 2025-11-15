@@ -64,7 +64,7 @@ export default function DateRangePicker({ checkIn, checkOut, onChange }: DateRan
           </div>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 bg-white" align="start">
         <Calendar
           mode="range"
           selected={dateRange}
@@ -72,7 +72,7 @@ export default function DateRangePicker({ checkIn, checkOut, onChange }: DateRan
           numberOfMonths={2}
           disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
           locale={es}
-          className="rounded-md border"
+          className="rounded-md border bg-white"
         />
         {checkIn && checkOut && (
           <div className="p-3 border-t border-gray-200 bg-gray-50">

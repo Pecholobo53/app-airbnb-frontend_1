@@ -36,11 +36,11 @@ export default function UserMenu() {
         </div>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 bg-white">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
+            <p className="text-sm font-medium leading-none text-gray-900">{user.name}</p>
+            <p className="text-xs leading-none text-gray-600">
               {user.email}
             </p>
           </div>

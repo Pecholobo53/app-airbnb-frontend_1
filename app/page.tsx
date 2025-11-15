@@ -1,6 +1,6 @@
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
-import SearchSection from '@/components/search/SearchSection';
+// import SearchSection from '@/components/search/SearchSection';
 import QuickFilters from '@/components/search/QuickFilters';
 import PromotionsSection from '@/components/PromotionsSection';
 import FeaturesSection from '@/components/FeaturesSection';
@@ -10,9 +10,8 @@ import Footer from '@/components/Footer';
  * Home Page - Landing page principal de promociones Airbnb
  * 
  * Estructura:
- * - Header: Navegación minimalista
+ * - Header: Navegación minimalista con barra de búsqueda integrada
  * - Hero: Promoción principal con CTA
- * - Search: Barra de búsqueda principal
  * - QuickFilters: Filtros rápidos por tipo
  * - Promotions: Grid de ofertas especiales
  * - Features: Beneficios y garantías
@@ -27,7 +26,7 @@ export default function HomePage() {
     <main className="min-h-screen">
       <Header />
       <HeroSection />
-      <SearchSection />
+      {/* <SearchSection /> */}
       <QuickFilters />
       <PromotionsSection />
       <FeaturesSection />
