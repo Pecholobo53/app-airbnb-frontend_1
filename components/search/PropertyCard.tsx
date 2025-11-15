@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, UI_LABELS } from '@/lib/constants';
 
 interface PropertyCardProps {
   property: Property;
@@ -24,12 +25,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      toast.error('Debes iniciar sesión para guardar favoritos');
+      toast.error(ERROR_MESSAGES.LOGIN_REQUIRED);
       return;
     }
 
     setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? 'Eliminado de favoritos' : 'Añadido a favoritos');
+    toast.success(isFavorite ? SUCCESS_MESSAGES.FAVORITE_REMOVED : SUCCESS_MESSAGES.FAVORITE_ADDED);
   };
 
   const nextImage = (e: React.MouseEvent) => {
@@ -158,7 +159,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </span>
             <span className="flex items-center gap-1">
               <Bed className="h-3 w-3" />
-              {property.capacity.bedrooms} hab
+              {property.capacity.bedrooms} {UI_LABELS.BEDROOMS_SHORT}
             </span>
           </div>
 
@@ -168,7 +169,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               <span className="font-bold text-gray-900">
                 €{property.pricing.basePrice}
               </span>
-              <span className="text-gray-500"> / noche</span>
+              <span className="text-gray-500"> / {UI_LABELS.NIGHTS_SINGLE}</span>
             </p>
           </div>
         </div>

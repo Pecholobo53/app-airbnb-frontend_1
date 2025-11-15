@@ -6,6 +6,8 @@ import { Users, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { GuestsData } from '@/types/search';
+import { APP_CONFIG, UI_LABELS } from '@/lib/constants';
+import { pluralize } from '@/lib/utils';
 
 interface GuestsSelectorProps {
   guests?: GuestsData;
@@ -29,17 +31,17 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
     const newGuests = { ...localGuests };
 
     if (increment) {
-      // Máximos razonables
-      if (type === 'adults' && newGuests.adults < 16) {
+      // Máximos definidos en constantes
+      if (type === 'adults' && newGuests.adults < APP_CONFIG.MAX_GUESTS) {
         newGuests.adults++;
-      } else if (type === 'children' && newGuests.children < 10) {
+      } else if (type === 'children' && newGuests.children < APP_CONFIG.MAX_CHILDREN) {
         newGuests.children++;
-      } else if (type === 'infants' && newGuests.infants < 5) {
+      } else if (type === 'infants' && newGuests.infants < APP_CONFIG.MAX_INFANTS) {
         newGuests.infants++;
       }
     } else {
-      // Mínimos
-      if (type === 'adults' && newGuests.adults > 1) {
+      // Mínimos definidos en constantes
+      if (type === 'adults' && newGuests.adults > APP_CONFIG.MIN_ADULTS) {
         newGuests.adults--;
       } else if (type === 'children' && newGuests.children > 0) {
         newGuests.children--;
@@ -53,8 +55,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
   };
 
   const getDisplayText = () => {
-    if (totalGuests === 1) return '1 huésped';
-    return `${totalGuests} huéspedes`;
+    return `${totalGuests} ${pluralize(totalGuests, UI_LABELS.GUESTS_SINGLE, UI_LABELS.GUESTS_PLURAL)}`;
   };
 
   return (
@@ -88,7 +89,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
                 size="icon"
                 className="h-8 w-8 rounded-full"
                 onClick={() => updateGuests('adults', false)}
-                disabled={localGuests.adults <= 1}
+                disabled={localGuests.adults <= APP_CONFIG.MIN_ADULTS}
               >
                 <Minus className="h-3 w-3" />
               </Button>
@@ -100,7 +101,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
                 size="icon"
                 className="h-8 w-8 rounded-full"
                 onClick={() => updateGuests('adults', true)}
-                disabled={localGuests.adults >= 16}
+                disabled={localGuests.adults >= APP_CONFIG.MAX_GUESTS}
               >
                 <Plus className="h-3 w-3" />
               </Button>
@@ -131,7 +132,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
                 size="icon"
                 className="h-8 w-8 rounded-full"
                 onClick={() => updateGuests('children', true)}
-                disabled={localGuests.children >= 10}
+                disabled={localGuests.children >= APP_CONFIG.MAX_CHILDREN}
               >
                 <Plus className="h-3 w-3" />
               </Button>
@@ -162,7 +163,7 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
                 size="icon"
                 className="h-8 w-8 rounded-full"
                 onClick={() => updateGuests('infants', true)}
-                disabled={localGuests.infants >= 5}
+                disabled={localGuests.infants >= APP_CONFIG.MAX_INFANTS}
               >
                 <Plus className="h-3 w-3" />
               </Button>

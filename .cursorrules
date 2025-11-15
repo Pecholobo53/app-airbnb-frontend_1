@@ -1,0 +1,531 @@
+# REGLAS PARA PROYECTO AIRBNB - STACK ACTUAL COMPLETO
+
+## 🎯 PRINCIPIOS FUNDAMENTALES
+1. NUNCA agregues funcionalidades que no he pedido explícitamente
+2. USA lo que ya tenemos instalado, NO agregues más librerías
+3. MANTÉN el código simple aunque uses TypeScript
+4. NO sobre-compliques con tipos TypeScript innecesarios
+5. EXPLICA cada cambio en español simple
+
+## 📚 STACK ACTUAL PERMITIDO (YA INSTALADO)
+- TypeScript 5.2.2 - Úsalo pero simple
+- Next.js 13.5.1 - App Router
+- React 18.2.0
+- Tailwind CSS 3.3.3
+- Radix UI - Para componentes (dropdown, dialog, etc.)
+- React Hook Form - Para formularios
+- Zod - Para validación SIMPLE
+- Lucide React - Para iconos
+- Sonner - Para notificaciones
+- date-fns - Para fechas
+
+## ⛔ NO AGREGUES
+1. NO instales más dependencias sin preguntarme
+2. NO uses Context API o Redux (usa useState)
+3. NO agregues más librerías de UI
+4. NO uses CSS Modules o styled-components
+5. NO implementes testing automático
+6. NO agregues Storybook
+7. NO uses tRPC o GraphQL
+8. NO agregues más herramientas de build
+
+## 📝 REGLAS DE TYPESCRIPT
+1. Tipos simples - no generics complejos
+2. Interfaces antes que types cuando sea posible
+3. NO uses 'any' pero tampoco sobre-tipees
+4. Tipos explícitos solo cuando TypeScript no pueda inferir
+5. NO hagas tipos para TODO, solo lo necesario
+```typescript
+// ✅ BIEN - Simple y claro
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+// ❌ MAL - Demasiado complejo
+type ComplexGeneric<T extends BaseType<K>, K = string> = ...
+```
+
+## 🎨 COMPONENTES CON RADIX UI
+1. USA Radix UI que ya tienes para modales, dropdowns, etc.
+2. NO personalices demasiado los componentes Radix
+3. Estiliza con Tailwind, no con CSS custom
+4. Mantén la accesibilidad que Radix provee
+```tsx
+// ✅ BIEN - Simple con Radix
+<Dialog.Root>
+  <Dialog.Trigger className="btn-primary">Abrir</Dialog.Trigger>
+  <Dialog.Content className="bg-white p-6 rounded-lg">
+    Contenido simple
+  </Dialog.Content>
+</Dialog.Root>
+```
+
+## 📁 ESTRUCTURA NEXT.JS 13 APP ROUTER
+```
+/app
+  /page.tsx              (página principal)
+  /layout.tsx            (layout principal)
+  /(auth)
+    /login/page.tsx      (páginas de auth)
+    /register/page.tsx
+  /(dashboard)
+    /propiedades/page.tsx
+    /reservas/page.tsx
+  /api
+    /auth/[...nextauth]/route.ts
+    /propiedades/route.ts
+/components
+  /ui                    (componentes Radix/básicos)
+  /forms                 (formularios con react-hook-form)
+  /features              (componentes de negocio)
+  /layout                (headers, footers)
+/lib
+  /utils.ts              (funciones auxiliares)
+  /constants.ts          (configuración centralizada)
+  /db.ts                 (conexión a base de datos)
+  /api/                  (funciones de API)
+/hooks
+  /use-auth.ts           (hooks personalizados)
+  /use-property.ts
+/types
+  /index.ts              (tipos TypeScript globales)
+```
+
+## 🔄 REFACTORIZACIÓN Y COMPONENTES REUTILIZABLES
+
+### PRINCIPIO DRY (Don't Repeat Yourself)
+1. Si copias código 2 veces → Considera extraerlo
+2. Si copias código 3 veces → DEBES extraerlo
+3. Un componente reutilizable = Una responsabilidad clara
+4. Mejor 5 componentes simples que 1 componente complejo
+
+### JERARQUÍA DE COMPONENTES
+```
+/components
+  /ui                    # Átomos - Botones, Inputs, Cards
+    Button.tsx
+    Input.tsx
+    Card.tsx
+  /forms                 # Moléculas - Combinan átomos
+    SearchBar.tsx
+    LoginForm.tsx
+    PropertyForm.tsx
+  /features              # Organismos - Features completas
+    PropertyList.tsx
+    BookingCalendar.tsx
+    ReviewSection.tsx
+  /layout                # Templates - Estructuras de página
+    Header.tsx
+    Sidebar.tsx
+    Footer.tsx
+```
+
+## 💪 ROBUSTEZ Y MANEJO DE ERRORES
+
+### PRINCIPIO FAIL-SAFE
+1. Cada componente debe poder fallar sin romper la app
+2. Estados de error claros y recuperables
+3. Fallbacks útiles, no pantallas en blanco
+4. Logs claros para debugging
+
+### PATRÓN DE COMPONENTE ROBUSTO
+```tsx
+// ✅ COMPONENTE ROBUSTO
+export function PropertyCard({ property }: PropertyCardProps) {
+  // Estados para manejar casos edge
+  const [imageError, setImageError] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  // Valores por defecto seguros
+  const title = property?.title || 'Propiedad sin título'
+  const price = property?.price ?? 0
+  const image = property?.image || '/placeholder.jpg'
+  
+  // Manejo de errores en imagen
+  const handleImageError = () => {
+    setImageError(true)
+    console.error(`Error cargando imagen: ${property?.id}`)
+  }
+  
+  // Loading state
+  if (isLoading) {
+    return <CardSkeleton />
+  }
+  
+  // Error boundary local
+  try {
+    return (
+      <div className="card">
+        <img 
+          src={imageError ? '/placeholder.jpg' : image}
+          onError={handleImageError}
+          alt={title}
+        />
+        <h3>{title}</h3>
+        <p>${price}/noche</p>
+      </div>
+    )
+  } catch (error) {
+    console.error('Error en PropertyCard:', error)
+    return <CardErrorFallback />
+  }
+}
+```
+
+## 🔧 CONFIGURACIÓN EXISTENTE
+1. NO modifiques tsconfig.json sin necesidad
+2. NO cambies next.config.js a menos que sea crítico
+3. USA las configuraciones de Tailwind que ya existen
+4. MANTÉN output: 'export' si está configurado así
+
+## 📝 FORMULARIOS CON REACT HOOK FORM + ZOD
+```tsx
+// ✅ BIEN - Simple y funcional
+const schema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Mínimo 6 caracteres')
+})
+
+const { register, handleSubmit, formState: { errors } } = useForm({
+  resolver: zodResolver(schema)
+})
+
+// ❌ MAL - Demasiado complejo
+const complexSchema = z.object({...}).transform().refine().superRefine()...
+```
+
+## 🎯 REGLAS DE DESARROLLO
+1. USA Server Components por defecto en Next.js 13
+2. 'use client' SOLO cuando necesites interactividad
+3. NO uses getServerSideProps/getStaticProps (usa App Router)
+4. Loading.tsx y error.tsx simples
+5. NO implementes ISR o configuraciones avanzadas
+
+## 💡 COMPONENTES
+1. Un componente = Un archivo
+2. Props tipadas pero simples
+3. NO más de 100 líneas por componente
+4. Divide en componentes más pequeños si crece
+```tsx
+// ✅ BIEN
+interface ButtonProps {
+  onClick: () => void
+  children: React.ReactNode
+  variant?: 'primary' | 'secondary'
+  disabled?: boolean
+}
+
+// ❌ MAL
+interface ButtonProps extends HTMLButtonElement, 
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  CustomButtonInterface, BaseComponentProps<'button'> {...}
+```
+
+## 🏗️ ARQUITECTURA ESCALABLE
+
+### SEPARACIÓN DE RESPONSABILIDADES
+```typescript
+// 📁 /lib/api/properties.ts - Lógica de negocio
+export async function getProperties(filters?: PropertyFilters) {
+  try {
+    const response = await fetch('/api/properties', {
+      method: 'POST',
+      body: JSON.stringify(filters)
+    })
+    if (!response.ok) throw new Error('Failed to fetch')
+    return response.json()
+  } catch (error) {
+    console.error('Error fetching properties:', error)
+    throw error
+  }
+}
+
+// 📁 /components/features/PropertyList.tsx - Presentación
+export function PropertyList() {
+  const [properties, setProperties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+  useEffect(() => {
+    getProperties()
+      .then(setProperties)
+      .catch((err) => {
+        setError(err.message)
+        setProperties([]) // Fallback seguro
+      })
+      .finally(() => setLoading(false))
+  }, [])
+  
+  if (loading) return <PropertyListSkeleton />
+  if (error) return <ErrorMessage message={error} />
+  
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {properties.map(p => (
+        <PropertyCard key={p.id} property={p} />
+      ))}
+    </div>
+  )
+}
+```
+
+### CONSTANTES Y CONFIGURACIÓN CENTRALIZADA
+```typescript
+// 📁 /lib/constants.ts
+export const APP_CONFIG = {
+  MAX_GUESTS: 16,
+  MIN_NIGHTS: 1,
+  MAX_NIGHTS: 365,
+  DEFAULT_CURRENCY: 'EUR',
+  IMAGE_FORMATS: ['jpg', 'png', 'webp'],
+  ITEMS_PER_PAGE: 12,
+} as const
+
+export const API_ENDPOINTS = {
+  PROPERTIES: '/api/properties',
+  BOOKINGS: '/api/bookings',
+  REVIEWS: '/api/reviews',
+} as const
+
+export const ERROR_MESSAGES = {
+  NETWORK: 'Error de conexión. Intenta de nuevo.',
+  NOT_FOUND: 'No encontramos lo que buscas.',
+  UNAUTHORIZED: 'Necesitas iniciar sesión.',
+  DEFAULT: 'Algo salió mal. Intenta más tarde.',
+} as const
+```
+
+## 🚨 MANEJO DE ESTADO
+1. useState para estado local
+2. useReducer SOLO si useState se vuelve muy complejo
+3. Props drilling está OK para 2-3 niveles
+4. Custom hooks para lógica compartida
+5. Server state con fetch en Server Components
+
+### CUSTOM HOOKS PARA LÓGICA COMPARTIDA
+```tsx
+// hooks/usePropertySearch.ts
+export function usePropertySearch() {
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  
+  const search = async (query: string) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetch(`/api/search?q=${query}`)
+      if (!data.ok) throw new Error('Error en búsqueda')
+      setResults(await data.json())
+    } catch (err) {
+      setError(err.message)
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }
+  
+  return { results, loading, error, search }
+}
+```
+
+## 📡 API Y DATOS
+1. Route Handlers simples en /app/api
+2. fetch() nativo, NO axios
+3. Prisma para base de datos (si lo agregamos)
+4. Validación con Zod en cliente y servidor
+5. Sanitización de datos antes de guardar
+
+## 🎨 ESTILOS CON TAILWIND
+1. USA clases de Tailwind estándar
+2. cn() helper para clases condicionales
+3. NO @apply en CSS a menos que sea necesario
+4. NO themes complejos, usa los colores de Tailwind
+```tsx
+// ✅ BIEN - Clases simples y legibles
+<div className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
+
+// ❌ MAL - Demasiadas clases custom
+<div className="custom-flex-wrapper theme-card-variant-2 enhanced-shadow">
+```
+
+## 🛡️ VALIDACIÓN Y SANITIZACIÓN
+
+### VALIDACIÓN EN MÚLTIPLES CAPAS
+```typescript
+// 1. Cliente - Validación inmediata
+const PropertySchema = z.object({
+  title: z.string().min(5, 'Mínimo 5 caracteres').max(100),
+  price: z.number().positive('Debe ser mayor a 0'),
+  guests: z.number().min(1).max(APP_CONFIG.MAX_GUESTS),
+})
+
+// 2. API - Re-validación en servidor
+export async function POST(request: Request) {
+  const body = await request.json()
+  
+  const validation = PropertySchema.safeParse(body)
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error.flatten() },
+      { status: 400 }
+    )
+  }
+  
+  // Procesar datos validados...
+}
+```
+
+## 🔧 UTILIDADES REUTILIZABLES
+
+### FUNCIONES HELPER COMUNES
+```typescript
+// 📁 /lib/utils.ts
+
+// Formateo de precios consistente
+export function formatPrice(price: number, currency = 'EUR') {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency,
+  }).format(price)
+}
+
+// Manejo seguro de fechas
+export function formatDate(date: string | Date | null) {
+  if (!date) return 'Fecha no disponible'
+  try {
+    return format(new Date(date), 'dd MMM yyyy', { locale: es })
+  } catch {
+    return 'Fecha inválida'
+  }
+}
+
+// Debounce reutilizable
+export function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): T {
+  let timeout: NodeJS.Timeout
+  return ((...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), wait)
+  }) as T
+}
+
+// Clase condicional helper (si no tienes cn())
+export function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(' ')
+}
+```
+
+## ⚡ OPTIMIZACIÓN
+1. NO optimices prematuramente
+2. Image de Next.js para imágenes
+3. Link de Next.js para navegación
+4. dynamic() SOLO si realmente lo necesitas
+5. NO memo/callback en todos lados
+6. Lazy loading para componentes pesados
+```tsx
+// ✅ BIEN - Optimización necesaria
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <Skeleton />,
+  ssr: false
+})
+
+// ❌ MAL - Optimización prematura
+const SimpleButton = memo(({ onClick, children }) => {
+  const handleClick = useCallback(onClick, [onClick])
+  return <button onClick={handleClick}>{children}</button>
+})
+```
+
+## 📝 CHECKLIST DE REFACTORIZACIÓN
+
+Antes de considerar código "terminado", verifica:
+
+### ✅ Reutilización
+- [ ] ¿Hay código duplicado que pueda extraerse?
+- [ ] ¿Los componentes son lo suficientemente genéricos?
+- [ ] ¿La lógica de negocio está separada de la UI?
+
+### ✅ Robustez
+- [ ] ¿Maneja estados de loading?
+- [ ] ¿Maneja errores gracefully?
+- [ ] ¿Tiene valores por defecto seguros?
+- [ ] ¿Los tipos TypeScript previenen errores?
+
+### ✅ Mantenibilidad
+- [ ] ¿Es fácil entender qué hace el código?
+- [ ] ¿Los nombres son descriptivos?
+- [ ] ¿Está bien organizado en carpetas?
+- [ ] ¿Sería fácil agregar features?
+
+### ✅ Performance (sin obsesionarse)
+- [ ] ¿Se cargan imágenes de forma optimizada?
+- [ ] ¿Los componentes pesados son lazy-loaded?
+- [ ] ¿Se evitan re-renders innecesarios?
+
+## 🎯 REGLA DE ORO DE REFACTORIZACIÓN
+
+**"Primero hazlo funcionar, luego hazlo bonito, finalmente hazlo rápido"**
+
+1. **FASE 1:** Implementa la funcionalidad básica
+2. **FASE 2:** Refactoriza para reutilización y claridad
+3. **FASE 3:** Optimiza solo si hay problemas reales
+
+## ⚠️ SEÑALES PARA REFACTORIZAR
+
+- Archivo con más de 200 líneas → Dividir
+- Componente con más de 5 props → Simplificar
+- Función con más de 30 líneas → Extraer lógica
+- Copy-paste del mismo código 3+ veces → Crear utilidad
+- Dificultad para agregar nueva feature → Reorganizar
+- Bugs recurrentes en el mismo lugar → Fortalecer validación
+- "No toco eso porque se rompe todo" → Refactorizar urgente
+
+## 🔄 ANTES DE CADA RESPUESTA
+Pregúntate:
+1. ¿Estoy usando algo que ya está instalado?
+2. ¿Es la implementación más simple con este stack?
+3. ¿Estoy agregando tipos innecesarios?
+4. ¿Puedo hacerlo con menos código?
+5. ¿Es reutilizable y robusto?
+6. ¿Maneja errores adecuadamente?
+
+## 📌 COMANDOS RÁPIDOS
+"sin tipos complejos" = tipos básicos de TypeScript
+"componente simple" = sin props complejas ni lógica excesiva
+"usa lo que hay" = no instales nada nuevo
+"server component" = sin 'use client'
+"client component" = con 'use client' y hooks
+"formulario básico" = react-hook-form sin validaciones excesivas
+"hazlo robusto" = agrega manejo de errores y estados edge
+"refactoriza esto" = extrae componentes y lógica reutilizable
+"optimiza" = SOLO si hay un problema real de performance
+
+## 🎮 EJEMPLO DE USO CORRECTO
+```typescript
+// ❌ MAL - Cursor siendo demasiado "inteligente"
+"Crea un sistema de búsqueda con debounce, virtualización,
+caching distribuido y machine learning"
+
+// ✅ BIEN - Simple, claro y escalable
+"Crea un componente de búsqueda que:
+1. Busque propiedades por nombre
+2. Muestre loading mientras busca
+3. Maneje errores si falla
+4. Sea reutilizable en otras páginas"
+```
+
+## 💡 FILOSOFÍA FINAL
+
+**SIMPLICIDAD + ROBUSTEZ = ESCALABILIDAD**
+
+- Código simple es más fácil de mantener
+- Código robusto previene bugs futuros
+- Código reutilizable acelera el desarrollo
+- La complejidad debe justificarse con valor real
+
+RECUERDA: No porque tengas TypeScript y librerías modernas significa que todo debe ser complejo. La elegancia está en la simplicidad.

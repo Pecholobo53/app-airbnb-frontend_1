@@ -13,6 +13,7 @@ import {
 import UserAvatar from './UserAvatar';
 import { User, Heart, Calendar, Settings, LogOut, LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/lib/constants';
 
 export default function UserMenu() {
   const { user, logout } = useAuth();
@@ -22,7 +23,7 @@ export default function UserMenu() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    router.push(ROUTES.HOME);
   };
 
   return (
@@ -49,7 +50,7 @@ export default function UserMenu() {
         <DropdownMenuSeparator />
         
         <DropdownMenuItem 
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push(ROUTES.DASHBOARD)}
           className="cursor-pointer"
         >
           <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -57,7 +58,7 @@ export default function UserMenu() {
         </DropdownMenuItem>
 
         <DropdownMenuItem 
-          onClick={() => router.push('/perfil')}
+          onClick={() => router.push(ROUTES.PERFIL)}
           className="cursor-pointer"
         >
           <User className="mr-2 h-4 w-4" />
@@ -65,7 +66,7 @@ export default function UserMenu() {
         </DropdownMenuItem>
 
         <DropdownMenuItem 
-          onClick={() => router.push('/mis-reservas')}
+          onClick={() => router.push(ROUTES.MIS_RESERVAS)}
           className="cursor-pointer"
         >
           <Calendar className="mr-2 h-4 w-4" />
@@ -73,7 +74,7 @@ export default function UserMenu() {
         </DropdownMenuItem>
 
         <DropdownMenuItem 
-          onClick={() => router.push('/favoritos')}
+          onClick={() => router.push(ROUTES.FAVORITOS)}
           className="cursor-pointer"
         >
           <Heart className="mr-2 h-4 w-4" />
@@ -81,7 +82,7 @@ export default function UserMenu() {
         </DropdownMenuItem>
 
         <DropdownMenuItem 
-          onClick={() => router.push('/configuracion')}
+          onClick={() => router.push(ROUTES.CONFIGURACION)}
           className="cursor-pointer"
         >
           <Settings className="mr-2 h-4 w-4" />

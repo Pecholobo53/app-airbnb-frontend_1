@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/lib/constants';
 
 /**
  * Header Component - Navigation minimalista con autenticación integrada
@@ -19,9 +20,9 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchValue.trim()) {
-      router.push(`/buscar?location=${encodeURIComponent(searchValue)}`);
+      router.push(`${ROUTES.BUSCAR}?location=${encodeURIComponent(searchValue)}`);
     } else {
-      router.push('/buscar');
+      router.push(ROUTES.BUSCAR);
     }
   };
 
@@ -30,7 +31,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0">
+          <Link href={ROUTES.HOME} className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0">
             <div className="w-8 h-8 bg-gradient-to-r from-acento-200 to-acento-100 rounded-lg flex items-center justify-center">
               <Heart className="w-5 h-5 text-white fill-current" />
             </div>
@@ -83,12 +84,12 @@ export default function Header() {
                 ) : (
                   /* Usuario NO autenticado - Mostrar botones Login/Registro */
                   <>
-                    <Link href="/login" className="hidden sm:inline-block">
+                    <Link href={ROUTES.LOGIN} className="hidden sm:inline-block">
                       <Button variant="ghost" className="font-medium">
                         Iniciar sesión
                       </Button>
                     </Link>
-                    <Link href="/registro">
+                    <Link href={ROUTES.REGISTRO}>
                       <Button className="bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold hidden sm:inline-flex">
                         Registrarse
                       </Button>
@@ -96,7 +97,7 @@ export default function Header() {
                     
                     {/* Mobile - Botón de búsqueda */}
                     <button 
-                      onClick={() => router.push('/buscar')}
+                      onClick={() => router.push(ROUTES.BUSCAR)}
                       className="sm:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       <Search className="w-5 h-5 text-gray-700" />
