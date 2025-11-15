@@ -11,22 +11,6 @@ interface OfferTopBarProps {
   timerMinutes?: number;
 }
 
-/**
- * OfferTopBar - Barra superior de ofertas de última hora
- * 
- * Características:
- * - Diseño llamativo con animación de gradiente
- * - Contador de tiempo opcional
- * - Indicador de plazas limitadas
- * - Botón de cierre con localStorage para no volver a mostrar
- * - Totalmente responsive
- * 
- * @param discount - Porcentaje de descuento (ej: "40%")
- * @param maxUsers - Número máximo de usuarios para la oferta
- * @param message - Mensaje personalizado de la oferta
- * @param showTimer - Mostrar contador regresivo
- * @param timerMinutes - Minutos para el contador (por defecto 60)
- */
 export default function OfferTopBar({
   discount = '40%',
   maxUsers = 10,
@@ -34,50 +18,44 @@ export default function OfferTopBar({
   showTimer = true,
   timerMinutes = 60
 }: OfferTopBarProps) {
-  // Inicializar visible solo si no estamos en servidor o no fue cerrado antes
-  const [isVisible, setIsVisible] = useState(() => {
-    if (typeof window === 'undefined') return true; // SSR
-    return localStorage.getItem('offerTopBarClosed') !== 'true';
-  });
-  const [timeLeft, setTimeLeft] = useState(timerMinutes * 60); // en segundos
+  const [isVisible, setIsVisible] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(timerMinutes * 60);
   const [spotsLeft, setSpotsLeft] = useState(maxUsers);
 
+  // Verificar localStorage al montar
   useEffect(() => {
-    // Verificar nuevamente en el cliente por si acaso
     const isClosed = localStorage.getItem('offerTopBarClosed');
-    if (isClosed === 'true' && isVisible) {
+    if (isClosed === 'true') {
       setIsVisible(false);
-      return; // Si no es visible, no iniciar timers
     }
+  }, []);
 
-    // Simular reducción de plazas disponibles (opcional)
-    const spotsInterval = setInterval(() => {
+  // Timer de cuenta regresiva
+  useEffect(() => {
+    if (!showTimer || !isVisible) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showTimer, isVisible]);
+
+  // Timer de plazas disponibles
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const spotsTimer = setInterval(() => {
       setSpotsLeft(prev => {
         if (prev > 1) {
-          return prev - Math.floor(Math.random() * 2); // Reducir 0-1 plazas
+          return prev - Math.floor(Math.random() * 2);
         }
         return prev;
       });
-    }, 30000); // Cada 30 segundos
+    }, 30000);
 
-    // Timer de cuenta regresiva
-    let timer: NodeJS.Timeout | null = null;
-    if (showTimer) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 0) {
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      clearInterval(spotsInterval);
-      if (timer) clearInterval(timer);
-    };
-  }, [isVisible, showTimer]);
+    return () => clearInterval(spotsTimer);
+  }, [isVisible]);
 
   const handleClose = () => {
     localStorage.setItem('offerTopBarClosed', 'true');
@@ -94,20 +72,12 @@ export default function OfferTopBar({
   if (!isVisible) return null;
 
   return (
-    <div className="sticky top-16 z-40 relative w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 animate-gradient-x overflow-hidden">
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-sm">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-pulse"></div>
-          <div className="absolute bottom-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-pulse delay-1000"></div>
-        </div>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="sticky top-16 z-40 w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-3 gap-4">
           {/* Contenido principal */}
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 flex-1 text-white">
-            {/* Icono de fuego animado */}
+            {/* Icono de fuego */}
             <div className="flex items-center gap-2 animate-bounce">
               <Flame className="w-5 h-5 sm:w-6 sm:h-6 fill-yellow-300 text-yellow-300" />
               <span className="font-bold text-lg sm:text-xl hidden sm:inline">¡OFERTA FLASH!</span>
@@ -132,7 +102,7 @@ export default function OfferTopBar({
 
             {/* Temporizador */}
             {showTimer && (
-              <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full backdrop-blur-sm">
+              <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full">
                 <Clock className="w-4 h-4 animate-pulse" />
                 <span className="font-mono font-bold text-sm sm:text-base tabular-nums">
                   {formatTime(timeLeft)}
@@ -159,21 +129,6 @@ export default function OfferTopBar({
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes gradient-x {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s ease infinite;
-        }
-      `}</style>
     </div>
   );
 }
