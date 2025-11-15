@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import AuthGuard from '@/components/auth/AuthGuard';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import UserAvatar from '@/components/auth/UserAvatar';
 import { Button } from '@/components/ui/button';
@@ -63,8 +62,6 @@ function PerfilContent() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      
       <main className="flex-1 bg-gray-50 py-12">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Header Section */}

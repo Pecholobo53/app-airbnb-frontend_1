@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { SearchProvider, useSearch } from '@/lib/search/search-context';
 import SearchBar from '@/components/search/SearchBar';
 import SearchResults from '@/components/search/SearchResults';
-import Header from '@/components/Header';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -62,8 +61,6 @@ function SearchPageContent() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Search Bar Section */}
       <div className="bg-gray-50 border-b border-gray-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

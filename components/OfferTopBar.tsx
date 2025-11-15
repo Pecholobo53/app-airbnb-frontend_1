@@ -34,15 +34,20 @@ export default function OfferTopBar({
   showTimer = true,
   timerMinutes = 60
 }: OfferTopBarProps) {
-  const [isVisible, setIsVisible] = useState(true);
+  // Inicializar visible solo si no estamos en servidor o no fue cerrado antes
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof window === 'undefined') return true; // SSR
+    return localStorage.getItem('offerTopBarClosed') !== 'true';
+  });
   const [timeLeft, setTimeLeft] = useState(timerMinutes * 60); // en segundos
   const [spotsLeft, setSpotsLeft] = useState(maxUsers);
 
   useEffect(() => {
-    // Verificar si el usuario ya cerró el banner
+    // Verificar nuevamente en el cliente por si acaso
     const isClosed = localStorage.getItem('offerTopBarClosed');
-    if (isClosed === 'true') {
+    if (isClosed === 'true' && isVisible) {
       setIsVisible(false);
+      return; // Si no es visible, no iniciar timers
     }
 
     // Simular reducción de plazas disponibles (opcional)
@@ -55,24 +60,24 @@ export default function OfferTopBar({
       });
     }, 30000); // Cada 30 segundos
 
-    return () => clearInterval(spotsInterval);
-  }, []);
+    // Timer de cuenta regresiva
+    let timer: NodeJS.Timeout | null = null;
+    if (showTimer) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 0) {
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
 
-  useEffect(() => {
-    if (!showTimer) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 0) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [showTimer]);
+    return () => {
+      clearInterval(spotsInterval);
+      if (timer) clearInterval(timer);
+    };
+  }, [isVisible, showTimer]);
 
   const handleClose = () => {
     localStorage.setItem('offerTopBarClosed', 'true');
@@ -89,7 +94,7 @@ export default function OfferTopBar({
   if (!isVisible) return null;
 
   return (
-    <div className="relative w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 animate-gradient-x overflow-hidden">
+    <div className="sticky top-16 z-40 relative w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 animate-gradient-x overflow-hidden">
       {/* Animated background pattern */}
       <div className="absolute inset-0 bg-black/10 backdrop-blur-sm">
         <div className="absolute inset-0 opacity-30">

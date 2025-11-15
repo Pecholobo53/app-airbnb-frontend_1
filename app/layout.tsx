@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
 import OfferTopBar from '@/components/OfferTopBar';
+import Header from '@/components/Header';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${dmSans.variable} font-sans antialiased`}>
         <AuthProvider>
+          <Header />
           <OfferTopBar 
             discount="40%" 
             maxUsers={10}
