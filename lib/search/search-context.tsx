@@ -44,12 +44,17 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, sortBy }));
   };
 
-  const performSearch = async () => {
+  const performSearch = async (customQuery?: Partial<SearchQuery>) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    // Usar customQuery si se proporciona, sino usar state.query
+    const queryToUse = customQuery ? { ...state.query, ...customQuery } : state.query;
+    
+    console.log('🚀 [CONTEXT] performSearch con query:', queryToUse);
 
     try {
       const response = await MockSearchService.searchProperties({
-        query: state.query,
+        query: queryToUse,
         filters: state.filters,
         sortBy: state.sortBy,
         page: 1,

@@ -55,14 +55,12 @@ function SearchPageContent() {
         }
       };
       
-      console.log('🔍 [BUSCAR] Query actualizada:', newQuery);
+      console.log('🔍 [BUSCAR] Query construida:', newQuery);
       updateQuery(newQuery);
       
-      // Auto-buscar si hay parámetros
-      setTimeout(() => {
-        console.log('🚀 [BUSCAR] Ejecutando búsqueda automática...');
-        performSearch();
-      }, 100);
+      // Auto-buscar pasando el query directamente (no esperar a que state se actualice)
+      console.log('🚀 [BUSCAR] Ejecutando búsqueda automática con query:', newQuery);
+      performSearch(newQuery);
     }
   }, [searchParams]);
 
