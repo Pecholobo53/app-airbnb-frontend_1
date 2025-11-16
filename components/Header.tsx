@@ -3,6 +3,7 @@
 import { Heart, Menu, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import UserMenu from '@/components/auth/UserMenu';
+import NotificationsMenu from '@/components/notifications/NotificationsMenu';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -86,6 +87,8 @@ export default function Header() {
             <a href="/#ofertas" className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap">
               Ofertas
             </a>
+            {/* Notificaciones - Solo si está autenticado */}
+            {isAuthenticated && <NotificationsMenu />}
           </nav>
 
           {/* Auth Section */}

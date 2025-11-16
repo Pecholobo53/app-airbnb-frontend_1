@@ -318,7 +318,11 @@ export const MOCK_BOOKINGS: Booking[] = [
   // RESERVAS ADICIONALES (otros usuarios)
   // ========================================
 
-  // 8. Reserva de otro usuario
+  // ========================================
+  // RESERVAS DE MARÍA GONZÁLEZ (user-002 - Google)
+  // ========================================
+
+  // 8. Próximo viaje - París (CONFIRMADA)
   {
     id: 'booking-008',
     propertyId: 'prop-005',
@@ -345,6 +349,164 @@ export const MOCK_BOOKINGS: Booking[] = [
     status: 'confirmed',
     createdAt: new Date('2024-11-08'),
     confirmedAt: new Date('2024-11-09'),
+    guestReviewGiven: false
+  },
+
+  // 9. Viaje pasado - Valencia (COMPLETADO)
+  {
+    id: 'booking-009',
+    propertyId: 'prop-004',
+    property: MOCK_PROPERTIES.find(p => p.id === 'prop-004')!,
+    guestId: 'user-002',
+    guest: MOCK_USERS[1],
+    hostId: 'host-004',
+    host: {
+      id: 'host-004',
+      email: 'carlos.martinez@airbnb.com',
+      name: 'Carlos Martínez',
+      avatar: 'https://i.pravatar.cc/150?img=25',
+      emailVerified: true,
+      createdAt: new Date('2019-07-12'),
+      updatedAt: new Date(),
+      provider: 'email',
+      favorites: []
+    },
+    checkIn: new Date('2024-09-20'),
+    checkOut: new Date('2024-09-25'),
+    nights: 5,
+    guests: { adults: 2, children: 0, infants: 0 },
+    pricing: calculatePricing(110, 5, 35, 20),
+    status: 'completed',
+    createdAt: new Date('2024-08-15'),
+    confirmedAt: new Date('2024-08-16'),
+    guestReviewGiven: true,
+    guestRating: 5,
+    hostReviewGiven: true
+  },
+
+  // 10. Próximo viaje - Roma (CONFIRMADA)
+  {
+    id: 'booking-010',
+    propertyId: 'prop-010',
+    property: MOCK_PROPERTIES.find(p => p.id === 'prop-010')!,
+    guestId: 'user-002',
+    guest: MOCK_USERS[1],
+    hostId: 'host-010',
+    host: {
+      id: 'host-010',
+      email: 'marco.rossi@airbnb.com',
+      name: 'Marco Rossi',
+      avatar: 'https://i.pravatar.cc/150?img=18',
+      emailVerified: true,
+      createdAt: new Date('2020-01-20'),
+      updatedAt: new Date(),
+      provider: 'email',
+      favorites: []
+    },
+    checkIn: new Date('2025-04-15'),
+    checkOut: new Date('2025-04-22'),
+    nights: 7,
+    guests: { adults: 2, children: 0, infants: 0 },
+    pricing: calculatePricing(165, 7, 50, 30),
+    status: 'confirmed',
+    createdAt: new Date('2024-11-10'),
+    confirmedAt: new Date('2024-11-11'),
+    guestReviewGiven: false
+  },
+
+  // ========================================
+  // RESERVAS DE ANA MARTÍNEZ (user-004 - Facebook)
+  // ========================================
+
+  // 11. Próximo viaje - Londres (CONFIRMADA)
+  {
+    id: 'booking-011',
+    propertyId: 'prop-012',
+    property: MOCK_PROPERTIES.find(p => p.id === 'prop-012')!,
+    guestId: 'user-004',
+    guest: MOCK_USERS[3],
+    hostId: 'host-012',
+    host: {
+      id: 'host-012',
+      email: 'emma.wilson@airbnb.com',
+      name: 'Emma Wilson',
+      avatar: 'https://i.pravatar.cc/150?img=22',
+      emailVerified: true,
+      createdAt: new Date('2019-11-05'),
+      updatedAt: new Date(),
+      provider: 'email',
+      favorites: []
+    },
+    checkIn: new Date('2025-02-10'),
+    checkOut: new Date('2025-02-15'),
+    nights: 5,
+    guests: { adults: 1, children: 0, infants: 0 },
+    pricing: calculatePricing(180, 5, 40, 32),
+    status: 'confirmed',
+    createdAt: new Date('2024-11-05'),
+    confirmedAt: new Date('2024-11-06'),
+    guestReviewGiven: false
+  },
+
+  // 12. Viaje pasado - Sevilla (COMPLETADO)
+  {
+    id: 'booking-012',
+    propertyId: 'prop-008',
+    property: MOCK_PROPERTIES.find(p => p.id === 'prop-008')!,
+    guestId: 'user-004',
+    guest: MOCK_USERS[3],
+    hostId: 'host-008',
+    host: {
+      id: 'host-008',
+      email: 'javier.torres@airbnb.com',
+      name: 'Javier Torres',
+      avatar: 'https://i.pravatar.cc/150?img=38',
+      emailVerified: true,
+      createdAt: new Date('2018-09-15'),
+      updatedAt: new Date(),
+      provider: 'email',
+      favorites: []
+    },
+    checkIn: new Date('2024-08-10'),
+    checkOut: new Date('2024-08-14'),
+    nights: 4,
+    guests: { adults: 2, children: 0, infants: 0 },
+    pricing: calculatePricing(125, 4, 35, 22),
+    status: 'completed',
+    createdAt: new Date('2024-07-20'),
+    confirmedAt: new Date('2024-07-21'),
+    guestReviewGiven: true,
+    guestRating: 4,
+    hostReviewGiven: true
+  },
+
+  // 13. Próximo viaje - Ámsterdam (CONFIRMADA)
+  {
+    id: 'booking-013',
+    propertyId: 'prop-015',
+    property: MOCK_PROPERTIES.find(p => p.id === 'prop-015')!,
+    guestId: 'user-004',
+    guest: MOCK_USERS[3],
+    hostId: 'host-015',
+    host: {
+      id: 'host-015',
+      email: 'lucas.van.der.berg@airbnb.com',
+      name: 'Lucas van der Berg',
+      avatar: 'https://i.pravatar.cc/150?img=29',
+      emailVerified: true,
+      createdAt: new Date('2020-05-10'),
+      updatedAt: new Date(),
+      provider: 'email',
+      favorites: []
+    },
+    checkIn: new Date('2025-05-01'),
+    checkOut: new Date('2025-05-06'),
+    nights: 5,
+    guests: { adults: 2, children: 1, infants: 0 },
+    pricing: calculatePricing(155, 5, 40, 28),
+    status: 'confirmed',
+    createdAt: new Date('2024-11-12'),
+    confirmedAt: new Date('2024-11-13'),
     guestReviewGiven: false
   },
 ];
@@ -443,7 +605,7 @@ export function getUpcomingBookingsByGuestId(guestId: string): Booking[] {
   const now = new Date();
   return MOCK_BOOKINGS.filter(
     b => b.guestId === guestId && 
-         b.status === 'confirmed' && 
+         (b.status === 'confirmed' || b.status === 'pending') && 
          b.checkIn > now
   ).sort((a, b) => a.checkIn.getTime() - b.checkIn.getTime());
 }
@@ -452,9 +614,22 @@ export function getPastBookingsByGuestId(guestId: string): Booking[] {
   const now = new Date();
   return MOCK_BOOKINGS.filter(
     b => b.guestId === guestId && 
-         b.status === 'completed' && 
+         (b.status === 'completed' || b.status === 'cancelled') && 
          b.checkOut < now
   ).sort((a, b) => b.checkOut.getTime() - a.checkOut.getTime());
+}
+
+/**
+ * Crear nueva reserva (para testing o uso interno)
+ */
+export function createBooking(booking: Omit<Booking, 'id'>): Booking {
+  const newBooking: Booking = {
+    ...booking,
+    id: `booking-${String(MOCK_BOOKINGS.length + 1).padStart(3, '0')}`,
+  };
+  
+  MOCK_BOOKINGS.push(newBooking);
+  return newBooking;
 }
 
 if (typeof window !== 'undefined') {

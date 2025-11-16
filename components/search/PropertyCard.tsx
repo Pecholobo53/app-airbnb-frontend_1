@@ -2,36 +2,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Star, Users, Bed, MapPin, Zap } from 'lucide-react';
+import { Star, Users, Bed, MapPin, Zap } from 'lucide-react';
 import { Property } from '@/types/search';
-import { useAuth } from '@/lib/auth/auth-context';
-import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES, UI_LABELS } from '@/lib/constants';
+import { UI_LABELS } from '@/lib/constants';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
-  const { user, isAuthenticated } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(
-    user?.favorites.includes(property.id) || false
-  );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated) {
-      toast.error(ERROR_MESSAGES.LOGIN_REQUIRED);
-      return;
-    }
-
-    setIsFavorite(!isFavorite);
-    toast.success(isFavorite ? SUCCESS_MESSAGES.FAVORITE_REMOVED : SUCCESS_MESSAGES.FAVORITE_ADDED);
-  };
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -61,16 +44,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           />
           
           {/* Favorite Button */}
-          <button
-            onClick={handleFavoriteClick}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white hover:scale-110 transition-all z-10"
-          >
-            <Heart
-              className={`h-5 w-5 ${
-                isFavorite ? 'fill-[#FF385C] text-[#FF385C]' : 'text-gray-700'
-              }`}
-            />
-          </button>
+          <div className="absolute top-3 right-3 z-10">
+            <FavoriteButton propertyId={property.id} size="md" />
+          </div>
 
           {/* Image Navigation */}
           {property.images.length > 1 && (

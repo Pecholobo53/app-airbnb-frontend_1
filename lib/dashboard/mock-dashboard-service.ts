@@ -16,8 +16,11 @@ import {
   getUpcomingBookingsByGuestId,
   getPastBookingsByGuestId,
   getPendingBookingsByHostId,
-  getBookingsByHostId
+  getBookingsByHostId,
+  createBooking
 } from './mock-bookings-db';
+import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db';
+import { MOCK_USERS } from '@/lib/auth/mock-users-db';
 
 /**
  * MOCK DASHBOARD SERVICE
@@ -410,6 +413,99 @@ export class MockDashboardService {
         error: {
           code: 'MESSAGE_ERROR',
           message: 'Error al enviar mensaje'
+        }
+      };
+    }
+  }
+
+  /**
+   * CREAR NUEVA RESERVA
+   * Crea una reserva pendiente que requiere confirmación del anfitrión
+   */
+  static async createBooking(
+    guestId: string,
+    propertyId: string,
+    checkIn: Date,
+    checkOut: Date,
+    guests: { adults: number; children: number; infants: number },
+    pricing: { basePrice: number; nightsTotal: number; cleaningFee: number; serviceFee: number; total: number }
+  ): Promise<DashboardResponse<Booking>> {
+    await simulateNetworkDelay();
+    console.log('📅 [DASHBOARD] Creando reserva:', { guestId, propertyId, checkIn, checkOut });
+
+    try {
+      // Verificar que el usuario existe
+      const guest = MOCK_USERS.find(u => u.id === guestId);
+      if (!guest) {
+        return {
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'Usuario no encontrado'
+          }
+        };
+      }
+
+      // Obtener la propiedad
+      const property = MOCK_PROPERTIES.find(p => p.id === propertyId);
+      if (!property) {
+        return {
+          success: false,
+          error: {
+            code: 'PROPERTY_NOT_FOUND',
+            message: 'Propiedad no encontrada'
+          }
+        };
+      }
+
+      // Calcular noches
+      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Crear la reserva
+      const newBooking: Booking = {
+        id: `booking-${String(MOCK_BOOKINGS.length + 1).padStart(3, '0')}`,
+        propertyId,
+        property,
+        guestId,
+        guest,
+        hostId: property.host.id,
+        host: {
+          id: property.host.id,
+          email: `${property.host.name.toLowerCase().replace(' ', '.')}@airbnb.com`,
+          name: property.host.name,
+          avatar: property.host.avatar,
+          emailVerified: true,
+          createdAt: new Date('2020-01-01'),
+          updatedAt: new Date(),
+          provider: 'email',
+          favorites: []
+        },
+        checkIn,
+        checkOut,
+        nights,
+        guests,
+        pricing,
+        status: 'pending', // Pendiente de confirmación
+        createdAt: new Date(),
+        guestReviewGiven: false
+      };
+
+      // Agregar a la base de datos
+      const booking = createBooking(newBooking);
+      
+      console.log('✅ [DASHBOARD] Reserva creada:', booking.id);
+
+      return {
+        success: true,
+        data: booking
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD] Error:', error);
+      return {
+        success: false,
+        error: {
+          code: 'CREATE_BOOKING_ERROR',
+          message: 'Error al crear reserva'
         }
       };
     }

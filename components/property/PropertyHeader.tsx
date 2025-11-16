@@ -1,12 +1,11 @@
 // components/property/PropertyHeader.tsx
 'use client';
 
-import { useState } from 'react';
-import { Heart, Share2, MapPin, Star } from 'lucide-react';
+import { Share2, MapPin, Star } from 'lucide-react';
 import { Property } from '@/types/search';
-import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
 
 interface PropertyHeaderProps {
   property: Property;
@@ -17,9 +16,6 @@ interface PropertyHeaderProps {
  * Título, ubicación, rating y botones de acción
  */
 export default function PropertyHeader({ property }: PropertyHeaderProps) {
-  const { isAuthenticated } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(false);
-
   const handleShare = async () => {
     const url = window.location.href;
     
@@ -38,18 +34,6 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
       console.error('Error compartiendo:', error);
       toast.error('Error al compartir');
     }
-  };
-
-  const handleFavorite = () => {
-    if (!isAuthenticated) {
-      toast.error('Inicia sesión para guardar favoritos');
-      return;
-    }
-    
-    setIsFavorite(!isFavorite);
-    toast.success(
-      isFavorite ? 'Eliminado de favoritos' : 'Agregado a favoritos'
-    );
   };
 
   return (
@@ -105,19 +89,10 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
             <span className="hidden sm:inline">Compartir</span>
           </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleFavorite}
-            className="flex items-center gap-2"
-          >
-            <Heart
-              className={`w-4 h-4 ${
-                isFavorite ? 'fill-[#FF385C] text-[#FF385C]' : ''
-              }`}
-            />
-            <span className="hidden sm:inline">Guardar</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <FavoriteButton propertyId={property.id} size="sm" />
+            <span className="hidden sm:inline text-sm">Guardar</span>
+          </div>
         </div>
       </div>
     </div>

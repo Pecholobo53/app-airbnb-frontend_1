@@ -9,6 +9,10 @@ import { calculatePriceBreakdown, formatPrice, validateBookingDates } from '@/li
 import { addDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth/auth-context';
+import { MockDashboardService } from '@/lib/dashboard/mock-dashboard-service';
+import { useRouter } from 'next/navigation';
+import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
 
 interface PriceCalculatorProps {
   property: Property;
@@ -19,18 +23,22 @@ interface PriceCalculatorProps {
  * Permite seleccionar fechas y huéspedes para calcular precio total
  */
 export default function PriceCalculator({ property }: PriceCalculatorProps) {
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+  
   // Fechas por defecto: hoy + 7 días
   const [checkIn, setCheckIn] = useState<Date | null>(null);
   const [checkOut, setCheckOut] = useState<Date | null>(null);
   const [guests, setGuests] = useState(1);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
 
   const hasValidDates = checkIn && checkOut && checkOut > checkIn;
   
   // Calcular precio si hay fechas válidas
   let priceBreakdown = null;
-  let validationError = null;
+  let validationError: string | null = null;
 
   if (hasValidDates) {
     const validation = validateBookingDates(
@@ -56,8 +64,15 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
     }
   }
 
-  const handleReserve = () => {
-    if (!hasValidDates) {
+  const handleReserve = async () => {
+    // Verificar autenticación
+    if (!isAuthenticated || !user) {
+      toast.error(ERROR_MESSAGES.LOGIN_REQUIRED);
+      router.push(ROUTES.LOGIN);
+      return;
+    }
+
+    if (!hasValidDates || !checkIn || !checkOut) {
       toast.error('Selecciona fechas para continuar');
       return;
     }
@@ -72,8 +87,44 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       return;
     }
 
-    // Simulación de reserva
-    toast.success('¡Reserva iniciada! (Funcionalidad en desarrollo)');
+    if (!priceBreakdown) {
+      toast.error('Error calculando precio');
+      return;
+    }
+
+    setIsCreatingBooking(true);
+
+    try {
+      const response = await MockDashboardService.createBooking(
+        user.id,
+        property.id,
+        checkIn,
+        checkOut,
+        { adults: guests, children: 0, infants: 0 },
+        {
+          basePrice: priceBreakdown.basePrice,
+          nightsTotal: priceBreakdown.subtotal,
+          cleaningFee: priceBreakdown.cleaningFee,
+          serviceFee: priceBreakdown.serviceFee,
+          total: priceBreakdown.total
+        }
+      );
+
+      if (response.success && response.data) {
+        toast.success('¡Reserva creada! El anfitrión la revisará pronto.');
+        // Opcional: redirigir a mis reservas después de un momento
+        setTimeout(() => {
+          router.push(ROUTES.MIS_RESERVAS);
+        }, 2000);
+      } else {
+        toast.error(response.error?.message || 'Error al crear la reserva');
+      }
+    } catch (error) {
+      console.error('Error creando reserva:', error);
+      toast.error('Error al crear la reserva');
+    } finally {
+      setIsCreatingBooking(false);
+    }
   };
 
   const incrementGuests = () => {
@@ -212,10 +263,10 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       {hasValidDates ? (
         <Button
           onClick={handleReserve}
-          disabled={!!validationError}
+          disabled={!!validationError || isCreatingBooking}
           className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {validationError ? 'Fechas inválidas' : 'Reservar'}
+          {isCreatingBooking ? 'Creando reserva...' : validationError ? 'Fechas inválidas' : 'Reservar'}
         </Button>
       ) : (
         <Button
