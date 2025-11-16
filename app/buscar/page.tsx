@@ -1,7 +1,7 @@
 // app/buscar/page.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SearchProvider, useSearch } from '@/lib/search/search-context';
 import SearchBar from '@/components/search/SearchBar';
@@ -22,6 +22,9 @@ function SearchPageContent() {
     loadMore,
   } = useSearch();
 
+  // DEBUG: Estado visible en UI
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
   // Cargar parámetros de URL al montar
   useEffect(() => {
     const location = searchParams.get('location');
@@ -30,6 +33,15 @@ function SearchPageContent() {
     const adults = searchParams.get('adults');
 
     console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults });
+
+    // DEBUG: Guardar info para mostrar en UI
+    setDebugInfo({
+      params: { location, checkIn, checkOut, adults },
+      timestamp: new Date().toISOString(),
+      hasParams: !!(location || checkIn || checkOut || adults),
+      query: query,
+      resultsCount: results?.total || 0
+    });
 
     if (location || checkIn || checkOut || adults) {
       const newQuery = {
@@ -69,6 +81,22 @@ function SearchPageContent() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* DEBUG Panel - Visible siempre para diagnosticar móvil */}
+      {debugInfo && (
+        <div className="bg-blue-50 border-b border-blue-200 p-3">
+          <div className="max-w-7xl mx-auto">
+            <details className="text-xs">
+              <summary className="cursor-pointer font-semibold text-blue-900">
+                🔍 Debug Info (Click para ver)
+              </summary>
+              <pre className="mt-2 text-xs overflow-x-auto bg-white p-2 rounded">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            </details>
+          </div>
+        </div>
+      )}
+
       {/* Search Bar Section */}
       <div className="bg-gray-50 border-b border-gray-200 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

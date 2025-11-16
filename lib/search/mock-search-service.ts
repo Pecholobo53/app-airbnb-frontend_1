@@ -41,10 +41,12 @@ export class MockSearchService {
     } = params;
 
     console.log('🔍 [SEARCH] Buscando propiedades:', { query, filters, sortBy, page });
+    console.log('📦 [SEARCH] Total propiedades disponibles:', MOCK_PROPERTIES.length);
 
     try {
       // 1. Filtrar por ubicación
       let results = this.filterByLocation(MOCK_PROPERTIES, query.location);
+      console.log('📍 [SEARCH] Después de filtrar por ubicación:', results.length);
 
       // 2. Filtrar por fechas (mock - en realidad verificaríamos disponibilidad)
       if (query.checkIn && query.checkOut) {
@@ -139,15 +141,22 @@ export class MockSearchService {
   // ========== MÉTODOS PRIVADOS DE FILTRADO ==========
 
   private static filterByLocation(properties: Property[], location?: string): Property[] {
-    if (!location) return properties;
+    if (!location) {
+      console.log('⚠️ [FILTER] Sin ubicación, retornando todas las propiedades');
+      return properties;
+    }
 
     const searchTerm = location.toLowerCase().trim();
+    console.log('🔎 [FILTER] Buscando ubicación:', searchTerm);
     
-    return properties.filter(p => 
+    const filtered = properties.filter(p => 
       p.location.city.toLowerCase().includes(searchTerm) ||
       p.location.country.toLowerCase().includes(searchTerm) ||
       p.location.region.toLowerCase().includes(searchTerm)
     );
+    
+    console.log('✅ [FILTER] Propiedades filtradas:', filtered.length, 'de', properties.length);
+    return filtered;
   }
 
   private static filterByDates(properties: Property[], checkIn: Date, checkOut: Date): Property[] {
