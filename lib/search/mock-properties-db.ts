@@ -5,8 +5,30 @@ import { Property, Amenity } from '@/types/search';
 /**
  * BASE DE DATOS MOCK DE PROPIEDADES
  * 
- * 25 propiedades con datos realistas para testing
- * Incluye variedad de ubicaciones, precios, tipos y amenidades
+ * Contexto:
+ * Simula una base de datos en memoria con propiedades de alojamiento.
+ * En producción, esto sería una base de datos real (PostgreSQL, MongoDB, etc.)
+ * 
+ * Contenido:
+ * - 20 propiedades con datos realistas para testing
+ * - Variedad de ubicaciones: España, Portugal, Francia, Italia, Reino Unido, Alemania, Países Bajos
+ * - Diferentes tipos: villas, apartamentos, casas, cabañas
+ * - Rango de precios: desde 35€ hasta 450€ por noche
+ * - Amenidades variadas: wifi, piscina, playa, montaña, etc.
+ * - Hosts con diferentes niveles (Superhost, regular)
+ * - Ratings y reviews asociados
+ * 
+ * Clasificación:
+ * - Casas (house): 5 propiedades
+ * - Apartamentos (apartment): 13 propiedades (incluye lofts y estudios)
+ * - Villas (villa): 2 propiedades
+ * - Cabañas (cabin): 1 propiedad
+ * 
+ * Utilidades:
+ * - getPropertyById(id): Obtener propiedad por ID
+ * - getPropertiesByCity(city): Filtrar por ciudad
+ * - getFeaturedProperties(): Obtener propiedades destacadas
+ * - getPropertiesByPriceRange(min, max): Filtrar por rango de precio
  */
 
 export const MOCK_PROPERTIES: Property[] = [
@@ -50,7 +72,7 @@ export const MOCK_PROPERTIES: Property[] = [
       beds: 5,
       bathrooms: 3
     },
-    amenities: ['wifi', 'kitchen', 'pool', 'ac', 'parking', 'beach_access', 'bbq', 'terrace', 'tv'],
+    amenities: ['wifi', 'kitchen', 'pool', 'ac', 'parking', 'beach_access', 'bbq', 'terrace', 'tv'], // Villa + Playa
     rating: {
       overall: 4.9,
       reviewCount: 156,
@@ -98,7 +120,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800'
     ],
     propertyType: 'entire_place',
-    roomType: 'loft',
+    roomType: 'apartment', // Loft se clasifica como apartment
     pricing: {
       basePrice: 95,
       currency: 'EUR',
@@ -357,7 +379,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=800'
     ],
     propertyType: 'entire_place',
-    roomType: 'loft',
+    roomType: 'apartment', // Loft se clasifica como apartment
     pricing: {
       basePrice: 110,
       currency: 'EUR',
@@ -512,7 +534,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'
     ],
     propertyType: 'entire_place',
-    roomType: 'loft',
+    roomType: 'apartment', // Loft se clasifica como apartment
     pricing: {
       basePrice: 165,
       currency: 'GBP',
@@ -822,7 +844,7 @@ export const MOCK_PROPERTIES: Property[] = [
       'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800'
     ],
     propertyType: 'private_room',
-    roomType: 'apartment',
+    roomType: 'house', // Casa compartida = house
     pricing: {
       basePrice: 35,
       currency: 'EUR',
@@ -937,7 +959,7 @@ export const MOCK_PROPERTIES: Property[] = [
       beds: 6,
       bathrooms: 4
     },
-    amenities: ['wifi', 'kitchen', 'pool', 'ac', 'parking', 'gym', 'hot_tub', 'bbq', 'garden', 'terrace', 'tv', 'washer', 'dryer'],
+    amenities: ['wifi', 'kitchen', 'pool', 'ac', 'parking', 'gym', 'hot_tub', 'beach_access', 'bbq', 'garden', 'terrace', 'tv', 'washer', 'dryer'], // Villa + Playa
     rating: {
       overall: 5.0,
       reviewCount: 87

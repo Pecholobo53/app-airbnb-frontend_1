@@ -5,14 +5,66 @@ import { User } from '@/types/auth';
 /**
  * BASE DE DATOS MOCK DE USUARIOS
  * 
- * Este array simula una base de datos en memoria.
+ * Contexto:
+ * Simula una base de datos en memoria con usuarios del sistema.
  * En producción, esto sería una base de datos real (PostgreSQL, MongoDB, etc.)
+ * con tablas relacionadas para usuarios, sesiones, tokens, etc.
+ * 
+ * Contenido:
+ * - 4 usuarios de prueba con diferentes estados y proveedores
+ * - Datos realistas: nombres, emails, avatares, teléfonos
+ * - Estados de verificación variados
+ * - Diferentes métodos de autenticación (email, OAuth)
  * 
  * USUARIOS DE PRUEBA:
- * - demo@airbnb.com / password123 (verificado)
- * - maria@gmail.com / maria2024 (verificado, OAuth Google)
- * - carlos@outlook.com / carlos123 (NO verificado)
- * - ana@facebook.com (verificado, OAuth Facebook)
+ * 1. demo@airbnb.com / password123
+ *    - Verificado, email, Superhost
+ *    - Tiene favoritos y propiedades
+ * 
+ * 2. maria@gmail.com / maria2024
+ *    - Verificado, OAuth Google
+ *    - Usuario regular
+ * 
+ * 3. carlos@outlook.com / carlos123
+ *    - NO verificado, email
+ *    - Requiere verificación de email
+ * 
+ * 4. ana@facebook.com (sin contraseña)
+ *    - Verificado, OAuth Facebook
+ *    - Login solo por OAuth
+ * 
+ * Estructura de User:
+ * - id: Identificador único (user-001, user-002, etc.)
+ * - email: Email del usuario (único)
+ * - name: Nombre completo
+ * - avatar: URL del avatar
+ * - phone: Teléfono (opcional)
+ * - emailVerified: Estado de verificación de email
+ * - createdAt: Fecha de creación de cuenta
+ * - updatedAt: Última actualización
+ * - provider: Método de autenticación ('email' | 'google' | 'facebook')
+ * - favorites: Array de IDs de propiedades favoritas
+ * 
+ * Datos Adicionales (no en User pero relacionados):
+ * - MOCK_PASSWORDS: Mapeo email -> contraseña (en producción: hash en BD)
+ * - MOCK_RECOVERY_TOKENS: Tokens activos para recuperación de contraseña
+ * - MOCK_VERIFICATION_TOKENS: Tokens activos para verificación de email
+ * - MOCK_LOGIN_ATTEMPTS: Registro de intentos fallidos (anti-brute force)
+ * 
+ * Utilidades:
+ * - findUserByEmail(email): Buscar usuario por email
+ * - findUserById(id): Buscar usuario por ID
+ * - emailExists(email): Verificar si email ya existe
+ * - addUser(user): Agregar nuevo usuario
+ * - updateUser(id, updates): Actualizar datos de usuario
+ * 
+ * Seguridad:
+ * ⚠️ IMPORTANTE: En producción:
+ * - Las contraseñas deben estar hasheadas (bcrypt, argon2)
+ * - Los tokens deben estar en base de datos con expiración
+ * - Implementar rate limiting para login
+ * - Usar HTTPS para todas las comunicaciones
+ * - Validar y sanitizar todos los inputs
  */
 export const MOCK_USERS: User[] = [
   {

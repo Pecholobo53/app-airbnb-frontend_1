@@ -1,3 +1,6 @@
+'use client';
+
+import Link from 'next/link';
 import { ArrowRight, Star } from 'lucide-react';
 
 /**
@@ -51,13 +54,13 @@ export default function HeroSection() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="btn-primary flex items-center justify-center group">
+              <Link href="#ofertas" className="btn-primary flex items-center justify-center group">
                 Explorar Ofertas
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="btn-secondary">
+              </Link>
+              <Link href="/buscar" className="btn-secondary">
                 Ver Destinos Populares
-              </button>
+              </Link>
             </div>
           </div>
 

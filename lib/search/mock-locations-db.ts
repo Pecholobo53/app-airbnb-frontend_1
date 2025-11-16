@@ -4,7 +4,33 @@ import { LocationSuggestion } from '@/types/search';
 
 /**
  * BASE DE DATOS MOCK DE UBICACIONES
- * Para autocompletado en búsqueda
+ * 
+ * Contexto:
+ * Simula una base de datos en memoria con ubicaciones para autocompletado.
+ * En producción, esto podría venir de un servicio de geocodificación (Google Maps, Mapbox, etc.)
+ * 
+ * Contenido:
+ * - 25 ubicaciones principales de Europa
+ * - Ciudades turísticas de España, Portugal, Francia, Italia, Reino Unido, Alemania, Países Bajos
+ * - Cada ubicación incluye: ciudad, país, región, tipo y texto de coincidencia
+ * 
+ * Estructura de LocationSuggestion:
+ * - id: Identificador único (loc-001, loc-002, etc.)
+ * - city: Nombre de la ciudad
+ * - country: País
+ * - region: Región/estado/provincia
+ * - type: Tipo de ubicación ('city', 'region', 'country')
+ * - matchText: Texto completo para búsqueda (ej: "Barcelona, España")
+ * 
+ * Utilidades:
+ * - searchLocations(query): Buscar ubicaciones por texto (mínimo 2 caracteres)
+ *   - Busca en ciudad, país, región y matchText
+ *   - Retorna máximo 8 sugerencias
+ * - getLocationByCity(city): Obtener ubicación exacta por nombre de ciudad
+ * 
+ * Uso:
+ * Se utiliza en el componente de búsqueda para autocompletar cuando el usuario escribe
+ * una ubicación. Las sugerencias se muestran en tiempo real mientras escribe.
  */
 
 export const MOCK_LOCATIONS: LocationSuggestion[] = [

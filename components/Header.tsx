@@ -71,14 +71,20 @@ export default function Header() {
 
           {/* Navigation - Desktop */}
           <nav className="hidden lg:flex items-center space-x-6">
+            <button
+              onClick={() => {
+                if (window.location.pathname === '/') {
+                  window.location.reload();
+                } else {
+                  router.push(ROUTES.HOME);
+                }
+              }}
+              className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap"
+            >
+              Inicio
+            </button>
             <a href="/#ofertas" className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap">
               Ofertas
-            </a>
-            <a href="/#destinos" className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap">
-              Destinos
-            </a>
-            <a href="/#experiencias" className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap">
-              Experiencias
             </a>
           </nav>
 

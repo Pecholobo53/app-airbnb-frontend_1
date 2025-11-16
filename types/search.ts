@@ -170,6 +170,7 @@ export interface SearchFilters {
     max: number;
   };
   propertyTypes?: PropertyType[];
+  roomType?: RoomType; // Para filtros rápidos (house, apartment, villa, cabin)
   amenities?: Amenity[];
   minRating?: number;
   bedrooms?: number;
@@ -238,5 +239,74 @@ export interface SearchResponse<T = unknown> {
     code: string;
     message: string;
   };
+}
+
+// ========== TIPOS PARA MILESTONE 3: DETALLE DE PROPIEDAD ==========
+
+/**
+ * Descripción detallada de una propiedad
+ */
+export interface PropertyDescription {
+  space: string;
+  guestAccess: string;
+  otherThings: string;
+}
+
+/**
+ * Propiedad con información extendida para página de detalle
+ */
+export interface PropertyDetail extends Property {
+  descriptionDetail?: PropertyDescription;
+  rules?: string[];
+  cancellationPolicy?: string;
+  safetyInfo?: string[];
+}
+
+/**
+ * Review de un usuario sobre una propiedad
+ */
+export interface Review {
+  id: string;
+  propertyId: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  rating: number;
+  comment: string;
+  date: Date;
+  helpful: number;
+  categories?: {
+    cleanliness: number;
+    accuracy: number;
+    communication: number;
+    location: number;
+    checkIn: number;
+    value: number;
+  };
+}
+
+/**
+ * Día en el calendario de disponibilidad
+ */
+export interface CalendarDay {
+  date: Date;
+  available: boolean;
+  price?: number;
+  minNights?: number;
+}
+
+/**
+ * Desglose de precios para una reserva
+ */
+export interface PriceBreakdown {
+  basePrice: number;
+  nights: number;
+  subtotal: number;
+  cleaningFee: number;
+  serviceFee: number;
+  taxes: number;
+  discount?: number;
+  total: number;
+  currency: 'EUR' | 'USD' | 'GBP';
 }
 

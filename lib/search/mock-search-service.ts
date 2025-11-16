@@ -183,7 +183,13 @@ export class MockSearchService {
       );
     }
 
-    // Filtro de tipo de propiedad
+    // Filtro por roomType (para filtros rápidos: house, apartment, villa, cabin)
+    if (filters.roomType) {
+      results = results.filter(p => p.roomType === filters.roomType);
+      console.log(`🏠 [FILTER] Filtrando por roomType: ${filters.roomType} → ${results.length} resultados`);
+    }
+
+    // Filtro de tipo de propiedad (entire_place, private_room, shared_room)
     if (filters.propertyTypes && filters.propertyTypes.length > 0) {
       results = results.filter(p => 
         filters.propertyTypes!.includes(p.propertyType)
@@ -195,6 +201,7 @@ export class MockSearchService {
       results = results.filter(p => 
         filters.amenities!.every(amenity => p.amenities.includes(amenity))
       );
+      console.log(`✨ [FILTER] Filtrando por amenidades: ${filters.amenities.join(', ')} → ${results.length} resultados`);
     }
 
     // Filtro de calificación
@@ -255,6 +262,46 @@ export class MockSearchService {
     return {
       success: true,
       data: featured
+    };
+  }
+
+  /**
+   * OBTENER REVIEWS DE UNA PROPIEDAD
+   */
+  static async getPropertyReviews(propertyId: string): Promise<SearchResponse<import('@/types/search').Review[]>> {
+    await simulateNetworkDelay();
+    
+    const { getReviewsByPropertyId } = await import('./mock-reviews-db');
+    const reviews = getReviewsByPropertyId(propertyId);
+
+    return {
+      success: true,
+      data: reviews
+    };
+  }
+
+  /**
+   * OBTENER ESTADÍSTICAS DE REVIEWS
+   */
+  static async getReviewStats(propertyId: string): Promise<SearchResponse<any>> {
+    await simulateNetworkDelay();
+    
+    const { getReviewStats } = await import('./mock-reviews-db');
+    const stats = getReviewStats(propertyId);
+
+    if (!stats) {
+      return {
+        success: false,
+        error: {
+          code: 'NO_REVIEWS',
+          message: 'No hay reviews para esta propiedad'
+        }
+      };
+    }
+
+    return {
+      success: true,
+      data: stats
     };
   }
 }

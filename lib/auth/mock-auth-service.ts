@@ -25,8 +25,46 @@ import {
 /**
  * MOCK AUTH SERVICE
  * 
- * Simula un servicio backend de autenticación.
- * En producción, esto haría llamadas HTTP reales a una API.
+ * Contexto:
+ * Simula un servicio backend de autenticación completo.
+ * En producción, esto haría llamadas HTTP reales a una API REST o usaría NextAuth.js.
+ * Todas las operaciones incluyen delay de red simulado para realismo.
+ * 
+ * Funcionalidades:
+ * - Login: Autenticación con email/password
+ * - Register: Registro de nuevos usuarios
+ * - Logout: Cerrar sesión
+ * - Password Recovery: Recuperación de contraseña por email
+ * - Reset Password: Restablecer contraseña con token
+ * - Email Verification: Verificación de email con token
+ * - OAuth: Simulación de login con Google/Facebook
+ * - Session Management: Gestión de sesiones de usuario
+ * 
+ * Seguridad Mock:
+ * - Validación de credenciales contra MOCK_USERS y MOCK_PASSWORDS
+ * - Tokens de recuperación con expiración (24 horas)
+ * - Tokens de verificación con expiración (48 horas)
+ * - Límite de intentos de login (5 intentos fallidos bloquean cuenta por 15 min)
+ * - Encriptación simulada de contraseñas (en producción usar bcrypt)
+ * 
+ * Estados de Usuario:
+ * - emailVerified: true/false (requerido para algunas acciones)
+ * - provider: 'email' | 'google' | 'facebook' (método de registro)
+ * 
+ * Respuestas:
+ * - success: true/false
+ * - data: Datos del usuario o token
+ * - error: Código y mensaje de error si falla
+ * 
+ * Delay de Red:
+ * - Simula delay aleatorio entre 300-800ms para realismo
+ * 
+ * Dependencias:
+ * - mock-users-db: Base de datos de usuarios
+ * - MOCK_PASSWORDS: Contraseñas asociadas a usuarios
+ * - MOCK_RECOVERY_TOKENS: Tokens de recuperación activos
+ * - MOCK_VERIFICATION_TOKENS: Tokens de verificación activos
+ * - MOCK_LOGIN_ATTEMPTS: Registro de intentos de login fallidos
  */
 
 const simulateNetworkDelay = (): Promise<void> => 

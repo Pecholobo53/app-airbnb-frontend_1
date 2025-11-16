@@ -10,7 +10,7 @@ interface SearchContextType extends SearchState {
   updateQuery: (query: Partial<SearchQuery>) => void;
   updateFilters: (filters: SearchFilters) => void;
   updateSortBy: (sortBy: SortOption) => void;
-  performSearch: () => Promise<void>;
+  performSearch: (customQuery?: Partial<SearchQuery>, customFilters?: SearchFilters) => Promise<void>;
   loadMore: () => Promise<void>;
   clearSearch: () => void;
 }
@@ -44,18 +44,22 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     setState(prev => ({ ...prev, sortBy }));
   };
 
-  const performSearch = async (customQuery?: Partial<SearchQuery>) => {
+  const performSearch = async (customQuery?: Partial<SearchQuery>, customFilters?: SearchFilters) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     // Usar customQuery si se proporciona, sino usar state.query
     const queryToUse = customQuery ? { ...state.query, ...customQuery } : state.query;
+    // Usar customFilters si se proporciona, sino usar state.filters
+    // Si hay customFilters, reemplazar completamente los filtros (no mergear)
+    const filtersToUse = customFilters !== undefined ? customFilters : state.filters;
     
     console.log('🚀 [CONTEXT] performSearch con query:', queryToUse);
+    console.log('🔍 [CONTEXT] performSearch con filters:', filtersToUse);
 
     try {
       const response = await MockSearchService.searchProperties({
         query: queryToUse,
-        filters: state.filters,
+        filters: filtersToUse,
         sortBy: state.sortBy,
         page: 1,
         perPage: 20

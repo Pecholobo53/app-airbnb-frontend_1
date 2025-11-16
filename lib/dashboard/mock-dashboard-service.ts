@@ -23,14 +23,57 @@ import {
  * MOCK DASHBOARD SERVICE
  * 
  * Contexto:
- * Simula un servicio backend para el dashboard de usuario.
- * Todas las operaciones incluyen delay de red simulado.
+ * Simula un servicio backend completo para el dashboard de usuario (huésped y anfitrión).
+ * En producción, esto haría llamadas HTTP reales a una API REST.
+ * Todas las operaciones incluyen delay de red simulado para realismo.
  * 
  * Funcionalidades:
- * - Obtener stats de huésped
- * - Obtener stats de anfitrión
- * - Gestionar reservas (aceptar, rechazar, cancelar)
- * - Obtener bookings filtrados
+ * 
+ * Para Huéspedes:
+ * - getGuestStats(guestId): Obtener estadísticas del huésped
+ *   - Total de reservas, gastos, propiedades visitadas
+ *   - Reservas futuras, activas y pasadas
+ *   - Datos mensuales de reservas y gastos
+ * 
+ * Para Anfitriones:
+ * - getHostStats(hostId): Obtener estadísticas del anfitrión
+ *   - Total de reservas recibidas, ingresos, propiedades
+ *   - Reservas pendientes, activas y completadas
+ *   - Estadísticas por propiedad
+ *   - Datos mensuales de reservas e ingresos
+ * 
+ * Gestión de Reservas:
+ * - getUpcomingBookings(guestId): Reservas futuras del huésped
+ * - getPastBookings(guestId): Reservas pasadas del huésped
+ * - getPendingBookings(hostId): Reservas pendientes del anfitrión
+ * - getBookingsByHost(hostId): Todas las reservas del anfitrión
+ * 
+ * Acciones sobre Reservas:
+ * - acceptBooking(bookingId): Aceptar reserva (anfitrión)
+ * - rejectBooking(bookingId, reason): Rechazar reserva (anfitrión)
+ * - cancelBooking(bookingId, reason): Cancelar reserva (huésped/anfitrión)
+ * 
+ * Respuestas:
+ * - success: true/false
+ * - data: Datos solicitados (stats, bookings, etc.)
+ * - error: Código y mensaje de error si falla
+ * 
+ * Delay de Red:
+ * - Simula delay aleatorio entre 200-500ms para realismo
+ * 
+ * Dependencias:
+ * - mock-bookings-db: Base de datos de reservas
+ * - MOCK_BOOKINGS: Array de reservas mock
+ * - MOCK_GUEST_STATS: Estadísticas de huésped
+ * - MOCK_HOST_STATS: Estadísticas de anfitrión
+ * - MOCK_MONTHLY_DATA: Datos mensuales agregados
+ * 
+ * Estados de Reserva:
+ * - 'pending': Esperando confirmación del anfitrión
+ * - 'confirmed': Confirmada y activa
+ * - 'completed': Finalizada exitosamente
+ * - 'cancelled': Cancelada por huésped o anfitrión
+ * - 'rejected': Rechazada por el anfitrión
  */
 
 const simulateNetworkDelay = (): Promise<void> =>

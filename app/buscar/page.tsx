@@ -31,38 +31,71 @@ function SearchPageContent() {
     const checkIn = searchParams.get('checkIn');
     const checkOut = searchParams.get('checkOut');
     const adults = searchParams.get('adults');
+    const propertyType = searchParams.get('propertyType');
+    const amenities = searchParams.get('amenities');
 
-    console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults });
+    console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults, propertyType, amenities });
+
+    // Construir query
+    const newQuery = {
+      location: location || undefined,
+      checkIn: checkIn ? new Date(checkIn) : undefined,
+      checkOut: checkOut ? new Date(checkOut) : undefined,
+      guests: {
+        adults: adults ? parseInt(adults) : 1,
+        children: 0,
+        infants: 0
+      }
+    };
+
+    // Construir filtros
+    const newFilters: any = {};
+    
+    // Mapear propertyType de URL a roomType
+    if (propertyType) {
+      // Los filtros rápidos usan: house, apartment, villa, cabin
+      // Mapearlos a los tipos RoomType correctos
+      const roomTypeMap: Record<string, any> = {
+        'house': 'house',
+        'apartment': 'apartment',
+        'villa': 'villa',
+        'cabin': 'cabin'
+      };
+      
+      if (roomTypeMap[propertyType]) {
+        newFilters.roomType = roomTypeMap[propertyType];
+      }
+    }
+
+    // Filtro de amenidades
+    if (amenities) {
+      // Si hay múltiples amenidades separadas por coma, parsearlas
+      const amenitiesList = amenities.split(',').map(a => a.trim());
+      newFilters.amenities = amenitiesList as any[];
+    }
 
     // DEBUG: Guardar info para mostrar en UI
     setDebugInfo({
-      params: { location, checkIn, checkOut, adults },
+      params: { location, checkIn, checkOut, adults, propertyType, amenities },
       timestamp: new Date().toISOString(),
-      hasParams: !!(location || checkIn || checkOut || adults),
-      query: query,
+      hasParams: !!(location || checkIn || checkOut || adults || propertyType || amenities),
+      query: newQuery,
+      filters: newFilters,
       resultsCount: results?.total || 0
     });
 
-    if (location || checkIn || checkOut || adults) {
-      const newQuery = {
-        location: location || undefined,
-        checkIn: checkIn ? new Date(checkIn) : undefined,
-        checkOut: checkOut ? new Date(checkOut) : undefined,
-        guests: {
-          adults: adults ? parseInt(adults) : 1,
-          children: 0,
-          infants: 0
-        }
-      };
-      
-      console.log('🔍 [BUSCAR] Query construida:', newQuery);
-      updateQuery(newQuery);
-      
-      // Auto-buscar pasando el query directamente (no esperar a que state se actualice)
-      console.log('🚀 [BUSCAR] Ejecutando búsqueda automática con query:', newQuery);
-      performSearch(newQuery);
+    // Actualizar query y filtros
+    updateQuery(newQuery);
+    if (Object.keys(newFilters).length > 0) {
+      updateFilters(newFilters);
     }
-  }, [searchParams]);
+    
+    // Auto-buscar con los nuevos filtros directamente (solo si hay filtros)
+    console.log('🚀 [BUSCAR] Ejecutando búsqueda automática:', { query: newQuery, filters: newFilters });
+    const filtersToPass = Object.keys(newFilters).length > 0 ? newFilters : undefined;
+    performSearch(newQuery, filtersToPass);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]); // Solo searchParams - updateQuery y performSearch causan loops
 
   const handleSearch = () => {
     performSearch();

@@ -8,14 +8,70 @@ import { MOCK_USERS } from '@/lib/auth/mock-users-db';
  * BASE DE DATOS MOCK DE RESERVAS
  * 
  * Contexto:
+ * Simula una base de datos en memoria con reservas de alojamiento.
+ * En producción, esto sería una base de datos real con tablas relacionadas
+ * para bookings, propiedades, usuarios, pagos, etc.
+ * 
+ * Contenido:
  * - 10 reservas con diferentes estados y fechas
  * - Vinculadas con propiedades reales del mock-properties-db
  * - Vinculadas con usuarios reales del mock-users-db
  * - Sirven para mostrar datos en ambos dashboards (guest y host)
  * 
- * Usuario demo (demo@airbnb.com) actúa como:
- * - HUÉSPED: Tiene 3 reservas (1 futura, 1 activa, 1 pasada)
- * - ANFITRIÓN: Tiene 2 propiedades con reservas de otros
+ * Usuario Demo (demo@airbnb.com - user-001):
+ * - Como HUÉSPED: Tiene 3 reservas
+ *   - 1 futura (próximos días)
+ *   - 1 activa (en curso)
+ *   - 1 pasada (completada)
+ * - Como ANFITRIÓN: Tiene 2 propiedades con reservas de otros usuarios
+ *   - Reservas pendientes de confirmación
+ *   - Reservas confirmadas y activas
+ * 
+ * Estructura de Booking:
+ * - id: Identificador único (booking-001, booking-002, etc.)
+ * - propertyId: ID de la propiedad (vinculado a MOCK_PROPERTIES)
+ * - guestId: ID del huésped (vinculado a MOCK_USERS)
+ * - hostId: ID del anfitrión (vinculado a MOCK_USERS)
+ * - checkIn: Fecha de entrada
+ * - checkOut: Fecha de salida
+ * - guests: Número de huéspedes (adultos, niños, bebés)
+ * - status: Estado de la reserva ('pending', 'confirmed', 'completed', 'cancelled', 'rejected')
+ * - totalPrice: Precio total calculado
+ * - pricing: Desglose de precios (noches, limpieza, servicio, total)
+ * - createdAt: Fecha de creación de la reserva
+ * - updatedAt: Última actualización
+ * 
+ * Estadísticas Mock:
+ * - MOCK_GUEST_STATS: Estadísticas agregadas para huéspedes
+ *   - Total reservas, gastos, propiedades visitadas
+ *   - Reservas por estado (futuras, activas, pasadas)
+ * - MOCK_HOST_STATS: Estadísticas agregadas para anfitriones
+ *   - Total reservas recibidas, ingresos, propiedades
+ *   - Reservas por estado (pendientes, activas, completadas)
+ *   - Estadísticas por propiedad individual
+ * - MOCK_MONTHLY_DATA: Datos mensuales agregados
+ *   - Reservas y gastos/ingresos por mes
+ *   - Últimos 6 meses de datos
+ * 
+ * Utilidades:
+ * - getUpcomingBookingsByGuestId(guestId): Reservas futuras del huésped
+ * - getPastBookingsByGuestId(guestId): Reservas pasadas del huésped
+ * - getPendingBookingsByHostId(hostId): Reservas pendientes del anfitrión
+ * - getBookingsByHostId(hostId): Todas las reservas del anfitrión
+ * - calculateNights(checkIn, checkOut): Calcular número de noches
+ * - calculatePricing(basePrice, nights, ...): Calcular precios totales
+ * 
+ * Estados de Reserva:
+ * - 'pending': Esperando confirmación del anfitrión
+ * - 'confirmed': Confirmada y activa (check-in realizado o próximo)
+ * - 'completed': Finalizada exitosamente (check-out realizado)
+ * - 'cancelled': Cancelada por huésped o anfitrión
+ * - 'rejected': Rechazada por el anfitrión
+ * 
+ * Notas:
+ * - Los precios se calculan dinámicamente basados en precio base, noches y fees
+ * - Las fechas están distribuidas en el pasado, presente y futuro para testing
+ * - Los estados varían para cubrir todos los casos de uso del dashboard
  */
 
 // Helper para calcular noches
