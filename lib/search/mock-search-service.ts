@@ -183,9 +183,9 @@ export class MockSearchService {
     
     console.log('✅ [FILTER] Propiedades filtradas por ubicación:', filtered.length, 'de', properties.length);
     if (filtered.length > 0) {
-      console.log('📍 [FILTER] Ciudades encontradas:', [...new Set(filtered.map(p => p.location.city))]);
+      console.log('📍 [FILTER] Ciudades encontradas:', Array.from(new Set(filtered.map(p => p.location.city))));
     } else {
-      console.log('⚠️ [FILTER] No se encontraron propiedades. Ciudades disponibles:', [...new Set(properties.map(p => p.location.city))]);
+      console.log('⚠️ [FILTER] No se encontraron propiedades. Ciudades disponibles:', Array.from(new Set(properties.map(p => p.location.city))));
     }
     return filtered;
   }
@@ -204,7 +204,7 @@ export class MockSearchService {
     console.log(`📅 [FILTER] Fechas (${nights} noches): ${beforeDates} → ${filtered.length}`);
     if (filtered.length === 0 && beforeDates > 0) {
       console.log('⚠️ [FILTER] No hay propiedades que cumplan el mínimo de noches:', nights);
-      console.log('📋 [FILTER] Mínimos requeridos:', [...new Set(properties.map(p => p.availability.minNights))]);
+      console.log('📋 [FILTER] Mínimos requeridos:', Array.from(new Set(properties.map(p => p.availability.minNights))));
     }
     
     return filtered;
@@ -236,7 +236,7 @@ export class MockSearchService {
       console.log(`🏠 [FILTER] Filtrando por roomType: ${roomTypes.join(', ')} → ${beforeRoomType} → ${results.length} resultados`);
       if (results.length === 0 && beforeRoomType > 0) {
         console.log('⚠️ [FILTER] No se encontraron propiedades con roomType:', roomTypes);
-        console.log('📋 [FILTER] RoomTypes disponibles:', [...new Set(properties.map(p => p.roomType))]);
+        console.log('📋 [FILTER] RoomTypes disponibles:', Array.from(new Set(properties.map(p => p.roomType))));
       }
     }
 
