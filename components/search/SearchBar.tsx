@@ -17,12 +17,12 @@ interface SearchBarProps {
 
 export default function SearchBar({ query, onQueryChange, onSearch, compact = false }: SearchBarProps) {
   return (
-    <div className={`bg-white rounded-full shadow-lg border border-gray-200 ${
+    <div className={`bg-white shadow-lg border border-gray-200 ${
       compact ? 'max-w-4xl' : 'max-w-5xl'
-    } mx-auto`}>
-      <div className="flex items-center">
+    } mx-auto rounded-2xl md:rounded-full`}>
+      <div className="flex flex-col md:flex-row md:items-center">
         {/* Location */}
-        <div className="flex-1 px-6 py-4 border-r border-gray-200">
+        <div className="flex-1 px-4 md:px-6 py-3 md:py-4 border-b md:border-b-0 md:border-r border-gray-200">
           <LocationInput
             value={query.location}
             onChange={(location) => onQueryChange({ ...query, location })}
@@ -30,7 +30,7 @@ export default function SearchBar({ query, onQueryChange, onSearch, compact = fa
         </div>
 
         {/* Dates */}
-        <div className="flex-1 px-6 py-4 border-r border-gray-200">
+        <div className="flex-1 px-4 md:px-6 py-3 md:py-4 border-b md:border-b-0 md:border-r border-gray-200">
           <DateRangePicker
             checkIn={query.checkIn}
             checkOut={query.checkOut}
@@ -41,7 +41,7 @@ export default function SearchBar({ query, onQueryChange, onSearch, compact = fa
         </div>
 
         {/* Guests */}
-        <div className="flex-1 px-6 py-4">
+        <div className="flex-1 px-4 md:px-6 py-3 md:py-4 border-b md:border-b-0 border-gray-200">
           <GuestsSelector
             guests={query.guests}
             onChange={(guests) => onQueryChange({ ...query, guests })}
@@ -49,12 +49,13 @@ export default function SearchBar({ query, onQueryChange, onSearch, compact = fa
         </div>
 
         {/* Search Button */}
-        <div className="pr-2">
+        <div className="p-3 md:pr-2 flex justify-center md:justify-start">
           <Button
             onClick={onSearch}
-            className="bg-[#FF385C] hover:bg-[#E31C5F] text-white rounded-full h-14 w-14 p-0"
+            className="bg-[#FF385C] hover:bg-[#E31C5F] text-white rounded-full h-12 md:h-14 w-full md:w-14 p-0 flex items-center justify-center gap-2"
           >
             <Search className="h-5 w-5" />
+            <span className="md:hidden font-semibold">Buscar</span>
           </Button>
         </div>
       </div>

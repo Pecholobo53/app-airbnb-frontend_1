@@ -29,8 +29,10 @@ function SearchPageContent() {
     const checkOut = searchParams.get('checkOut');
     const adults = searchParams.get('adults');
 
+    console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults });
+
     if (location || checkIn || checkOut || adults) {
-      updateQuery({
+      const newQuery = {
         location: location || undefined,
         checkIn: checkIn ? new Date(checkIn) : undefined,
         checkOut: checkOut ? new Date(checkOut) : undefined,
@@ -39,10 +41,16 @@ function SearchPageContent() {
           children: 0,
           infants: 0
         }
-      });
+      };
+      
+      console.log('🔍 [BUSCAR] Query actualizada:', newQuery);
+      updateQuery(newQuery);
       
       // Auto-buscar si hay parámetros
-      performSearch();
+      setTimeout(() => {
+        console.log('🚀 [BUSCAR] Ejecutando búsqueda automática...');
+        performSearch();
+      }, 100);
     }
   }, [searchParams]);
 

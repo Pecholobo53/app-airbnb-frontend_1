@@ -19,9 +19,17 @@ export default function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchValue.trim()) {
-      router.push(`${ROUTES.BUSCAR}?location=${encodeURIComponent(searchValue)}`);
+    const trimmedValue = searchValue.trim();
+    
+    console.log('🔍 [HEADER] Búsqueda iniciada:', trimmedValue);
+    
+    if (trimmedValue) {
+      const searchUrl = `${ROUTES.BUSCAR}?location=${encodeURIComponent(trimmedValue)}`;
+      console.log('🔗 [HEADER] Navegando a:', searchUrl);
+      router.push(searchUrl);
+      setSearchValue(''); // Limpiar el input después de buscar
     } else {
+      console.log('🔗 [HEADER] Navegando a búsqueda sin filtros');
       router.push(ROUTES.BUSCAR);
     }
   };

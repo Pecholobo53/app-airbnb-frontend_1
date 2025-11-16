@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import PropertyGrid from './PropertyGrid';
 import SortSelector from './SortSelector';
 import FilterPanel from './FilterPanel';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 
 interface SearchResultsProps {
   results: SearchResultsType | null;
@@ -41,7 +41,47 @@ export default function SearchResults({
   }
 
   if (!results) {
-    return null;
+    return (
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Busca tu próximo destino
+          </h3>
+          <p className="text-gray-500">
+            Usa los filtros de arriba para encontrar el alojamiento perfecto
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado cuando no hay resultados
+  if (results.total === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-red-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No encontramos alojamientos
+          </h3>
+          <p className="text-gray-500 mb-6">
+            Intenta ajustar tus filtros de búsqueda o cambiar la ubicación
+          </p>
+          <Button
+            onClick={onApplyFilters}
+            variant="outline"
+            className="mx-auto"
+          >
+            Limpiar filtros
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
