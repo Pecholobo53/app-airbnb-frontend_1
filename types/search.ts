@@ -170,7 +170,7 @@ export interface SearchFilters {
     max: number;
   };
   propertyTypes?: PropertyType[];
-  roomType?: RoomType; // Para filtros rápidos (house, apartment, villa, cabin)
+  roomType?: RoomType | RoomType[]; // Para filtros rápidos (house, apartment, villa, cabin, loft)
   amenities?: Amenity[];
   minRating?: number;
   bedrooms?: number;

@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos de Airbnb',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: {

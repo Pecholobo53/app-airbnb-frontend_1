@@ -49,8 +49,19 @@ export class MockSearchService {
       console.log('📍 [SEARCH] Después de filtrar por ubicación:', results.length);
 
       // 2. Filtrar por fechas (mock - en realidad verificaríamos disponibilidad)
+      // Si no hay resultados después de fechas, intentar sin filtro de fechas para mostrar opciones
       if (query.checkIn && query.checkOut) {
-        results = this.filterByDates(results, query.checkIn, query.checkOut);
+        const beforeDates = results.length;
+        const dateFiltered = this.filterByDates(results, query.checkIn, query.checkOut);
+        
+        // Si no hay resultados con fechas pero sí había resultados antes, mantenerlos
+        // (en producción esto mostraría un mensaje de que no hay disponibilidad exacta)
+        if (dateFiltered.length === 0 && beforeDates > 0) {
+          console.log('⚠️ [SEARCH] No hay propiedades disponibles para esas fechas, pero mostrando todas las de la ubicación');
+          // No aplicar filtro de fechas - mostrar todas las propiedades de la ubicación
+        } else {
+          results = dateFiltered;
+        }
       }
 
       // 3. Filtrar por huéspedes
@@ -146,26 +157,57 @@ export class MockSearchService {
       return properties;
     }
 
-    const searchTerm = location.toLowerCase().trim();
-    console.log('🔎 [FILTER] Buscando ubicación:', searchTerm);
+    // Extraer solo la ciudad si viene en formato "Ciudad, País"
+    const locationParts = location.toLowerCase().trim().split(',').map(p => p.trim());
+    const citySearch = locationParts[0]; // Primera parte es la ciudad
+    const countrySearch = locationParts.length > 1 ? locationParts[1] : null;
     
-    const filtered = properties.filter(p => 
-      p.location.city.toLowerCase().includes(searchTerm) ||
-      p.location.country.toLowerCase().includes(searchTerm) ||
-      p.location.region.toLowerCase().includes(searchTerm)
-    );
+    console.log('🔎 [FILTER] Buscando ubicación:', { original: location, city: citySearch, country: countrySearch });
     
-    console.log('✅ [FILTER] Propiedades filtradas:', filtered.length, 'de', properties.length);
+    // Búsqueda más flexible: ciudad, país, región, o coincidencias parciales
+    const filtered = properties.filter(p => {
+      const cityMatch = p.location.city.toLowerCase().includes(citySearch);
+      const countryMatch = countrySearch 
+        ? p.location.country.toLowerCase().includes(countrySearch)
+        : p.location.country.toLowerCase().includes(citySearch);
+      const regionMatch = p.location.region?.toLowerCase().includes(citySearch);
+      const addressMatch = p.location.address?.toLowerCase().includes(citySearch);
+      
+      // Si hay país especificado, debe coincidir ciudad Y país
+      if (countrySearch) {
+        return cityMatch && p.location.country.toLowerCase().includes(countrySearch);
+      }
+      
+      return cityMatch || countryMatch || regionMatch || addressMatch;
+    });
+    
+    console.log('✅ [FILTER] Propiedades filtradas por ubicación:', filtered.length, 'de', properties.length);
+    if (filtered.length > 0) {
+      console.log('📍 [FILTER] Ciudades encontradas:', [...new Set(filtered.map(p => p.location.city))]);
+    } else {
+      console.log('⚠️ [FILTER] No se encontraron propiedades. Ciudades disponibles:', [...new Set(properties.map(p => p.location.city))]);
+    }
     return filtered;
   }
 
   private static filterByDates(properties: Property[], checkIn: Date, checkOut: Date): Property[] {
     const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    console.log('📅 [FILTER] Filtrando por fechas:', { checkIn, checkOut, nights });
     
-    return properties.filter(p => 
-      nights >= p.availability.minNights &&
-      nights <= p.availability.maxNights
-    );
+    const beforeDates = properties.length;
+    const filtered = properties.filter(p => {
+      const meetsMinNights = nights >= p.availability.minNights;
+      const meetsMaxNights = nights <= p.availability.maxNights;
+      return meetsMinNights && meetsMaxNights;
+    });
+    
+    console.log(`📅 [FILTER] Fechas (${nights} noches): ${beforeDates} → ${filtered.length}`);
+    if (filtered.length === 0 && beforeDates > 0) {
+      console.log('⚠️ [FILTER] No hay propiedades que cumplan el mínimo de noches:', nights);
+      console.log('📋 [FILTER] Mínimos requeridos:', [...new Set(properties.map(p => p.availability.minNights))]);
+    }
+    
+    return filtered;
   }
 
   private static filterByGuests(properties: Property[], totalGuests: number): Property[] {
@@ -174,19 +216,28 @@ export class MockSearchService {
 
   private static applyFilters(properties: Property[], filters: SearchFilters): Property[] {
     let results = [...properties];
+    const initialCount = results.length;
 
     // Filtro de precio
     if (filters.priceRange) {
+      const beforePrice = results.length;
       results = results.filter(p => 
         p.pricing.basePrice >= filters.priceRange!.min &&
         p.pricing.basePrice <= filters.priceRange!.max
       );
+      console.log(`💰 [FILTER] Precio ${filters.priceRange.min}-${filters.priceRange.max}: ${beforePrice} → ${results.length}`);
     }
 
-    // Filtro por roomType (para filtros rápidos: house, apartment, villa, cabin)
+    // Filtro por roomType (para filtros rápidos: house, apartment, villa, cabin, loft)
     if (filters.roomType) {
-      results = results.filter(p => p.roomType === filters.roomType);
-      console.log(`🏠 [FILTER] Filtrando por roomType: ${filters.roomType} → ${results.length} resultados`);
+      const beforeRoomType = results.length;
+      const roomTypes = Array.isArray(filters.roomType) ? filters.roomType : [filters.roomType];
+      results = results.filter(p => roomTypes.includes(p.roomType));
+      console.log(`🏠 [FILTER] Filtrando por roomType: ${roomTypes.join(', ')} → ${beforeRoomType} → ${results.length} resultados`);
+      if (results.length === 0 && beforeRoomType > 0) {
+        console.log('⚠️ [FILTER] No se encontraron propiedades con roomType:', roomTypes);
+        console.log('📋 [FILTER] RoomTypes disponibles:', [...new Set(properties.map(p => p.roomType))]);
+      }
     }
 
     // Filtro de tipo de propiedad (entire_place, private_room, shared_room)

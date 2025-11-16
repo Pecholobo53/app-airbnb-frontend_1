@@ -33,8 +33,10 @@ function SearchPageContent() {
     const adults = searchParams.get('adults');
     const propertyType = searchParams.get('propertyType');
     const amenities = searchParams.get('amenities');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
 
-    console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults, propertyType, amenities });
+    console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults, propertyType, amenities, minPrice, maxPrice });
 
     // Construir query
     const newQuery = {
@@ -59,12 +61,21 @@ function SearchPageContent() {
         'house': 'house',
         'apartment': 'apartment',
         'villa': 'villa',
-        'cabin': 'cabin'
+        'cabin': 'cabin',
+        'loft': 'loft'
       };
       
       if (roomTypeMap[propertyType]) {
         newFilters.roomType = roomTypeMap[propertyType];
       }
+    }
+
+    // Filtro de precio
+    if (minPrice || maxPrice) {
+      newFilters.priceRange = {
+        min: minPrice ? parseInt(minPrice) : 0,
+        max: maxPrice ? parseInt(maxPrice) : 500
+      };
     }
 
     // Filtro de amenidades
@@ -76,9 +87,9 @@ function SearchPageContent() {
 
     // DEBUG: Guardar info para mostrar en UI
     setDebugInfo({
-      params: { location, checkIn, checkOut, adults, propertyType, amenities },
+      params: { location, checkIn, checkOut, adults, propertyType, amenities, minPrice, maxPrice },
       timestamp: new Date().toISOString(),
-      hasParams: !!(location || checkIn || checkOut || adults || propertyType || amenities),
+      hasParams: !!(location || checkIn || checkOut || adults || propertyType || amenities || minPrice || maxPrice),
       query: newQuery,
       filters: newFilters,
       resultsCount: results?.total || 0

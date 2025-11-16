@@ -1,6 +1,7 @@
 // components/search/filters/PriceFilter.tsx
 'use client';
 
+import * as React from 'react';
 import { Slider } from '@/components/ui/slider';
 
 interface PriceFilterProps {
@@ -9,18 +10,28 @@ interface PriceFilterProps {
 }
 
 export default function PriceFilter({ value, onChange }: PriceFilterProps) {
-  const min = value?.min || 0;
-  const max = value?.max || 500;
+  // Inicializar valores por defecto si no hay valor
+  const [localValue, setLocalValue] = React.useState<[number, number]>(
+    value ? [value.min, value.max] : [0, 500]
+  );
+
+  // Sincronizar con prop value cuando cambia
+  React.useEffect(() => {
+    if (value) {
+      setLocalValue([value.min, value.max]);
+    }
+  }, [value?.min, value?.max]);
 
   const handleChange = (values: number[]) => {
-    onChange({ min: values[0], max: values[1] });
+    const newValue: [number, number] = [values[0], values[1]];
+    setLocalValue(newValue);
+    onChange({ min: newValue[0], max: newValue[1] });
   };
 
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-lg mb-1">Rango de precio</h3>
-        <p className="text-sm text-gray-500">Precio promedio por noche</p>
+        <h3 className="font-semibold text-lg mb-1 text-gray-900">€ Rango de precio</h3>
       </div>
 
       <div className="px-2 py-4">
@@ -28,7 +39,7 @@ export default function PriceFilter({ value, onChange }: PriceFilterProps) {
           min={0}
           max={500}
           step={10}
-          value={[min, max]}
+          value={localValue}
           onValueChange={handleChange}
           className="w-full"
         />
@@ -36,17 +47,15 @@ export default function PriceFilter({ value, onChange }: PriceFilterProps) {
 
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <label className="text-xs text-gray-500 block mb-1">Mínimo</label>
-          <div className="border rounded-lg px-3 py-2">
-            <span className="text-sm font-medium">€{min}</span>
+          <div className="border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <span className="text-sm font-medium text-gray-900">€{localValue[0]}</span>
           </div>
         </div>
         <div className="text-gray-400">-</div>
         <div className="flex-1">
-          <label className="text-xs text-gray-500 block mb-1">Máximo</label>
-          <div className="border rounded-lg px-3 py-2">
-            <span className="text-sm font-medium">
-              {max >= 500 ? '€500+' : `€${max}`}
+          <div className="border border-gray-300 rounded-lg px-3 py-2 bg-white">
+            <span className="text-sm font-medium text-gray-900">
+              {localValue[1] >= 500 ? '€500+ por noche' : `€${localValue[1]}`}
             </span>
           </div>
         </div>

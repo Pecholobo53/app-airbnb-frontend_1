@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react';
-import { Property } from '@/types/search';
+import { Property, PriceBreakdown } from '@/types/search';
 import { Button } from '@/components/ui/button';
 import { calculatePriceBreakdown, formatPrice, validateBookingDates } from '@/lib/pricing/calculate-price';
 import { addDays, format } from 'date-fns';
@@ -37,7 +37,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   const hasValidDates = checkIn && checkOut && checkOut > checkIn;
   
   // Calcular precio si hay fechas válidas
-  let priceBreakdown = null;
+  let priceBreakdown: PriceBreakdown | null = null;
   let validationError: string | null = null;
 
   if (hasValidDates) {

@@ -4,6 +4,7 @@ import { Heart, Menu, Search } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import UserMenu from '@/components/auth/UserMenu';
 import NotificationsMenu from '@/components/notifications/NotificationsMenu';
+import HeaderSearchFilter from '@/components/search/HeaderSearchFilter';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ export default function Header() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
+  const [isSearchFilterOpen, setIsSearchFilterOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +86,18 @@ export default function Header() {
             >
               Inicio
             </button>
+            <button
+              onClick={() => setIsSearchFilterOpen(true)}
+              className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap"
+            >
+              Buscar
+            </button>
+            <button
+              onClick={() => router.push('/#experiencias')}
+              className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap"
+            >
+              Experiencias
+            </button>
             <a href="/#ofertas" className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap">
               Ofertas
             </a>
@@ -131,6 +145,12 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Filtro de búsqueda modal */}
+      <HeaderSearchFilter 
+        isOpen={isSearchFilterOpen} 
+        onClose={() => setIsSearchFilterOpen(false)} 
+      />
     </header>
   );
 }

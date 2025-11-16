@@ -37,23 +37,26 @@ export default function AmenitiesFilter({ value = [], onChange }: AmenitiesFilte
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-lg mb-1">Servicios</h3>
-        <p className="text-sm text-gray-500">Servicios que debe tener el alojamiento</p>
+        <h3 className="font-semibold text-lg mb-1 text-gray-900">Amenidades</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {AMENITIES.map((amenity) => (
           <label
             key={amenity.value}
-            className="flex items-center gap-3 cursor-pointer border rounded-lg p-3 hover:border-gray-300 transition-colors"
+            className={`flex items-center gap-3 cursor-pointer border rounded-lg p-3 transition-colors bg-white ${
+              value.includes(amenity.value)
+                ? 'border-[#FF385C] bg-[#FFF5F7]'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
           >
             <Checkbox
               checked={value.includes(amenity.value)}
               onCheckedChange={() => toggleAmenity(amenity.value)}
             />
             <div className="flex items-center gap-2">
-              {amenity.icon}
-              <span className="text-sm">{amenity.label}</span>
+              <span className="text-gray-700">{amenity.icon}</span>
+              <span className="text-sm text-gray-900">{amenity.label}</span>
             </div>
           </label>
         ))}
