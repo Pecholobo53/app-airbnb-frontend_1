@@ -47,8 +47,10 @@ function generateSessionId(): string {
  */
 function cleanExpiredSessions(): void {
   const now = new Date();
-  for (const [id, session] of CHECKOUT_SESSIONS.entries()) {
-    if (session.expiresAt < now) {
+  const sessionIds = Array.from(CHECKOUT_SESSIONS.keys());
+  for (const id of sessionIds) {
+    const session = CHECKOUT_SESSIONS.get(id);
+    if (session && session.expiresAt < now) {
       CHECKOUT_SESSIONS.delete(id);
       console.log(`🧹 [CHECKOUT] Sesión expirada eliminada: ${id}`);
     }
