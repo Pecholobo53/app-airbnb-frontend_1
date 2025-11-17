@@ -13,7 +13,8 @@ Plataforma completa tipo Airbnb construida con Next.js 13, React 18, TypeScript 
 - ✅ **Milestone 2**: Completado (Búsqueda y Filtros)
 - ✅ **Milestone 3**: Completado (Detalle de Propiedad)
 - ✅ **Milestone 4**: Completado (Sistema de Favoritos + Notificaciones)
-- ⚪ **Milestone 5**: Pendiente (Backend Real)
+- ✅ **Milestone 5**: Completado (Sistema de Checkout)
+- ⚪ **Milestone 6**: Pendiente (Backend Real)
 
 ---
 
@@ -97,7 +98,23 @@ Plataforma completa tipo Airbnb construida con Next.js 13, React 18, TypeScript 
 - ✅ Navegación inteligente desde notificaciones
 - ✅ Sincronización con usuario autenticado
 
-#### Milestone 5: Integración Backend Real (PENDIENTE ⚪)
+#### Milestone 5: Sistema de Checkout (COMPLETADO ✅)
+| Archivo | Descripción |
+|---------|-------------|
+| `MILESTONE_5.md` | Plan completo - 25 tareas (100% completado) |
+| `QUICK_START_MILESTONE5.md` | Guía rápida de inicio |
+
+**Funcionalidades**:
+- ✅ Página de checkout completa
+- ✅ Resumen de reserva con desglose de precios
+- ✅ Formulario de información del huésped
+- ✅ Selección de método de pago (simulado)
+- ✅ Procesamiento de pago MOCK
+- ✅ Confirmación de reserva
+- ✅ Integración con página de detalle
+- ✅ Navegación fluida desde PriceCalculator
+
+#### Milestone 6: Integración Backend Real (PENDIENTE ⚪)
 **Estado**: Por planificar
 
 **Funcionalidades Propuestas**:

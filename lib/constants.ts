@@ -29,6 +29,7 @@ export const ROUTES = {
   FAVORITOS: '/favoritos',
   CONFIGURACION: '/configuracion',
   MIS_RESERVAS: '/mis-reservas',
+  CHECKOUT: '/checkout',
 } as const;
 
 /**

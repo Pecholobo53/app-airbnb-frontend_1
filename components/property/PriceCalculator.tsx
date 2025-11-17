@@ -10,7 +10,6 @@ import { addDays, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/auth-context';
-import { MockDashboardService } from '@/lib/dashboard/mock-dashboard-service';
 import { useRouter } from 'next/navigation';
 import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
 
@@ -32,7 +31,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   const [guests, setGuests] = useState(1);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
-  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
 
   const hasValidDates = checkIn && checkOut && checkOut > checkIn;
   
@@ -92,39 +90,9 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       return;
     }
 
-    setIsCreatingBooking(true);
-
-    try {
-      const response = await MockDashboardService.createBooking(
-        user.id,
-        property.id,
-        checkIn,
-        checkOut,
-        { adults: guests, children: 0, infants: 0 },
-        {
-          basePrice: priceBreakdown.basePrice,
-          nightsTotal: priceBreakdown.subtotal,
-          cleaningFee: priceBreakdown.cleaningFee,
-          serviceFee: priceBreakdown.serviceFee,
-          total: priceBreakdown.total
-        }
-      );
-
-      if (response.success && response.data) {
-        toast.success('¡Reserva creada! El anfitrión la revisará pronto.');
-        // Opcional: redirigir a mis reservas después de un momento
-        setTimeout(() => {
-          router.push(ROUTES.MIS_RESERVAS);
-        }, 2000);
-      } else {
-        toast.error(response.error?.message || 'Error al crear la reserva');
-      }
-    } catch (error) {
-      console.error('Error creando reserva:', error);
-      toast.error('Error al crear la reserva');
-    } finally {
-      setIsCreatingBooking(false);
-    }
+    // Navegar a checkout con los datos
+    const checkoutUrl = `/checkout?propertyId=${property.id}&checkIn=${checkIn.toISOString()}&checkOut=${checkOut.toISOString()}&adults=${guests}&children=0&infants=0`;
+    router.push(checkoutUrl);
   };
 
   const incrementGuests = () => {
@@ -263,10 +231,10 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       {hasValidDates ? (
         <Button
           onClick={handleReserve}
-          disabled={!!validationError || isCreatingBooking}
+          disabled={!!validationError}
           className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isCreatingBooking ? 'Creando reserva...' : validationError ? 'Fechas inválidas' : 'Reservar'}
+          {validationError ? 'Fechas inválidas' : 'Ir a checkout'}
         </Button>
       ) : (
         <Button
