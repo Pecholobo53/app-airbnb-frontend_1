@@ -21,7 +21,7 @@ export default function BedroomsFilter({ value, onChange }: BedroomsFilterProps)
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-lg mb-1">Habitaciones</h3>
+        <h3 className="font-semibold text-lg mb-1 text-gray-900">Habitaciones</h3>
         <p className="text-sm text-gray-500">Número mínimo de habitaciones</p>
       </div>
 

@@ -21,7 +21,7 @@ export default function RatingFilter({ value, onChange }: RatingFilterProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="font-semibold text-lg mb-1">Calificación</h3>
+        <h3 className="font-semibold text-lg mb-1 text-gray-900">Calificación</h3>
         <p className="text-sm text-gray-500">Calificación mínima del alojamiento</p>
       </div>
 

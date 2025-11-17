@@ -54,19 +54,19 @@ export default function FilterPanel({ filters, onFiltersChange, onApply }: Filte
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="pb-4 border-b">
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto bg-white text-gray-900">
+        <SheetHeader className="pb-4 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between">
-            <SheetTitle>Filtros</SheetTitle>
+            <SheetTitle className="text-gray-900">Filtros</SheetTitle>
             {activeFiltersCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={handleClear}>
+              <Button variant="ghost" size="sm" onClick={handleClear} className="text-gray-900 hover:bg-gray-100">
                 Limpiar todo
               </Button>
             )}
           </div>
         </SheetHeader>
 
-        <div className="space-y-8 py-6">
+        <div className="space-y-8 py-6 bg-white">
           {/* Rango de Precio */}
           <PriceFilter
             value={localFilters.priceRange}
@@ -117,17 +117,17 @@ export default function FilterPanel({ filters, onFiltersChange, onApply }: Filte
         </div>
 
         {/* Footer con botones */}
-        <div className="sticky bottom-0 bg-white pt-4 pb-2 border-t">
+        <div className="sticky bottom-0 bg-white pt-4 pb-2 border-t border-gray-200">
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 text-gray-900 border-gray-300 hover:bg-gray-50"
               onClick={() => setIsOpen(false)}
             >
               Cancelar
             </Button>
             <Button
-              className="flex-1 bg-[#FF385C] hover:bg-[#E31C5F]"
+              className="flex-1 bg-[#FF385C] hover:bg-[#E31C5F] text-white"
               onClick={handleApply}
             >
               Aplicar filtros
