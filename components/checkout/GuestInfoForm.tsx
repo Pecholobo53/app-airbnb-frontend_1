@@ -1,7 +1,7 @@
 // components/checkout/GuestInfoForm.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -82,7 +82,13 @@ export default function GuestInfoForm({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(handleFormSubmit)(e);
+        }} 
+        className="space-y-4"
+      >
         {/* Nombre */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -140,13 +146,17 @@ export default function GuestInfoForm({
           </p>
         </div>
 
-        {/* Botón de guardar (opcional, se puede auto-guardar) */}
-        {!isValid && (
-          <p className="text-sm text-gray-500">
-            Completa los campos requeridos para continuar
-          </p>
+        {/* Botón para continuar */}
+        {isValid && (
+          <button
+            type="submit"
+            className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 rounded-lg transition-colors mt-4"
+          >
+            Continuar
+          </button>
         )}
       </form>
+
     </div>
   );
 }

@@ -24,19 +24,28 @@ export interface GuestInfo {
 }
 
 /**
+ * Información de facturación
+ */
+export interface BillingAddress {
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
+/**
  * Información de pago (MOCK - no procesa pagos reales)
  */
 export interface PaymentInfo {
   method: PaymentMethod;
   // Para tarjeta
-  cardNumber?: string;
-  cardHolder?: string;
-  expiryDate?: string; // MM/YY
-  cvv?: string;
-  // Para PayPal
-  paypalEmail?: string;
-  // Para transferencia bancaria
-  bankAccount?: string;
+  cardNumber: string;
+  cardHolder: string;
+  expiryDate: string; // MM/YY
+  cvv: string;
+  // Dirección de facturación
+  billingAddress: BillingAddress;
 }
 
 /**

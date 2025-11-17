@@ -216,40 +216,49 @@ export class MockCheckoutService {
     try {
       await delay(500 + Math.random() * 500); // 500-1000ms (simular procesamiento)
 
-      // Validar información de pago según método
-      if (paymentInfo.method === 'card') {
-        if (!paymentInfo.cardNumber || !paymentInfo.cardHolder || !paymentInfo.expiryDate || !paymentInfo.cvv) {
-          return {
-            success: false,
-            error: {
-              code: 'INVALID_PAYMENT_INFO',
-              message: 'Información de tarjeta incompleta',
-            },
-          };
-        }
+      // Validar información de pago (solo tarjeta ahora)
+      if (!paymentInfo.cardNumber || !paymentInfo.cardHolder || !paymentInfo.expiryDate || !paymentInfo.cvv) {
+        return {
+          success: false,
+          error: {
+            code: 'INVALID_PAYMENT_INFO',
+            message: 'Información de tarjeta incompleta',
+          },
+        };
+      }
 
-        // Validar formato de tarjeta (básico)
-        const cardNumber = paymentInfo.cardNumber.replace(/\s/g, '');
-        if (cardNumber.length < 13 || cardNumber.length > 19) {
-          return {
-            success: false,
-            error: {
-              code: 'INVALID_CARD_NUMBER',
-              message: 'Número de tarjeta inválido',
-            },
-          };
-        }
+      // Validar dirección de facturación
+      if (!paymentInfo.billingAddress) {
+        return {
+          success: false,
+          error: {
+            code: 'MISSING_BILLING_ADDRESS',
+            message: 'Dirección de facturación requerida',
+          },
+        };
+      }
 
-        // Validar CVV
-        if (paymentInfo.cvv.length < 3 || paymentInfo.cvv.length > 4) {
-          return {
-            success: false,
-            error: {
-              code: 'INVALID_CVV',
-              message: 'CVV inválido',
-            },
-          };
-        }
+      // Validar formato de tarjeta (básico)
+      const cardNumber = paymentInfo.cardNumber.replace(/\s/g, '');
+      if (cardNumber.length < 13 || cardNumber.length > 19) {
+        return {
+          success: false,
+          error: {
+            code: 'INVALID_CARD_NUMBER',
+            message: 'Número de tarjeta inválido',
+          },
+        };
+      }
+
+      // Validar CVV
+      if (paymentInfo.cvv.length < 3 || paymentInfo.cvv.length > 4) {
+        return {
+          success: false,
+          error: {
+            code: 'INVALID_CVV',
+            message: 'CVV inválido',
+          },
+        };
       }
 
       // Simular éxito de pago

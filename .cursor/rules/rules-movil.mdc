@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---Necesito que hagas esta aplicación responsive para móvil. 
+Usa Tailwind CSS para que se vea bien en pantallas pequeñas (móvil), 
+medianas (tablet) y grandes (escritorio). 
+Asegúrate de que todos los botones y textos sean visibles y accesibles
+Necesito que hagas esta aplicación responsive para móvil. 
+Usa Tailwind CSS para que se vea bien en pantallas pequeñas (móvil), 
+medianas (tablet) y grandes (escritorio). 
+Asegúrate de que todos los botones y textos sean visibles y accesiblesPaso 
+1: Verifica el viewport meta tag
+En tu archivo app/layout.tsx o pages/_document.tsx, asegúrate de tener:
+tsx<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
