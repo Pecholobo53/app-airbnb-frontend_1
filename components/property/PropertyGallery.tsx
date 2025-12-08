@@ -81,16 +81,18 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
           </div>
         ))}
 
-        {/* Botón "Ver todas las fotos" */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute bottom-4 right-4 bg-white hover:bg-gray-50"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Grid3X3 className="w-4 h-4 mr-2" />
-          Ver todas las fotos
-        </Button>
+        {/* Botón "Ver todas las fotos" - Centrado */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white hover:bg-gray-50 shadow-lg"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Grid3X3 className="w-4 h-4 mr-2" />
+            Ver todas las fotos
+          </Button>
+        </div>
       </div>
 
       {/* Mobile Carousel - Simple first image with button */}
@@ -103,15 +105,18 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
           sizes="100vw"
           priority
         />
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute bottom-4 right-4 bg-white"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Grid3X3 className="w-4 h-4 mr-2" />
-          Ver {images.length} fotos
-        </Button>
+        {/* Botón "Ver todas las fotos" - Centrado en mobile */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white shadow-lg"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Grid3X3 className="w-4 h-4 mr-2" />
+            Ver {images.length} fotos
+          </Button>
+        </div>
       </div>
 
       {/* Modal Fullscreen */}

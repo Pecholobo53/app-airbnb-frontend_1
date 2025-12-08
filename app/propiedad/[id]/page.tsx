@@ -15,6 +15,7 @@ import PriceCalculator from '@/components/property/PriceCalculator';
 import PropertyMap from '@/components/property/PropertyMap';
 import PropertyRules from '@/components/property/PropertyRules';
 import SimilarProperties from '@/components/property/SimilarProperties';
+import Footer from '@/components/Footer';
 
 /**
  * Página de Detalle de Propiedad
@@ -134,14 +135,10 @@ export default function PropertyDetailPage() {
 
         {/* Propiedades Similares (Full Width) */}
         <SimilarProperties currentProperty={property} />
-
-        {/* Footer Info */}
-        <div className="py-8 mt-8 border-t border-gray-200">
-          <p className="text-center text-sm text-gray-500">
-            ✅ Milestone 3 COMPLETADO: Galería, Header, Info, Amenidades, Host, Reviews, Calculadora, Mapa, Reglas y Propiedades Similares
-          </p>
-        </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
