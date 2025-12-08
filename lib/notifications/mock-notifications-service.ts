@@ -9,7 +9,7 @@ import {
   markAllAsRead as markAllAsReadDB,
   createNotification as createNotificationDB,
 } from './mock-notifications-db';
-import { findUserById } from '@/lib/auth/mock-users-db';
+import { findUserById } from '@/lib/auth/mock-users-db-stub';
 
 /**
  * MOCK NOTIFICATIONS SERVICE

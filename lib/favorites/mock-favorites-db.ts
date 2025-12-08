@@ -1,7 +1,7 @@
 // lib/favorites/mock-favorites-db.ts
 
 import { Favorite } from '@/types/favorites';
-import { MOCK_USERS } from '@/lib/auth/mock-users-db';
+import { MOCK_USERS } from '@/lib/auth/mock-users-db-stub';
 
 /**
  * BASE DE DATOS MOCK DE FAVORITOS

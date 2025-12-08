@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthSession, LoginCredentials, RegisterData } from '@/types/auth';
-import { MockAuthService } from './mock-auth-service';
+import { AuthService } from './auth-service';
 import { toast } from 'sonner';
 
 interface AuthContextType {
@@ -62,11 +62,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
-      const response = await MockAuthService.login(credentials);
+      const response = await AuthService.login(credentials);
       
       if (response.success && response.data) {
-        setSession(response.data);
-        toast.success(`¡Bienvenido, ${response.data.user.name}!`);
+        // Convertir fechas de string a Date si vienen del servidor
+        const session: AuthSession = {
+          ...response.data,
+          expiresAt: new Date(response.data.expiresAt),
+          user: {
+            ...response.data.user,
+            createdAt: new Date(response.data.user.createdAt),
+            updatedAt: new Date(response.data.user.updatedAt),
+          },
+        };
+        setSession(session);
+        toast.success(`¡Bienvenido, ${session.user.name}!`);
         return true;
       } else {
         toast.error(response.error?.message || 'Error al iniciar sesión');
@@ -80,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData): Promise<boolean> => {
     try {
-      const response = await MockAuthService.register(data);
+      const response = await AuthService.register(data);
       
       if (response.success) {
         toast.success('¡Cuenta creada! Revisa tu email para verificar tu cuenta.');
@@ -97,24 +107,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await MockAuthService.logout();
+      await AuthService.logout();
       setSession(null);
       toast.info('Sesión cerrada correctamente');
     } catch (error) {
-      toast.error('Error al cerrar sesión');
+      // Incluso si falla el logout en el servidor, limpiamos la sesión local
+      setSession(null);
+      toast.info('Sesión cerrada correctamente');
     }
   };
 
   const loginWithGoogle = async (): Promise<boolean> => {
     try {
-      const response = await MockAuthService.loginWithGoogle();
+      // En producción, esto debería obtener el token de Google OAuth
+      // Por ahora, asumimos que el token viene del callback OAuth
+      const response = await AuthService.loginWithGoogle();
       
       if (response.success && response.data) {
-        setSession(response.data);
-        toast.success(`¡Bienvenido, ${response.data.user.name}!`);
+        const session: AuthSession = {
+          ...response.data,
+          expiresAt: new Date(response.data.expiresAt),
+          user: {
+            ...response.data.user,
+            createdAt: new Date(response.data.user.createdAt),
+            updatedAt: new Date(response.data.user.updatedAt),
+          },
+        };
+        setSession(session);
+        toast.success(`¡Bienvenido, ${session.user.name}!`);
         return true;
       } else {
-        toast.error('Error al iniciar sesión con Google');
+        toast.error(response.error?.message || 'Error al iniciar sesión con Google');
         return false;
       }
     } catch (error) {
@@ -125,14 +148,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithFacebook = async (): Promise<boolean> => {
     try {
-      const response = await MockAuthService.loginWithFacebook();
+      // En producción, esto debería obtener el token de Facebook OAuth
+      const response = await AuthService.loginWithFacebook();
       
       if (response.success && response.data) {
-        setSession(response.data);
-        toast.success(`¡Bienvenido, ${response.data.user.name}!`);
+        const session: AuthSession = {
+          ...response.data,
+          expiresAt: new Date(response.data.expiresAt),
+          user: {
+            ...response.data.user,
+            createdAt: new Date(response.data.user.createdAt),
+            updatedAt: new Date(response.data.user.updatedAt),
+          },
+        };
+        setSession(session);
+        toast.success(`¡Bienvenido, ${session.user.name}!`);
         return true;
       } else {
-        toast.error('Error al iniciar sesión con Facebook');
+        toast.error(response.error?.message || 'Error al iniciar sesión con Facebook');
         return false;
       }
     } catch (error) {
@@ -145,17 +178,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session) return false;
 
     try {
-      const response = await MockAuthService.updateProfile(session.user.id, data);
+      const response = await AuthService.updateProfile(session.user.id, data);
       
       if (response.success && response.data) {
+        const updatedUser = {
+          ...response.data,
+          createdAt: new Date(response.data.createdAt),
+          updatedAt: new Date(response.data.updatedAt),
+        };
         setSession({
           ...session,
-          user: response.data
+          user: updatedUser
         });
         toast.success('Perfil actualizado correctamente');
         return true;
       } else {
-        toast.error('Error al actualizar perfil');
+        toast.error(response.error?.message || 'Error al actualizar perfil');
         return false;
       }
     } catch (error) {

@@ -56,6 +56,26 @@ export const SUCCESS_MESSAGES = {
 } as const;
 
 /**
+ * Configuración de API
+ */
+export const API_CONFIG = {
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+  ENDPOINTS: {
+    AUTH: {
+      REGISTER: '/api/auth/register',
+      LOGIN: '/api/auth/login',
+      LOGOUT: '/api/auth/logout',
+      PASSWORD_RECOVERY: '/api/auth/password-recovery',
+      RESET_PASSWORD: '/api/auth/reset-password',
+      VERIFY_EMAIL: '/api/auth/verify-email',
+      GOOGLE: '/api/auth/google',
+      FACEBOOK: '/api/auth/facebook',
+      PROFILE: '/api/auth/profile',
+    },
+  },
+} as const;
+
+/**
  * Etiquetas y textos de UI
  */
 export const UI_LABELS = {

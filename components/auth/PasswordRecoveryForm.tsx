@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordRecoverySchema, PasswordRecoveryFormData } from '@/lib/auth/validators';
-import { MockAuthService } from '@/lib/auth/mock-auth-service';
+import { AuthService } from '@/lib/auth/auth-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,7 +33,7 @@ export default function PasswordRecoveryForm() {
 
   const onSubmit = async (data: PasswordRecoveryFormData) => {
     setIsLoading(true);
-    const response = await MockAuthService.requestPasswordRecovery(data);
+    const response = await AuthService.requestPasswordRecovery(data);
     setIsLoading(false);
 
     if (response.success) {
@@ -71,10 +71,10 @@ export default function PasswordRecoveryForm() {
             <Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
               <p className="text-sm font-semibold text-blue-900">
-                ⚠️ Nota (MOCK Mode)
+                📧 Email enviado
               </p>
               <p className="text-xs text-blue-700">
-                En modo MOCK, no se envían emails reales. Revisa la consola del navegador para ver el link de recuperación.
+                Revisa tu bandeja de entrada y tu carpeta de spam para encontrar el link de recuperación.
               </p>
             </div>
           </div>

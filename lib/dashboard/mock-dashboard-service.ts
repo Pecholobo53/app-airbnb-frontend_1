@@ -20,7 +20,7 @@ import {
   createBooking
 } from './mock-bookings-db';
 import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db';
-import { MOCK_USERS } from '@/lib/auth/mock-users-db';
+import { MOCK_USERS } from '@/lib/auth/mock-users-db-stub';
 
 /**
  * MOCK DASHBOARD SERVICE

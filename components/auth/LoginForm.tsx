@@ -136,15 +136,6 @@ export default function LoginForm() {
           ¿Olvidaste tu contraseña?
         </Link>
       </div>
-
-      {/* Demo Credentials */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-xs font-semibold text-blue-900 mb-1">🧪 Credenciales de prueba:</p>
-        <p className="text-xs text-blue-700">
-          <strong>Email:</strong> demo@airbnb.com<br />
-          <strong>Password:</strong> password123
-        </p>
-      </div>
     </form>
   );
 }

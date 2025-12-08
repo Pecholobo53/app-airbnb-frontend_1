@@ -11,7 +11,7 @@ import {
   removeFavorite as removeFavoriteDB,
 } from './mock-favorites-db';
 import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db';
-import { findUserById } from '@/lib/auth/mock-users-db';
+import { findUserById } from '@/lib/auth/mock-users-db-stub';
 
 /**
  * MOCK FAVORITES SERVICE

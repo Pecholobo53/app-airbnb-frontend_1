@@ -1,7 +1,7 @@
 // lib/notifications/mock-notifications-db.ts
 
 import { Notification, NotificationType } from '@/types/notifications';
-import { MOCK_USERS } from '@/lib/auth/mock-users-db';
+import { MOCK_USERS } from '@/lib/auth/mock-users-db-stub';
 
 /**
  * BASE DE DATOS MOCK DE NOTIFICACIONES
