@@ -32,11 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const stored = localStorage.getItem(SESSION_KEY);
         if (stored) {
+          console.log('📂 [LOAD SESSION] Sesión encontrada en localStorage');
           const parsed: AuthSession = JSON.parse(stored);
           
           // Convertir fechas de string a Date si vienen del localStorage
           if (parsed.expiresAt) {
-            parsed.expiresAt = new Date(parsed.expiresAt);
+            const expiresAtDate = new Date(parsed.expiresAt);
+            parsed.expiresAt = expiresAtDate;
+            console.log('📅 [LOAD SESSION] expiresAt encontrado:', expiresAtDate.toLocaleString('es-ES'));
+            console.log('⏰ [LOAD SESSION] Tiempo hasta expiración:', Math.round((expiresAtDate.getTime() - Date.now()) / (1000 * 60 * 60)), 'horas');
           }
           if (parsed.user) {
             if (parsed.user.createdAt) {
@@ -49,17 +53,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!parsed.user.favorites || !Array.isArray(parsed.user.favorites)) {
               parsed.user.favorites = [];
             }
+            console.log('👤 [LOAD SESSION] Usuario:', parsed.user.name);
           }
           
-          if (new Date(parsed.expiresAt) > new Date()) {
+          const now = new Date();
+          const expiresAt = new Date(parsed.expiresAt);
+          const isExpired = expiresAt <= now;
+          
+          console.log('🔍 [LOAD SESSION] Verificando expiración...');
+          console.log('📅 [LOAD SESSION] Fecha actual:', now.toLocaleString('es-ES'));
+          console.log('📅 [LOAD SESSION] Fecha expiración:', expiresAt.toLocaleString('es-ES'));
+          console.log('❓ [LOAD SESSION] ¿Está expirada?', isExpired);
+          
+          if (!isExpired) {
+            console.log('✅ [LOAD SESSION] Sesión válida, restaurando...');
             setSession(parsed);
           } else {
+            console.log('❌ [LOAD SESSION] Sesión expirada, eliminando...');
             localStorage.removeItem(SESSION_KEY);
             toast.info('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
           }
+        } else {
+          console.log('📭 [LOAD SESSION] No hay sesión guardada en localStorage');
         }
       } catch (error) {
-        console.error('Error al cargar sesión:', error);
+        console.error('❌ [LOAD SESSION] Error al cargar sesión:', error);
         localStorage.removeItem(SESSION_KEY);
       } finally {
         setIsLoading(false);
@@ -71,21 +89,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (session) {
+      console.log('💾 [SAVE SESSION] Guardando sesión en localStorage');
+      console.log('📅 [SAVE SESSION] Expira:', session.expiresAt.toLocaleString('es-ES'));
       localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     } else {
+      console.log('🗑️ [SAVE SESSION] Eliminando sesión de localStorage');
       localStorage.removeItem(SESSION_KEY);
     }
   }, [session]);
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
     try {
+      // Log de depuración: ver qué se está enviando
+      console.log('🔐 [LOGIN] Iniciando login con rememberMe:', credentials.rememberMe);
+      
       const response = await AuthService.login(credentials);
       
       if (response.success && response.data) {
+        // Log de depuración: ver qué viene del servidor
+        console.log('✅ [LOGIN] Respuesta exitosa del servidor');
+        console.log('📅 [LOGIN] expiresAt recibido (string):', response.data.expiresAt);
+        console.log('📅 [LOGIN] Tipo de expiresAt:', typeof response.data.expiresAt);
+        
         // Convertir fechas de string a Date si vienen del servidor
+        const expiresAtDate = new Date(response.data.expiresAt);
+        console.log('📅 [LOGIN] expiresAt convertido (Date):', expiresAtDate);
+        console.log('📅 [LOGIN] Fecha de expiración:', expiresAtDate.toLocaleString('es-ES'));
+        console.log('⏰ [LOGIN] Tiempo hasta expiración:', Math.round((expiresAtDate.getTime() - Date.now()) / (1000 * 60 * 60)), 'horas');
+        
         const session: AuthSession = {
           ...response.data,
-          expiresAt: new Date(response.data.expiresAt),
+          expiresAt: expiresAtDate,
           user: {
             ...response.data.user,
             createdAt: new Date(response.data.user.createdAt),
@@ -94,6 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             favorites: response.data.user.favorites || [],
           },
         };
+        
+        console.log('💾 [LOGIN] Guardando sesión en localStorage');
+        console.log('👤 [LOGIN] Usuario:', session.user.name);
         setSession(session);
         toast.success(`¡Bienvenido, ${session.user.name}!`);
         return true;

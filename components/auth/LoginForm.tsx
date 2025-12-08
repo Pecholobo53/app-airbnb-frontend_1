@@ -19,6 +19,8 @@ export default function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailReadOnly, setEmailReadOnly] = useState(true);
+  const [passwordReadOnly, setPasswordReadOnly] = useState(true);
 
   const {
     register,
@@ -56,7 +58,9 @@ export default function LoginForm() {
           id="email"
           type="email"
           placeholder="tu@email.com"
-          autoComplete="off"
+          autoComplete="username"
+          readOnly={emailReadOnly}
+          onFocus={() => setEmailReadOnly(false)}
           {...register('email')}
           className={errors.email ? 'border-red-500' : ''}
           disabled={isLoading}
@@ -74,7 +78,9 @@ export default function LoginForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            autoComplete="off"
+            autoComplete="new-password"
+            readOnly={passwordReadOnly}
+            onFocus={() => setPasswordReadOnly(false)}
             {...register('password')}
             className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}
