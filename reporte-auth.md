@@ -173,9 +173,9 @@ curl --location 'http://localhost:3000/api/auth/logout' \
 --header 'Content-Type: application/json'
 ```
 
-#### 4. **POST /api/auth/password-recovery**
+#### 4. **POST /api/auth/recovery**
 ```bash
-curl --location 'http://localhost:3000/api/auth/password-recovery' \
+curl --location 'http://localhost:3000/api/auth/recovery' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "email": "juan@example.com"
@@ -192,13 +192,9 @@ curl --location 'http://localhost:3000/api/auth/reset-password' \
 }'
 ```
 
-#### 6. **POST /api/auth/verify-email**
+#### 6. **GET /api/auth/verify-email/{token}**
 ```bash
-curl --location 'http://localhost:3000/api/auth/verify-email' \
---header 'Content-Type: application/json' \
---data-raw '{
-  "token": "verification-token-123"
-}'
+curl --location 'http://localhost:3000/api/auth/verify-email/token-de-verificacion'
 ```
 
 #### 7. **POST /api/auth/google**
@@ -206,7 +202,10 @@ curl --location 'http://localhost:3000/api/auth/verify-email' \
 curl --location 'http://localhost:3000/api/auth/google' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "token": "google-oauth-token"
+  "email": "user@gmail.com",
+  "name": "Usuario Google",
+  "avatar": "https://example.com/avatar.jpg",
+  "providerId": "google-123456"
 }'
 ```
 
@@ -215,19 +214,34 @@ curl --location 'http://localhost:3000/api/auth/google' \
 curl --location 'http://localhost:3000/api/auth/facebook' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "token": "facebook-oauth-token"
+  "email": "user@facebook.com",
+  "name": "Usuario Facebook",
+  "avatar": "https://example.com/avatar.jpg",
+  "providerId": "facebook-123456"
 }'
 ```
 
-#### 9. **PUT /api/auth/profile**
+#### 9. **GET /api/auth/me**
 ```bash
-curl --location 'http://localhost:3000/api/auth/profile' \
---header 'Authorization: Bearer <token>' \
+curl --location 'http://localhost:3000/api/auth/me' \
+--header 'Authorization: Bearer <token>'
+```
+
+#### 10. **PUT /api/auth/profile**
+```bash
+curl --location --request PUT 'http://localhost:3000/api/auth/profile' \
 --header 'Content-Type: application/json' \
---data-raw '{
-  "name": "Juan Pérez Actualizado",
-  "phone": "+34 612 345 678"
+--header 'Authorization: Bearer <token>' \
+--data '{
+  "name": "Juan Carlos Pérez",
+  "avatar": "https://example.com/new-avatar.jpg"
 }'
+```
+
+#### 11. **GET /api/auth/verify**
+```bash
+curl --location 'http://localhost:3000/api/auth/verify' \
+--header 'Authorization: Bearer <token>'
 ```
 
 ### Implementación del Servicio

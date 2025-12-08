@@ -25,12 +25,14 @@ import {
  * - POST /api/auth/register - Registrar nuevo usuario
  * - POST /api/auth/login - Iniciar sesión
  * - POST /api/auth/logout - Cerrar sesión
- * - POST /api/auth/password-recovery - Solicitar recuperación de contraseña
+ * - POST /api/auth/recovery - Solicitar recuperación de contraseña
  * - POST /api/auth/reset-password - Restablecer contraseña con token
- * - POST /api/auth/verify-email - Verificar email con token
+ * - GET /api/auth/verify-email/{token} - Verificar email con token
  * - POST /api/auth/google - Login con Google OAuth
  * - POST /api/auth/facebook - Login con Facebook OAuth
+ * - GET /api/auth/me - Obtener perfil del usuario autenticado
  * - PUT /api/auth/profile - Actualizar perfil de usuario
+ * - GET /api/auth/verify - Verificar token de autenticación
  * 
  * Manejo de Errores:
  * - Errores de red: Se capturan y se retornan con código NETWORK_ERROR
@@ -152,11 +154,11 @@ export class AuthService {
   /**
    * REQUEST PASSWORD RECOVERY
    * 
-   * Endpoint: POST /api/auth/password-recovery
+   * Endpoint: POST /api/auth/recovery
    * Body: { email }
    */
   static async requestPasswordRecovery(data: PasswordRecoveryData): Promise<AuthResponse<void>> {
-    return apiRequest<void>('/api/auth/password-recovery', {
+    return apiRequest<void>('/api/auth/recovery', {
       method: 'POST',
       body: JSON.stringify({
         email: data.email,
@@ -185,15 +187,12 @@ export class AuthService {
   /**
    * VERIFY EMAIL
    * 
-   * Endpoint: POST /api/auth/verify-email
-   * Body: { token }
+   * Endpoint: GET /api/auth/verify-email/{token}
+   * Token en URL
    */
   static async verifyEmail(token: string): Promise<AuthResponse<void>> {
-    return apiRequest<void>('/api/auth/verify-email', {
-      method: 'POST',
-      body: JSON.stringify({
-        token,
-      }),
+    return apiRequest<void>(`/api/auth/verify-email/${token}`, {
+      method: 'GET',
     });
   }
 
@@ -201,18 +200,20 @@ export class AuthService {
    * LOGIN WITH GOOGLE
    * 
    * Endpoint: POST /api/auth/google
-   * Body: { token } (token de OAuth de Google)
+   * Body: { email, name, avatar, providerId }
    */
-  static async loginWithGoogle(googleToken?: string): Promise<AuthResponse<AuthSession>> {
-    // Si no se proporciona token, redirigir a OAuth flow
-    if (!googleToken) {
-      // En producción, esto redirigiría a la página de OAuth de Google
-      // Por ahora, asumimos que el token viene del callback
+  static async loginWithGoogle(data?: {
+    email: string;
+    name: string;
+    avatar?: string;
+    providerId: string;
+  }): Promise<AuthResponse<AuthSession>> {
+    if (!data) {
       return {
         success: false,
         error: {
           code: 'NETWORK_ERROR',
-          message: 'Token de Google requerido',
+          message: 'Datos de Google requeridos',
         },
       };
     }
@@ -220,7 +221,10 @@ export class AuthService {
     return apiRequest<AuthSession>('/api/auth/google', {
       method: 'POST',
       body: JSON.stringify({
-        token: googleToken,
+        email: data.email,
+        name: data.name,
+        avatar: data.avatar,
+        providerId: data.providerId,
       }),
     });
   }
@@ -229,16 +233,20 @@ export class AuthService {
    * LOGIN WITH FACEBOOK
    * 
    * Endpoint: POST /api/auth/facebook
-   * Body: { token } (token de OAuth de Facebook)
+   * Body: { email, name, avatar, providerId }
    */
-  static async loginWithFacebook(facebookToken?: string): Promise<AuthResponse<AuthSession>> {
-    // Si no se proporciona token, redirigir a OAuth flow
-    if (!facebookToken) {
+  static async loginWithFacebook(data?: {
+    email: string;
+    name: string;
+    avatar?: string;
+    providerId: string;
+  }): Promise<AuthResponse<AuthSession>> {
+    if (!data) {
       return {
         success: false,
         error: {
           code: 'NETWORK_ERROR',
-          message: 'Token de Facebook requerido',
+          message: 'Datos de Facebook requeridos',
         },
       };
     }
@@ -246,8 +254,23 @@ export class AuthService {
     return apiRequest<AuthSession>('/api/auth/facebook', {
       method: 'POST',
       body: JSON.stringify({
-        token: facebookToken,
+        email: data.email,
+        name: data.name,
+        avatar: data.avatar,
+        providerId: data.providerId,
       }),
+    });
+  }
+
+  /**
+   * GET PROFILE - Obtener perfil del usuario autenticado
+   * 
+   * Endpoint: GET /api/auth/me
+   * Headers: Authorization: Bearer {token}
+   */
+  static async getProfile(): Promise<AuthResponse<User>> {
+    return apiRequest<User>('/api/auth/me', {
+      method: 'GET',
     });
   }
 
@@ -255,14 +278,28 @@ export class AuthService {
    * UPDATE PROFILE
    * 
    * Endpoint: PUT /api/auth/profile
-   * Body: { name?, phone?, avatar? }
+   * Body: { name?, avatar? }
+   * Headers: Authorization: Bearer {token}
    */
   static async updateProfile(userId: string, data: Partial<User>): Promise<AuthResponse<User>> {
     return apiRequest<User>('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify({
-        ...data,
+        name: data.name,
+        avatar: data.avatar,
       }),
+    });
+  }
+
+  /**
+   * VERIFY TOKEN - Verificar token de autenticación
+   * 
+   * Endpoint: GET /api/auth/verify
+   * Headers: Authorization: Bearer {token}
+   */
+  static async verifyToken(): Promise<AuthResponse<{ valid: boolean; user?: User }>> {
+    return apiRequest<{ valid: boolean; user?: User }>('/api/auth/verify', {
+      method: 'GET',
     });
   }
 }

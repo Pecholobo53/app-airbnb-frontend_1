@@ -1,7 +1,7 @@
 // lib/auth/auth-context.tsx
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { User, AuthSession, LoginCredentials, RegisterData } from '@/types/auth';
 import { AuthService } from './auth-service';
 import { toast } from 'sonner';
@@ -34,6 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (stored) {
           const parsed: AuthSession = JSON.parse(stored);
           
+          // Convertir fechas de string a Date si vienen del localStorage
+          if (parsed.expiresAt) {
+            parsed.expiresAt = new Date(parsed.expiresAt);
+          }
+          if (parsed.user) {
+            if (parsed.user.createdAt) {
+              parsed.user.createdAt = new Date(parsed.user.createdAt);
+            }
+            if (parsed.user.updatedAt) {
+              parsed.user.updatedAt = new Date(parsed.user.updatedAt);
+            }
+            // Asegurar que favorites siempre sea un array
+            if (!parsed.user.favorites || !Array.isArray(parsed.user.favorites)) {
+              parsed.user.favorites = [];
+            }
+          }
+          
           if (new Date(parsed.expiresAt) > new Date()) {
             setSession(parsed);
           } else {
@@ -60,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [session]);
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
     try {
       const response = await AuthService.login(credentials);
       
@@ -73,6 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ...response.data.user,
             createdAt: new Date(response.data.user.createdAt),
             updatedAt: new Date(response.data.user.updatedAt),
+            // Asegurar que favorites siempre sea un array
+            favorites: response.data.user.favorites || [],
           },
         };
         setSession(session);
@@ -86,9 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.error('Error de conexión. Intenta nuevamente.');
       return false;
     }
-  };
+  }, []);
 
-  const register = async (data: RegisterData): Promise<boolean> => {
+  const register = useCallback(async (data: RegisterData): Promise<boolean> => {
     try {
       const response = await AuthService.register(data);
       
@@ -103,9 +122,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.error('Error de conexión. Intenta nuevamente.');
       return false;
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await AuthService.logout();
       setSession(null);
@@ -115,66 +134,87 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null);
       toast.info('Sesión cerrada correctamente');
     }
-  };
+  }, []);
 
-  const loginWithGoogle = async (): Promise<boolean> => {
+  const loginWithGoogle = useCallback(async (): Promise<boolean> => {
     try {
-      // En producción, esto debería obtener el token de Google OAuth
-      // Por ahora, asumimos que el token viene del callback OAuth
-      const response = await AuthService.loginWithGoogle();
+      // En producción, esto debería obtener los datos de Google OAuth
+      // Por ahora, necesitamos email, name, avatar y providerId del callback OAuth
+      // TODO: Implementar flujo completo de OAuth con Google
+      toast.error('Login con Google requiere implementación de OAuth');
+      return false;
       
-      if (response.success && response.data) {
-        const session: AuthSession = {
-          ...response.data,
-          expiresAt: new Date(response.data.expiresAt),
-          user: {
-            ...response.data.user,
-            createdAt: new Date(response.data.user.createdAt),
-            updatedAt: new Date(response.data.user.updatedAt),
-          },
-        };
-        setSession(session);
-        toast.success(`¡Bienvenido, ${session.user.name}!`);
-        return true;
-      } else {
-        toast.error(response.error?.message || 'Error al iniciar sesión con Google');
-        return false;
-      }
+      // Ejemplo de uso cuando se implemente OAuth:
+      // const response = await AuthService.loginWithGoogle({
+      //   email: 'user@gmail.com',
+      //   name: 'Usuario Google',
+      //   avatar: 'https://example.com/avatar.jpg',
+      //   providerId: 'google-123456'
+      // });
+      
+      // if (response.success && response.data) {
+      //   const session: AuthSession = {
+      //     ...response.data,
+      //     expiresAt: new Date(response.data.expiresAt),
+      //     user: {
+      //       ...response.data.user,
+      //       createdAt: new Date(response.data.user.createdAt),
+      //       updatedAt: new Date(response.data.user.updatedAt),
+      //     },
+      //   };
+      //   setSession(session);
+      //   toast.success(`¡Bienvenido, ${session.user.name}!`);
+      //   return true;
+      // } else {
+      //   toast.error(response.error?.message || 'Error al iniciar sesión con Google');
+      //   return false;
+      // }
     } catch (error) {
       toast.error('Error de conexión. Intenta nuevamente.');
       return false;
     }
-  };
+  }, []);
 
-  const loginWithFacebook = async (): Promise<boolean> => {
+  const loginWithFacebook = useCallback(async (): Promise<boolean> => {
     try {
-      // En producción, esto debería obtener el token de Facebook OAuth
-      const response = await AuthService.loginWithFacebook();
+      // En producción, esto debería obtener los datos de Facebook OAuth
+      // Por ahora, necesitamos email, name, avatar y providerId del callback OAuth
+      // TODO: Implementar flujo completo de OAuth con Facebook
+      toast.error('Login con Facebook requiere implementación de OAuth');
+      return false;
       
-      if (response.success && response.data) {
-        const session: AuthSession = {
-          ...response.data,
-          expiresAt: new Date(response.data.expiresAt),
-          user: {
-            ...response.data.user,
-            createdAt: new Date(response.data.user.createdAt),
-            updatedAt: new Date(response.data.user.updatedAt),
-          },
-        };
-        setSession(session);
-        toast.success(`¡Bienvenido, ${session.user.name}!`);
-        return true;
-      } else {
-        toast.error(response.error?.message || 'Error al iniciar sesión con Facebook');
-        return false;
-      }
+      // Ejemplo de uso cuando se implemente OAuth:
+      // const response = await AuthService.loginWithFacebook({
+      //   email: 'user@facebook.com',
+      //   name: 'Usuario Facebook',
+      //   avatar: 'https://example.com/avatar.jpg',
+      //   providerId: 'facebook-123456'
+      // });
+      
+      // if (response.success && response.data) {
+      //   const session: AuthSession = {
+      //     ...response.data,
+      //     expiresAt: new Date(response.data.expiresAt),
+      //     user: {
+      //       ...response.data.user,
+      //       createdAt: new Date(response.data.user.createdAt),
+      //       updatedAt: new Date(response.data.user.updatedAt),
+      //     },
+      //   };
+      //   setSession(session);
+      //   toast.success(`¡Bienvenido, ${session.user.name}!`);
+      //   return true;
+      // } else {
+      //   toast.error(response.error?.message || 'Error al iniciar sesión con Facebook');
+      //   return false;
+      // }
     } catch (error) {
       toast.error('Error de conexión. Intenta nuevamente.');
       return false;
     }
-  };
+  }, []);
 
-  const updateUser = async (data: Partial<User>): Promise<boolean> => {
+  const updateUser = useCallback(async (data: Partial<User>): Promise<boolean> => {
     if (!session) return false;
 
     try {
@@ -185,6 +225,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...response.data,
           createdAt: new Date(response.data.createdAt),
           updatedAt: new Date(response.data.updatedAt),
+          // Asegurar que favorites siempre sea un array
+          favorites: response.data.favorites || session.user.favorites || [],
         };
         setSession({
           ...session,
@@ -200,9 +242,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.error('Error de conexión. Intenta nuevamente.');
       return false;
     }
-  };
+  }, [session]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user: session?.user || null,
     session,
     isAuthenticated: !!session,
@@ -213,7 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loginWithGoogle,
     loginWithFacebook,
     updateUser,
-  };
+  }), [session, isLoading, login, register, logout, loginWithGoogle, loginWithFacebook, updateUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

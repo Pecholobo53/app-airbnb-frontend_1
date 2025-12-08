@@ -1,7 +1,7 @@
 // app/perfil/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { User } from '@/types/auth';
 import AuthGuard from '@/components/auth/AuthGuard';
@@ -35,6 +35,16 @@ function PerfilContent() {
       phone: user?.phone || '',
     },
   });
+
+  // Actualizar defaultValues cuando user cambia
+  useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name || '',
+        phone: user.phone || '',
+      });
+    }
+  }, [user, reset]);
 
   const onSubmit = async (data: UpdateProfileFormData) => {
     setIsLoading(true);
@@ -323,7 +333,7 @@ function PerfilContent() {
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Heart className="w-6 h-6 text-[#FF385C] mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">{user.favorites.length}</p>
+                    <p className="text-2xl font-bold text-gray-900">{user.favorites?.length || 0}</p>
                     <p className="text-sm text-gray-600">Favoritos</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">

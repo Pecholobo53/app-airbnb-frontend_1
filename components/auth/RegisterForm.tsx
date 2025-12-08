@@ -77,6 +77,7 @@ export default function RegisterForm() {
           id="email"
           type="email"
           placeholder="tu@email.com"
+          autoComplete="off"
           {...register('email')}
           className={errors.email ? 'border-red-500' : ''}
           disabled={isLoading}
@@ -94,6 +95,7 @@ export default function RegisterForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Mínimo 8 caracteres"
+            autoComplete="new-password"
             {...register('password')}
             className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}
@@ -125,6 +127,7 @@ export default function RegisterForm() {
             id="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="Repite tu contraseña"
+            autoComplete="new-password"
             {...register('confirmPassword')}
             className={errors.confirmPassword ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}

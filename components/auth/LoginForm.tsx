@@ -56,6 +56,7 @@ export default function LoginForm() {
           id="email"
           type="email"
           placeholder="tu@email.com"
+          autoComplete="off"
           {...register('email')}
           className={errors.email ? 'border-red-500' : ''}
           disabled={isLoading}
@@ -73,6 +74,7 @@ export default function LoginForm() {
             id="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
+            autoComplete="off"
             {...register('password')}
             className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}
