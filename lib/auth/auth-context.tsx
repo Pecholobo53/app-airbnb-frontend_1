@@ -21,7 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SESSION_KEY = 'airbnb_mock_session';
+const SESSION_KEY = 'airbnb_session';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -57,19 +57,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           
           const now = new Date();
-          const expiresAt = new Date(parsed.expiresAt);
-          const isExpired = expiresAt <= now;
+          // Usar expiresAt ya convertido a Date (línea 40-41) o crear uno válido
+          let expiresAtDate: Date;
+          if (parsed.expiresAt instanceof Date) {
+            expiresAtDate = parsed.expiresAt;
+          } else if (parsed.expiresAt) {
+            expiresAtDate = new Date(parsed.expiresAt);
+          } else {
+            // Si no hay expiresAt, usar fecha por defecto (24h)
+            console.warn('⚠️ [LOAD SESSION] expiresAt no encontrado, usando fecha por defecto (24h)');
+            expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            parsed.expiresAt = expiresAtDate;
+          }
+          
+          // Validar que la fecha sea válida
+          const isExpired = isNaN(expiresAtDate.getTime()) || expiresAtDate <= now;
           
           console.log('🔍 [LOAD SESSION] Verificando expiración...');
           console.log('📅 [LOAD SESSION] Fecha actual:', now.toLocaleString('es-ES'));
-          console.log('📅 [LOAD SESSION] Fecha expiración:', expiresAt.toLocaleString('es-ES'));
+          console.log('📅 [LOAD SESSION] Fecha expiración:', isNaN(expiresAtDate.getTime()) ? 'Invalid Date' : expiresAtDate.toLocaleString('es-ES'));
           console.log('❓ [LOAD SESSION] ¿Está expirada?', isExpired);
           
           if (!isExpired) {
             console.log('✅ [LOAD SESSION] Sesión válida, restaurando...');
             setSession(parsed);
           } else {
-            console.log('❌ [LOAD SESSION] Sesión expirada, eliminando...');
+            console.log('❌ [LOAD SESSION] Sesión expirada o inválida, eliminando...');
             localStorage.removeItem(SESSION_KEY);
             toast.info('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
           }
@@ -88,21 +101,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (session) {
+    // Solo guardar si ya terminó de cargar (evitar guardar durante la carga inicial)
+    if (!isLoading && session) {
       console.log('💾 [SAVE SESSION] Guardando sesión en localStorage');
       
       // Validar que expiresAt sea una fecha válida antes de guardar
       let expiresAtDate: Date;
       if (session.expiresAt instanceof Date) {
         expiresAtDate = session.expiresAt;
-      } else {
+      } else if (session.expiresAt) {
         expiresAtDate = new Date(session.expiresAt);
+      } else {
+        // Si no hay expiresAt, usar fecha por defecto (24h)
+        console.warn('⚠️ [SAVE SESSION] expiresAt no encontrado, usando fecha por defecto (24h)');
+        expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
       }
       
       if (isNaN(expiresAtDate.getTime())) {
         console.warn('⚠️ [SAVE SESSION] expiresAt inválido, usando fecha por defecto (24h desde ahora)');
-        expiresAtDate = new Date();
-        expiresAtDate.setHours(expiresAtDate.getHours() + 24);
+        expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
         
         // Crear sesión corregida sin actualizar el estado (para evitar loop)
         const correctedSession = {
@@ -115,11 +132,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('📅 [SAVE SESSION] Expira:', expiresAtDate.toLocaleString('es-ES'));
         localStorage.setItem(SESSION_KEY, JSON.stringify(session));
       }
-    } else {
+    } else if (!isLoading && !session) {
       console.log('🗑️ [SAVE SESSION] Eliminando sesión de localStorage');
       localStorage.removeItem(SESSION_KEY);
     }
-  }, [session]);
+  }, [session, isLoading]);
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
     try {
@@ -131,11 +148,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.success && response.data) {
         // Log de depuración: ver qué viene del servidor
         console.log('✅ [LOGIN] Respuesta exitosa del servidor');
-        console.log('📅 [LOGIN] expiresAt recibido (string):', response.data.expiresAt);
+        console.log('📅 [LOGIN] expiresAt recibido:', response.data.expiresAt);
         console.log('📅 [LOGIN] Tipo de expiresAt:', typeof response.data.expiresAt);
+        console.log('📦 [LOGIN] Datos completos recibidos:', Object.keys(response.data));
         
         // Convertir fechas de string a Date si vienen del servidor
-        const expiresAtDate = new Date(response.data.expiresAt);
+        // Si expiresAt no viene del backend, usar fecha por defecto (24h desde ahora)
+        let expiresAtDate: Date;
+        if (response.data.expiresAt) {
+          expiresAtDate = new Date(response.data.expiresAt);
+          // Validar que la fecha sea válida
+          if (isNaN(expiresAtDate.getTime())) {
+            console.warn('⚠️ [LOGIN] expiresAt inválido del servidor, usando fecha por defecto (24h)');
+            expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          }
+        } else {
+          console.warn('⚠️ [LOGIN] expiresAt no viene del servidor, usando fecha por defecto (24h)');
+          expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        }
+        
         console.log('📅 [LOGIN] expiresAt convertido (Date):', expiresAtDate);
         console.log('📅 [LOGIN] Fecha de expiración:', expiresAtDate.toLocaleString('es-ES'));
         console.log('⏰ [LOGIN] Tiempo hasta expiración:', Math.round((expiresAtDate.getTime() - Date.now()) / (1000 * 60 * 60)), 'horas');

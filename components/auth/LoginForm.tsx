@@ -45,7 +45,7 @@ export default function LoginForm() {
     setIsLoading(false);
 
     if (success) {
-      router.push('/');
+      router.push('/dashboard');
     }
   };
 

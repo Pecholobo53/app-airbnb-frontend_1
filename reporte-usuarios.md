@@ -554,3 +554,4 @@ El módulo de usuarios está **completamente integrado** con la API REST. Los ú
 
 **Estado del módulo**: ✅ **LISTO PARA PRODUCCIÓN** (dependiendo del estado del backend)
 
+

@@ -18,7 +18,7 @@ export default function SocialAuthButtons() {
     const success = await loginWithGoogle();
     setIsLoadingGoogle(false);
     if (success) {
-      router.push('/');
+      router.push('/dashboard');
     }
   };
 
@@ -27,7 +27,7 @@ export default function SocialAuthButtons() {
     const success = await loginWithFacebook();
     setIsLoadingFacebook(false);
     if (success) {
-      router.push('/');
+      router.push('/dashboard');
     }
   };
 

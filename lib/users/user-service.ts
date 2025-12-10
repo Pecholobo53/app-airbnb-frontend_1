@@ -47,7 +47,7 @@ async function apiRequest<T>(
     
     // Obtener token del localStorage si existe
     const session = typeof window !== 'undefined' 
-      ? localStorage.getItem('airbnb_mock_session') 
+      ? localStorage.getItem('airbnb_session') 
       : null;
     
     console.log('🔑 [USER SERVICE] Sesión en localStorage:', session ? 'Encontrada' : 'No encontrada');
@@ -223,7 +223,7 @@ export class UserService {
       return null;
     }
     
-    const session = localStorage.getItem('airbnb_mock_session');
+    const session = localStorage.getItem('airbnb_session');
     if (!session) {
       console.log('❌ [DEBUG] No hay sesión en localStorage');
       console.log('💡 [DEBUG] Necesitas iniciar sesión primero en /login');
