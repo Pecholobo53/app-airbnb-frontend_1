@@ -11,7 +11,7 @@ import {
   MonthlyData,
   BookingAction
 } from '@/types/dashboard';
-import { MockDashboardService } from './mock-dashboard-service';
+import { DashboardService } from './dashboard-service';
 import { useAuth } from '@/lib/auth/auth-context';
 import { toast } from 'sonner';
 
@@ -122,9 +122,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     console.log('✈️ [DASHBOARD] Cargando datos de huésped...');
 
     const [statsRes, upcomingRes, pastRes] = await Promise.all([
-      MockDashboardService.getGuestStats(userId),
-      MockDashboardService.getUpcomingTrips(userId),
-      MockDashboardService.getPastTrips(userId)
+      DashboardService.getGuestStats(userId),
+      DashboardService.getUpcomingTrips(userId),
+      DashboardService.getPastTrips(userId)
     ]);
 
     if (statsRes.success && upcomingRes.success && pastRes.success) {
@@ -152,10 +152,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     console.log('🏡 [DASHBOARD] Cargando datos de anfitrión...');
 
     const [statsRes, pendingRes, bookingsRes, monthlyRes] = await Promise.all([
-      MockDashboardService.getHostStats(userId),
-      MockDashboardService.getPendingRequests(userId),
-      MockDashboardService.getHostBookings(userId),
-      MockDashboardService.getMonthlyData(userId)
+      DashboardService.getHostStats(userId),
+      DashboardService.getPendingRequests(userId),
+      DashboardService.getHostBookings(userId),
+      DashboardService.getMonthlyData(userId, 'host')
     ]);
 
     if (statsRes.success && pendingRes.success && bookingsRes.success && monthlyRes.success) {
@@ -215,7 +215,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const acceptBooking = async (bookingId: string): Promise<boolean> => {
     console.log('✅ [DASHBOARD] Aceptando reserva:', bookingId);
     
-    const response = await MockDashboardService.handleBookingAction(bookingId, 'accept');
+    const response = await DashboardService.handleBookingAction(bookingId, 'accept');
     
     if (response.success) {
       toast.success('Reserva aceptada correctamente');
@@ -234,7 +234,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const rejectBooking = async (bookingId: string): Promise<boolean> => {
     console.log('❌ [DASHBOARD] Rechazando reserva:', bookingId);
     
-    const response = await MockDashboardService.handleBookingAction(bookingId, 'reject');
+    const response = await DashboardService.handleBookingAction(bookingId, 'reject');
     
     if (response.success) {
       toast.success('Reserva rechazada');
@@ -253,7 +253,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const cancelBooking = async (bookingId: string): Promise<boolean> => {
     console.log('🚫 [DASHBOARD] Cancelando reserva:', bookingId);
     
-    const response = await MockDashboardService.handleBookingAction(bookingId, 'cancel');
+    const response = await DashboardService.handleBookingAction(bookingId, 'cancel');
     
     if (response.success) {
       toast.success('Reserva cancelada');
