@@ -23,27 +23,35 @@ export default function UserAvatar({
     lg: 'h-16 w-16 text-lg',
   };
 
-  const getInitials = (name: string): string => {
-    const parts = name.trim().split(' ');
+  const getInitials = (name: string | undefined | null): string => {
+    if (!name || typeof name !== 'string') {
+      return '??';
+    }
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return '??';
+    }
+    const parts = trimmed.split(' ');
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
-    return name.substring(0, 2).toUpperCase();
+    return trimmed.substring(0, 2).toUpperCase();
   };
 
   // Usar preview si existe, sino el avatar del usuario
-  const avatarSrc = previewSrc || user.avatar;
+  const avatarSrc = previewSrc || user?.avatar;
+  const userName = user?.name || 'Usuario';
 
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
       {avatarSrc && (
         <AvatarImage 
           src={avatarSrc} 
-          alt={user.name}
+          alt={userName}
         />
       )}
       <AvatarFallback className="bg-gradient-to-br from-[#FF385C] to-[#E31C5F] text-white font-semibold">
-        {getInitials(user.name)}
+        {getInitials(user?.name)}
       </AvatarFallback>
     </Avatar>
   );

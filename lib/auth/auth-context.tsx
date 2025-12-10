@@ -90,8 +90,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session) {
       console.log('💾 [SAVE SESSION] Guardando sesión en localStorage');
-      console.log('📅 [SAVE SESSION] Expira:', session.expiresAt.toLocaleString('es-ES'));
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      
+      // Validar que expiresAt sea una fecha válida antes de guardar
+      let expiresAtDate: Date;
+      if (session.expiresAt instanceof Date) {
+        expiresAtDate = session.expiresAt;
+      } else {
+        expiresAtDate = new Date(session.expiresAt);
+      }
+      
+      if (isNaN(expiresAtDate.getTime())) {
+        console.warn('⚠️ [SAVE SESSION] expiresAt inválido, usando fecha por defecto (24h desde ahora)');
+        expiresAtDate = new Date();
+        expiresAtDate.setHours(expiresAtDate.getHours() + 24);
+        
+        // Crear sesión corregida sin actualizar el estado (para evitar loop)
+        const correctedSession = {
+          ...session,
+          expiresAt: expiresAtDate,
+        };
+        console.log('📅 [SAVE SESSION] Expira (corregido):', expiresAtDate.toLocaleString('es-ES'));
+        localStorage.setItem(SESSION_KEY, JSON.stringify(correctedSession));
+      } else {
+        console.log('📅 [SAVE SESSION] Expira:', expiresAtDate.toLocaleString('es-ES'));
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      }
     } else {
       console.log('🗑️ [SAVE SESSION] Eliminando sesión de localStorage');
       localStorage.removeItem(SESSION_KEY);
@@ -265,9 +288,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Asegurar que favorites siempre sea un array
           favorites: response.data.favorites || session.user.favorites || [],
         };
+        
+        // Preservar expiresAt y accessToken/token de la sesión actual
         setSession({
           ...session,
-          user: updatedUser
+          user: updatedUser,
+          // Mantener expiresAt como Date (ya está en formato correcto)
+          expiresAt: session.expiresAt,
         });
         toast.success('Perfil actualizado correctamente');
         return true;

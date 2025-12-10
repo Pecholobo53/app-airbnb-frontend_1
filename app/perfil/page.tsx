@@ -16,6 +16,7 @@ import { Calendar, Mail, Phone, MapPin, Heart, Shield, Loader2 } from 'lucide-re
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfileSchema, UpdateProfileFormData } from '@/lib/auth/validators';
+import { toast } from 'sonner';
 
 function PerfilContent() {
   const { user, updateUser } = useAuth();
@@ -61,8 +62,18 @@ function PerfilContent() {
       
       // Solo agregar avatar si hay uno nuevo
       if (previewAvatar) {
+        // Validar tamaño del Base64 comprimido (máximo 500KB)
+        const base64Size = previewAvatar.length;
+        const maxSize = 500 * 1024; // 500KB
+        
+        if (base64Size > maxSize) {
+          console.warn('⚠️ Avatar aún muy grande después de compresión:', Math.round(base64Size / 1024), 'KB');
+          toast.error('La imagen es demasiado grande. Intenta con una imagen más pequeña.');
+          return;
+        }
+        
         updateData.avatar = previewAvatar;
-        console.log('✅ Avatar agregado a updateData');
+        console.log('✅ Avatar agregado a updateData. Tamaño:', Math.round(base64Size / 1024), 'KB');
       }
       
       console.log('📤 Enviando datos:', updateData);
@@ -92,15 +103,67 @@ function PerfilContent() {
     setIsEditing(false);
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Calcular nuevas dimensiones manteniendo aspect ratio
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            } else {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+          }
+
+          // Crear canvas para redimensionar y comprimir
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error('No se pudo crear el contexto del canvas'));
+            return;
+          }
+
+          // Dibujar imagen redimensionada
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convertir a base64 con compresión
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          
+          // Validar tamaño final (máximo 500KB en base64)
+          const base64Size = compressedBase64.length;
+          const maxSize = 500 * 1024; // 500KB
+          
+          if (base64Size > maxSize) {
+            // Si aún es muy grande, reducir más la calidad
+            const newQuality = Math.max(0.5, quality - 0.1);
+            const moreCompressed = canvas.toDataURL('image/jpeg', newQuality);
+            resolve(moreCompressed);
+          } else {
+            resolve(compressedBase64);
+          }
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validar tamaño (máximo 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      alert('La imagen debe ser menor de 2MB');
-      return;
-    }
 
     // Validar tipo
     if (!file.type.startsWith('image/')) {
@@ -108,15 +171,38 @@ function PerfilContent() {
       return;
     }
 
-    // Crear preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewAvatar(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Validar tamaño original (máximo 5MB antes de comprimir)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen debe ser menor de 5MB');
+      return;
+    }
+
+    try {
+      // Comprimir imagen antes de crear preview
+      const compressedBase64 = await compressImage(file);
+      setPreviewAvatar(compressedBase64);
+      console.log('✅ Imagen comprimida. Tamaño:', Math.round(compressedBase64.length / 1024), 'KB');
+    } catch (error) {
+      console.error('❌ Error comprimiendo imagen:', error);
+      alert('Error al procesar la imagen. Intenta con otra imagen.');
+    }
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Usuario no encontrado</p>
+          <Button
+            onClick={() => window.location.href = '/'}
+            variant="outline"
+          >
+            Volver al inicio
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const providerLabels = {
     email: 'Email/Contraseña',

@@ -71,6 +71,12 @@ export const API_CONFIG = {
       GOOGLE: '/api/auth/google',
       FACEBOOK: '/api/auth/facebook',
       PROFILE: '/api/auth/profile',
+      ME: '/api/auth/me',
+      VERIFY: '/api/auth/verify',
+    },
+    USERS: {
+      GET_BY_ID: '/api/users',
+      SEARCH: '/api/users',
     },
   },
 } as const;

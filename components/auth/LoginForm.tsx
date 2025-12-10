@@ -57,6 +57,7 @@ export default function LoginForm() {
         <Input
           id="email"
           type="email"
+          name="login-email"
           placeholder="tu@email.com"
           autoComplete="username"
           readOnly={emailReadOnly}
@@ -77,6 +78,7 @@ export default function LoginForm() {
           <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
+            name="login-password"
             placeholder="••••••••"
             autoComplete="new-password"
             readOnly={passwordReadOnly}

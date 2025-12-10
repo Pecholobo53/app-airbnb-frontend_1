@@ -61,20 +61,61 @@ async function apiRequest<T>(
       ? localStorage.getItem('airbnb_mock_session') 
       : null;
     
-    const token = session ? JSON.parse(session).accessToken : null;
+    console.log('🔑 [AUTH SERVICE] Sesión en localStorage:', session ? 'Encontrada' : 'No encontrada');
+    
+    let token = null;
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        // Buscar token en ambos campos (el backend puede usar 'token' o 'accessToken')
+        token = parsed.token || parsed.accessToken;
+        console.log('🔑 [AUTH SERVICE] Token extraído:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
+        console.log('🔑 [AUTH SERVICE] Estructura de sesión:', Object.keys(parsed));
+        if (parsed.user) {
+          console.log('👤 [AUTH SERVICE] Usuario en sesión:', parsed.user.name);
+        }
+      } catch (parseError) {
+        console.error('❌ [AUTH SERVICE] Error parseando sesión:', parseError);
+      }
+    }
+
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      console.log('✅ [AUTH SERVICE] Header Authorization agregado');
+    } else {
+      console.warn('⚠️ [AUTH SERVICE] NO HAY TOKEN - Request sin autenticación');
+    }
+
+    console.log('📤 [AUTH SERVICE] Enviando request a:', url);
+    console.log('📤 [AUTH SERVICE] Método:', options.method || 'GET');
+    console.log('📤 [AUTH SERVICE] Headers:', { 
+      'Content-Type': 'application/json',
+      'Authorization': token ? 'Bearer ***' : 'NO TOKEN'
+    });
 
     const response = await fetch(url, {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
+      headers,
     });
+
+    console.log('📥 [AUTH SERVICE] Response status:', response.status);
+    console.log('📥 [AUTH SERVICE] Response ok:', response.ok);
 
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('❌ [AUTH SERVICE] Error en response:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: data.error || data.message,
+        fullResponse: data,
+      });
+      
       return {
         success: false,
         error: {
@@ -84,12 +125,13 @@ async function apiRequest<T>(
       };
     }
 
+    console.log('✅ [AUTH SERVICE] Request exitoso');
     return {
       success: true,
       data: data.data || data,
     };
   } catch (error) {
-    console.error('Error en API request:', error);
+    console.error('❌ [AUTH SERVICE] Error en API request:', error);
     return {
       success: false,
       error: {
@@ -278,17 +320,36 @@ export class AuthService {
    * UPDATE PROFILE
    * 
    * Endpoint: PUT /api/auth/profile
-   * Body: { name?, avatar? }
+   * Body: { name?, phone?, avatar? }
    * Headers: Authorization: Bearer {token}
    */
   static async updateProfile(userId: string, data: Partial<User>): Promise<AuthResponse<User>> {
-    return apiRequest<User>('/api/auth/profile', {
+    console.log('📝 [AUTH SERVICE] Actualizando perfil:', userId);
+    console.log('📤 [AUTH SERVICE] Datos a enviar:', { name: data.name, phone: data.phone, avatar: data.avatar ? 'presente' : 'no presente' });
+    
+    const response = await apiRequest<User>('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify({
         name: data.name,
+        phone: data.phone,
         avatar: data.avatar,
       }),
     });
+
+    if (response.success) {
+      console.log('✅ [AUTH SERVICE] Perfil actualizado exitosamente');
+      
+      // Convertir fechas de string a Date
+      if (response.data) {
+        response.data.createdAt = new Date(response.data.createdAt);
+        response.data.updatedAt = new Date(response.data.updatedAt);
+        response.data.favorites = response.data.favorites || [];
+      }
+    } else {
+      console.error('❌ [AUTH SERVICE] Error actualizando perfil:', response.error?.message);
+    }
+
+    return response;
   }
 
   /**

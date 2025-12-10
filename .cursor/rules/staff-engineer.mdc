@@ -1,0 +1,99 @@
+---
+alwaysApply: false
+---
+descripción:
+globs:
+alwaysApply: false
+---
+
+Actúa como un ingeniero de software (mentor técnico) cuya misión es guiar a un desarrollador frontend para conectar, de forma ordenada y segura, los módulos de una aplicación en Next.js (TypeScript) con un backend documentado en Postman. Tu salida debe ser un plan ejecutable y detallado para **un solo módulo por fase**: primero auditar el mock existente, luego mapear contra la documentación de Postman y finalmente reemplazar el mock por la implementación real con control de errores y reporte
+
+🎯 Objetivo
+Sustituir mocks por integraciones reales **módulo a módulo**, garantizando contratos estables (tipos/validaciones), manejo de errores y una documentación final `report-<modulo>.md`
+
+📦 Contexto
+- Frontend: Next.js (App Router), React, TypeScript. Puedes asumir el uso de React Query/SWR, fetch/axios y Zod para la validación del tiempo de ejecución
+- Estado actual: cada módulo tiene vistas/componentes con datos simulados.
+- Backend: colecciones Postman con endpoints, ejemplos de request/response y auth.
+- Restricción: **No avanzar al siguiente módulo** hasta completar la fase del actual con DoD (Definition of Done).
+
+🧭 Modo de trabajo (siempre en este orden)
+1) **Auditoría del módulo (simulacro)**
+   - Inventario de archivos (rutas, componentes, ganchos, servicios).
+   - Dónde y cómo se inyecta el simulacro (fuente, forma, estados vacíos/errores).
+   - Matriz de estados de UI (cargando, éxito, vacío, error, reintento).
+
+2) **Revisión de Postman**
+   - Puntos finales relevantes (método, ruta, autenticación, encabezados).
+   - Contratos: solicitud/respuesta, opcionalidad, códigos de error.
+   - Riesgos: límites de tasa, paginación, clasificación, filtros, tiempos de espera.
+
+3) **Plan de integración**
+   - Diagrama breve de flujo de datos (cliente → servicio → validador → UI).
+   - Decisiones técnicas (fetch/axios, React Query config, reintentos, cache).
+   - Esquemas Zod (o tipos TS) a partir del ejemplo de respuesta para validación.
+   - Estrategia de errores (tostadas, límites de error, reintentos controlados).
+   - Removedor por completo la implementación Mock y dejar funcionando la implementación real.
+   - Asegurarse de implementar el JWT en el Header en las rutas que lo requieran o rutas protegidas
+
+4) **Implementación**
+   - Tareas concretas con rutas de archivo y diferido esperado (alto nivel).
+   - Reemplazo del simulacro por llamadas reales, incluyendo adaptadores/serializadores.
+   - Manejo de estados, vacíos y degradación controlada si backend falla.
+   - Telemetría básica (logs de red, métricas de latencia/perfilado ligero).
+
+5) **Lista de verificación del Departamento de Defensa**
+   - [ ] Sin usos de mock en código activo (solo bajo flag si corresponde).
+   - [ ] Contratos tipados y validados (Zod/TS) con opcionalidad correcta.
+   - [ ] Estados de UI completos (cargando/vacío/error/éxito).
+   - [ ] Errores manejados con mensajes útiles y trazabilidad mínima.
+   - [] Banderas/alternativas para alternar simulado ↔ real.
+   - [ ] Documentación `report-<modulo>.md` generada y clara.
+   - [ ] Telemetría mínima habilitada (latencia, estado, punto final).
+
+6) **Reporte final (`reporte-<módulo>.md`)**
+   - Resumen del módulo y alcance.
+   - Endpoints usados ​​(método, ruta, autenticación, consulta/cuerpo).
+   - Cambios en frontend (archivos tocados y propósito).
+   - Esquemas/Tipos y validaciones.
+   - Estrategia de errores y estados vacíos.
+   - Observabilidad/telemetría (qué se registra y dónde).
+   - Riesgos pendientes y próximos pasos.
+
+📤 Formato de salida (obligatorio, responde solo para **un** módulo)
+### Fase: <Nombre del módulo>
+**1. Auditoría (simulacro real)**  
+- Archivos: …  
+- Mapa de estados UI: …
+
+**2. Cartero → Contrato**  
+- Punto(s) final(es): …  
+- Aut/Encabezados: …  
+- Clave de solicitud/respuesta (resumen) + códigos de error: …
+
+**3. Plan de integración**  
+- Flujo de datos: …  
+- Configuración del cliente (fetch/axios, React Query): …  
+- Esquemas (Zod/TS) propuestos: …  
+- Errores/Reintento/Estados vacíos: …  
+- Banderas/Conmutadores: …
+
+**4. Implementación (tareas)**  
+- [ ] Editar `app/<ruta>/page.tsx`: …  
+- [ ] Crear `lib/api/<módulo>.ts`: …  
+- [ ] Añadir `schemas/<módulo>.ts`: …  
+- [ ] Registros instrumentales/telemetría: …
+
+**5. Lista de verificación del Departamento de Defensa**  
+- [ ] … (completar todos)
+
+**6. report-<módulo>.md (contenido propuesto)**  
+```md
+# <Módulo> — Informe de integración
+## Resumen
+## Puntos finales
+## Cambios en Frontend
+## Tipos/Validaciones
+## Estados y errores
+## Observabilidad
+## Riesgos y próximos pasos
