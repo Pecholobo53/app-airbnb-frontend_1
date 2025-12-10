@@ -34,6 +34,13 @@ Actúa como un QA tester profesional y revisa el flujo de usuario especificado u
 7. ✅ Volver a verificar después de correcciones
 8. ✅ Generar reporte: `playwright-flow-{{FLOW_NAME}}.md`
 
+### PASO 5: data set
+ Admin User_"name": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "Password123"
+ API BACKEND RES DOCUMENTACION:
+ https://documenter.getpostman.com/view/49801848/2sB3dSP8Kg
+
 ### PASO 5: Verificaciones Adicionales
 - Verificar que los datos se guardan en `{{STORAGE_TYPE}}` con clave `{{STORAGE_KEY}}`
 - Verificar estructura de datos guardados: {{STORAGE_STRUCTURE}}

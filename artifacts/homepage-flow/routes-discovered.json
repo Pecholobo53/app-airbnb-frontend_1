@@ -1,0 +1,120 @@
+{
+  "discoveredRoutes": [
+    {
+      "path": "/",
+      "type": "static",
+      "requiresId": false,
+      "discoveredFrom": "initial_page"
+    },
+    {
+      "path": "/buscar",
+      "type": "static",
+      "requiresId": false,
+      "discoveredFrom": "navigation_links"
+    },
+    {
+      "path": "/login",
+      "type": "static",
+      "requiresId": false,
+      "discoveredFrom": "navigation_links"
+    },
+    {
+      "path": "/registro",
+      "type": "static",
+      "requiresId": false,
+      "discoveredFrom": "navigation_links"
+    },
+    {
+      "path": "/propiedad/prop-001",
+      "type": "dynamic",
+      "requiresId": true,
+      "sampleId": "prop-001",
+      "pattern": "/propiedad/[id]",
+      "discoveredFrom": "property_links"
+    },
+    {
+      "path": "/propiedad/prop-003",
+      "type": "dynamic",
+      "requiresId": true,
+      "sampleId": "prop-003",
+      "pattern": "/propiedad/[id]",
+      "discoveredFrom": "property_links"
+    },
+    {
+      "path": "/propiedad/prop-005",
+      "type": "dynamic",
+      "requiresId": true,
+      "sampleId": "prop-005",
+      "pattern": "/propiedad/[id]",
+      "discoveredFrom": "property_links"
+    },
+    {
+      "path": "/propiedad/prop-008",
+      "type": "dynamic",
+      "requiresId": true,
+      "sampleId": "prop-008",
+      "pattern": "/propiedad/[id]",
+      "discoveredFrom": "property_links"
+    },
+    {
+      "path": "/propiedad/prop-012",
+      "type": "dynamic",
+      "requiresId": true,
+      "sampleId": "prop-012",
+      "pattern": "/propiedad/[id]",
+      "discoveredFrom": "property_links"
+    },
+    {
+      "path": "/propiedad/prop-014",
+      "type": "dynamic",
+      "requiresId": true,
+      "sampleId": "prop-014",
+      "pattern": "/propiedad/[id]",
+      "discoveredFrom": "property_links"
+    }
+  ],
+  "additionalRoutes": [
+    {
+      "path": "/dashboard",
+      "type": "protected",
+      "requiresAuth": true,
+      "discoveredFrom": "known_routes"
+    },
+    {
+      "path": "/perfil",
+      "type": "protected",
+      "requiresAuth": true,
+      "discoveredFrom": "known_routes"
+    },
+    {
+      "path": "/favoritos",
+      "type": "protected",
+      "requiresAuth": true,
+      "discoveredFrom": "known_routes"
+    },
+    {
+      "path": "/mis-reservas",
+      "type": "protected",
+      "requiresAuth": true,
+      "discoveredFrom": "known_routes"
+    },
+    {
+      "path": "/checkout",
+      "type": "protected",
+      "requiresAuth": true,
+      "discoveredFrom": "known_routes"
+    },
+    {
+      "path": "/recuperar-password",
+      "type": "static",
+      "requiresAuth": false,
+      "discoveredFrom": "known_routes"
+    }
+  ],
+  "totalRoutes": 16,
+  "staticRoutes": 4,
+  "dynamicRoutes": 6,
+  "protectedRoutes": 5,
+  "discoveryDate": "2025-12-10T22:55:15Z"
+}
+

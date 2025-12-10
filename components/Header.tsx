@@ -15,10 +15,14 @@ import { ROUTES } from '@/lib/constants';
  * Header Component - Navigation minimalista con autenticación integrada
  */
 export default function Header() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFilterOpen, setIsSearchFilterOpen] = useState(false);
+  
+  // Forzar re-render cuando cambia el estado de autenticación
+  // Esto asegura que el header se actualice inmediatamente después del login
+  const authKey = `${isAuthenticated}-${user?.id || 'none'}`;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,10 +110,10 @@ export default function Header() {
           </nav>
 
           {/* Auth Section */}
-          <div className="flex items-center space-x-4 flex-shrink-0">
+          <div key={authKey} className="flex items-center space-x-4 flex-shrink-0">
             {!isLoading && (
               <>
-                {isAuthenticated ? (
+                {isAuthenticated && user ? (
                   /* Usuario autenticado - Mostrar UserMenu */
                   <UserMenu />
                 ) : (

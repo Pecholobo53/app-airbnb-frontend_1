@@ -45,6 +45,35 @@ export default function LoginForm() {
     setIsLoading(false);
 
     if (success) {
+      // Esperar a que la sesión se guarde en localStorage y el contexto se actualice
+      // Verificar que la sesión esté realmente guardada antes de redirigir
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts) {
+        const session = localStorage.getItem('airbnb_session');
+        if (session) {
+          try {
+            const parsed = JSON.parse(session);
+            if (parsed.user && parsed.user.id) {
+              console.log('✅ [LOGIN FORM] Sesión confirmada en localStorage, redirigiendo...');
+              // Pequeño delay adicional para asegurar que React haya actualizado el estado
+              await new Promise(resolve => setTimeout(resolve, 50));
+              router.push('/dashboard');
+              return;
+            }
+          } catch (e) {
+            console.error('❌ [LOGIN FORM] Error parseando sesión:', e);
+          }
+        }
+        // Esperar 50ms antes de intentar de nuevo
+        await new Promise(resolve => setTimeout(resolve, 50));
+        attempts++;
+      }
+      
+      // Si después de todos los intentos no se guardó, redirigir de todas formas
+      // (el estado del contexto debería estar actualizado)
+      console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en localStorage, redirigiendo de todas formas');
       router.push('/dashboard');
     }
   };

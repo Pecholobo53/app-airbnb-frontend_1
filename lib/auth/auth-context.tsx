@@ -208,7 +208,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         console.log('💾 [LOGIN] Guardando sesión en localStorage');
         console.log('👤 [LOGIN] Usuario:', session.user.name);
+        
+        // Guardar sesión PRIMERO en localStorage para asegurar persistencia inmediata
+        // antes de actualizar el estado (esto garantiza que esté disponible para la redirección)
+        try {
+          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          console.log('✅ [LOGIN] Sesión guardada en localStorage inmediatamente');
+          
+          // Verificar que se guardó correctamente
+          const verification = localStorage.getItem(SESSION_KEY);
+          if (verification) {
+            console.log('✅ [LOGIN] Sesión verificada en localStorage');
+          } else {
+            console.error('❌ [LOGIN] Sesión no se pudo verificar después de guardar');
+          }
+        } catch (error) {
+          console.error('❌ [LOGIN] Error guardando sesión en localStorage:', error);
+          // Si localStorage falla (puede ser por tamaño), al menos el estado está actualizado
+          if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+            console.warn('⚠️ [LOGIN] localStorage lleno. Considera reducir el tamaño del avatar.');
+            // Guardar sin avatar como fallback
+            const sessionWithoutAvatar = {
+              ...session,
+              user: {
+                ...session.user,
+                avatar: null,
+              },
+            };
+            try {
+              localStorage.setItem(SESSION_KEY, JSON.stringify(sessionWithoutAvatar));
+              console.log('✅ [LOGIN] Sesión guardada sin avatar como fallback');
+            } catch (fallbackError) {
+              console.error('❌ [LOGIN] Error incluso guardando sin avatar:', fallbackError);
+            }
+          }
+        }
+        
+        // Actualizar el estado DESPUÉS de guardar en localStorage
+        // Esto asegura que localStorage esté disponible antes de que el componente intente redirigir
         setSession(session);
+        
         toast.success(`¡Bienvenido, ${session.user.name}!`);
         return true;
       } else {

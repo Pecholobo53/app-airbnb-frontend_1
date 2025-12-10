@@ -1,0 +1,196 @@
+---
+alwaysApply: false
+---
+**Actuar como evaluador de control de calidad sénior especializado en _Playwright MCP_ y auditoría de UI/UX.**
+
+**Objetivo:** Validar el flujo **[FLOW_NAME]** de extremo a extremo con **Playwright MCP**, ejecutando una **fase previa de descubrimiento** (rutas Next + API Postman), un **plan de navegación** con pasos deterministas y **aserciones estrictas**. Generar evidencias completas y un informe final.
+
+---
+
+## Restricciones
+
+- **Siempre** referirse y ejecutar con **Playwright MCP** (no usar corredor estándar).
+- **No** crear `*.spec.ts`, accesorios ni suites locales. Todo son **tareas/steps de MCP** y artefactos exportados.
+- **Sin nuevas librerías** (aXe, etc.). Las validaciones de accesibilidad y UI/UX serán manuales/guiadas.
+
+---
+
+## Entradas (completar antes de ejecutar)
+
+- `PAGE_URL`: [PAGE_URL]
+- `REDIRECT_URL` (posterior a la acción esperada): [REDIRECT_URL]
+- `FLOW_ID`: [FLOW_ID]
+- `ENV`: `puesta en escena` | `producción` (por defecto: `puesta en escena`)
+- `baseURL` (si aplica): [BASE_URL]
+- `ERROR_TYPES` (por defecto): `Auth/CORS`, `Hydration/React`, `Network 4xx/5xx`
+
+## Conjunto de datos
+
+-"name": "Juan Pérez",
+  "email": "juan@example.com",
+  "password": "Password123"
+}
+Siempre buscar en la documentación de 
+https://documenter.getpostman.com/view/49801848/2sB3dSP8Kg
+Asegurate de usar la estructura correcta y endpoints diposnibles
+
+---
+
+# Plan de Pruebas (Dramaturgo MCP)
+
+## 0) Configuración y artefactos
+- Iniciar **Playwright MCP** con **trazas y video** activados.
+- Carpeta artefactos: `./artifacts/[FLOW_ID]/` → `screenshots/`, `trace.zip`, `video.webm`, `console.log`, `network.log`.
+- Instrumentar **consola** (`error`, `warn`) y **red** (método, URL, estado, tipo de contenido, tamaño, **cuerpo truncado**) para cada navegación/acción.
+
+---
+
+## 1) Descubrimiento de Rutas (Next.js) — _Pre-Flight_
+**Objetivo:** Inventariar rutas **públicas** y **dinámicas** de Next antes de probar el flujo.
+
+1. **Rastreo controlado (mismo dominio):**
+   - Visitar `PAGE_URL`, esperar `networkidle` y recolectar todos los `a[href^="/"]` **internos** (excluir externos, `mailto:`, etc.).  
+   - Guardar listado único en `./artifacts/[FLOW_ID]/routes-discovered.json`.
+
+2. **Mapa del sitio/robots (si existen):**
+   - Intentar GET `/sitemap.xml` y `/robots.txt`. Extraer rutas internas y añadir al inventario.
+
+3. **Rutas dinámicas (heurística):**
+   - Detectar patrones `/:id`, `/:slug` por presencia de parámetros en URLs de los enlaces o por redirecciones 3xx.  
+   - Para cada ruta dinámica descubierta, marque `requiresId=true` y **proponer** un ID de muestra (orientarse por API Postman o por enlaces listados).
+
+4. **Sanidad básica por ruta:**
+   - Para cada ruta inventariada: `GET` directa, captura de pantalla “above-the-fold”, verificar **titulo/heading** visible, **0 errores críticos de consola**.  
+   - Registrar resultados en `routes-summary.md` con columnas: Ruta | Carga (2xx) | Título visible | Errores consola | Notas.
+
+**Criterio:** Al menos todas las rutas enlazables desde `PAGE_URL` están inventariadas, cargan con 2xx y no presentan errores graves en consola.
+
+---
+
+## 2) Verificación de API (Postman) — _Pre-Flight_
+**Objetivo:** Rutas lineales de API utilizadas por el frontend con contratos de Postman
+
+1. **Detección de endpoints activos:**
+   - Durante la carga de `PAGE_URL` y rutas descubiertas, captura solicitudes XHR/fetch al dominio API.  
+   - Para cada punto final: registrador `método`, `URL`, `status`, `content-type`, **forma del payload** (propiedades de 1er nivel) en `network.log`.
+
+2. **Contraste con Postman:**
+   - Comparar **status esperado**, `content-type` y **campos mínimos** contra la doc de Postman.  
+   - Si difiere: **clasificar** (`Auth/CORS`, `Network 4xx/5xx`, `Contrato`) y **proponer fix mínimo viable** (ajustar header, propiedad faltante, formato).
+
+**Criterio:** Endpoints clave del flujo responden **2xx**, `content-type` correcto y **payload mínimo** consistente con Postman.
+
+---
+
+## 3) Plan de Navegación y Elementos (UI/UX)
+**Objetivo:** Definir el recorrido y los elementos a validar/hacer clic para “aprobar” la interfaz.
+
+- **Matriz Ruta × Elementos (autoinventario):**
+  - Para cada **ruta del flujo** (incluye `PAGE_URL` → `...` → `REDIRECT_URL`), listar **elementos interactivos críticos**:  
+    - Enlaces/CTAs (`getByRole('link'|'button')`), **formularios** (`getByRole('form')`), entradas (`getByLabel`), **modales**, **tabs**, **dropdowns**, **toasts** y elementos con `data-testid`.
+  - Para cada elemento: `visible`, `habilitado`, `clicable`, **sin solapamientos** y con **texto/label accesible**.
+  - Guardar `elemento-inventario-[FLOW_ID].md` (Ruta | Elemento | Selector sugerido | Estado | Observaciones).
+
+- **Heurística UI/UX rápida (sin libs):**
+  - Mensajes de error **claros y junto al campo**, foco en **primer campo inválido**.
+  - CTA críticos **visibles sin desplazamiento** o con asequible (desplazamiento hacia la vista).
+  - Estados **cargando / vacío / error** representados.
+  - No exponer **tokens/PII** en URL o consola.
+
+---
+
+## 4) Ejecución del Flujo (basada en datos)
+1. **Visita:** `PAGE_URL` → esperar `networkidle`, afirmaciones iniciales:  
+   - Título/encabezado principal visible (preferir `getByRole`).  
+   - **Cero** `console.error` y **Cero** avisos de hidratación.
+
+2. **Iniciar sesión (si se aplica):**  
+   - Probar **Admin** y **User** con credenciales dadas.  
+   - Confirmar éxito por **UI** y **red (2xx)**.  
+   - Verificar que no se loguea si credenciales inválidas (mensaje accesible).
+
+3. **Acción principal:**  
+   - Completar formularios / click en CTA / subir archivo (según flujo).  
+   - **Validaciones:** campos obligatorios, `response.ok()` en requestes relevantes, `content-type: application/json`, `authorization` presente cuando se aplica, **no** secretos en query params.
+
+4. **Post-Acción / Redirección:**  
+   - `waitForURL(REDIRECT_URL)` con patrón **estricto**.  
+   - **Anti-loop:** confirma que no permaneces en `PAGE_URL` ni redirige de vuelta.  
+   - Verificar elementos clave en `REDIRECT_URL` (banner éxito, IDs, resúmenes).
+
+5. **Aprobación de elementos (click-sweep controlado):**  
+   - Ejecutar una pasada **“approve UI”**: para cada elemento crítico del inventario, intente **clic/teclear** en orden seguro (sin romper estado), verificando que:  
+     - No aparecen errores de consola.  
+     - No se bloquea el flujo ni se dañan estados (ej.: tabs cambian, modales abren/cierran).  
+   - Registrador encuentra en la matriz.
+
+---
+
+## 5) Consola, Red y Clasificación de Errores
+- Ante incidencia, capturar:
+  - **Consola:** nivel, mensaje, pila (si hay).
+  - **Rojo:** URL, método, estado, encabezados, cuerpo **truncado**.
+- Clasificar en `ERROR_TYPES`:  
+  - `Autenticación/CORS`  
+  - `Hydration/React` (desajuste, setState después del desmontaje, pérdida de memoria)  
+  - `Red 4xx/5xx` (carga útil/contrato)
+- **Fix mínimo viable** (sin nuevas libs ni re-arquitectura): selector estable, `await` faltante, manejo `401/403`, ajuste de contrato según Postman.
+
+---
+
+## 6) Re-verificación
+- Tras aplicar la corrección sugerida (o **mock temporal** vía **Playwright MCP** si el backend no está listo), **re-ejecutar** el flujo completo
+- Confirmar desaparición de errores de consola, **2xx** en red y **redirección** correcta.
+
+---
+
+# Criterios de Aceptación (todo debe cumplirse)
+
+- ✅ **Descubrimiento de rutas** completado con `routes-discovered.json` y `routes-summary.md`.
+- ✅ Endpoints clave **2xx**, `content-type` correcto y **payload** mínimo coherente con Postman.
+- ✅ Redirección a **`[REDIRECT_URL]`** sin loops.
+- ✅ **Cero `console.error`** y **sin advertencias de hidratación de React**.
+- ✅ Validaciones UI visibles y accesibles (`getByRole`, `getByLabel`, `aria-*`).
+- ✅ **“Click-sweep”** de elementos críticos sin errores ni roturas de flujo.
+- ✅ Evidencias en `./artifacts/[FLOW_ID]/`: capturas de pantalla, `trace.zip`, `video.webm`, `console.log`, `network.log`, inventarios y resúmenes.
+
+---
+
+# Reporte (entregar siempre)
+
+**Nombre:** `playwright-flow-[FLOW_ID].md`
+
+**Contenido mínimo:**
+1. **Resumen ejecutivo:** estado (Aprobado/Reprobado), entorno, compilación/confirmación
+2. **Escenario probado:** `[FLOW_NAME]`, rutas visitadas, usuarios (Admin/User), `ENV`.
+3. **Cobertura:** número de rutas inventariadas vs. cubiertas, nº de elementos críticos validados.
+4. **Hallazgos:** tabla `ID | Severidad (S0-S3) | Tipo | Descripción | Pasos de reproducción | Registros | Impacto`.
+5. **Recomendaciones:**
+   - **Inmediatas (≤24h):** espera, selectores estables, manejo 401/403, evitar `setState` tras unmount, copia de errores.
+   - **Medio plazo (≤2 sprints):** contratos API tipados, retry/backoff idempotente, estados de carga/vacío, manejo global de errores.
+   - **Largo plazo:** smoke E2E por lanzamiento con **Playwright MCP**, auditoría de accesibilidad, lint de consola en CI.
+
+---
+
+# Lineamientos de Implementación (Playwright MCP)
+
+- Selectores: `getByRole`, `getByLabel`, `getByTestId` (agregar `data-testid` donde falte).
+- **Espera:** usar `expect(...).toBeVisible()/toHaveURL()/toHaveText()` sobre `waitForTimeout`.
+- **Red:** asertar `status`, `content-type` y **forma mínima de payload** contra Postman en request clave.
+- **Estabilidad:** evitar descamación con `locator` + `expect` y navegación determinista.
+- **Accesibilidad básica:** roles/labels en inputs/botones críticos; foco inicial correcto; orden de tabulación sin roto.
+- **Seguridad:** no exponer tokens/PII en URL o consola.
+
+---
+
+# Notas
+- Considere las **advertencias de React** y cualquier `console.error` como **errores**
+- UX: copia clara de éxito/error, foco en primer campo inválido, retroalimentación de carga.
+- Si faltan datos del flujo, **inferir desde Postman** (endpoints, payloads, códigos) y proceder.
+- Reemplazar **TODO MOCK** por **peticiones reales** en cuanto sea posible.
+- No dejar flujos incompletos: si una rama está en la UI, debe tener verificación mínima.
+- El servidor ya está iniciado NO ejecutar `npm run dev`
+- NUNCA usar Mock, Nunca usar respaldos
+- SIEMPRE implementar los llamados reales de API
+Comentar
+
