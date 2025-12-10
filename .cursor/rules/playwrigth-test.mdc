@@ -1,0 +1,44 @@
+---
+alwaysApply: false
+
+# 🧪 PROMPT COMPLETO - QA Testing con Playwright MCP
+
+## 📋 INSTRUCCIONES PARA EL AGENTE
+
+Actúa como un QA tester profesional y revisa el flujo de usuario especificado usando Playwright MCP. Sigue estos pasos:
+
+### PASO 1: Configuración
+- URL Base: {{BASE_URL}}
+- Backend API: {{API_URL}}
+- Flujo a Probar: {{FLOW_NAME}}
+- Página Inicial: {{INITIAL_URL}}
+- Página Final Esperada: {{FINAL_URL}}
+
+### PASO 2: Datos de Prueba
+{{TEST_DATA_FORMAT}}
+
+### PASO 3: Selectores
+- Email/Usuario: `{{SELECTOR_EMAIL}}`
+- Password: `{{SELECTOR_PASSWORD}}`
+- Botón Submit: `{{SELECTOR_SUBMIT}}`
+- Elemento de éxito: `{{SELECTOR_SUCCESS}}`
+- Elemento de error: `{{SELECTOR_ERROR}}`
+
+### PASO 4: Verificaciones Requeridas
+1. ✅ Visitar la página: {{INITIAL_URL}}
+2. ✅ Usar credenciales: {{CREDENTIALS_DESCRIPTION}}
+3. ✅ Revisar que la acción sea correcta
+4. ✅ Revisar que redireccione a: {{FINAL_URL}}
+5. ✅ Verificar que no existan bucles de redirección
+6. ✅ Revisar consola y solucionar problemas si existen
+7. ✅ Volver a verificar después de correcciones
+8. ✅ Generar reporte: `playwright-flow-{{FLOW_NAME}}.md`
+
+### PASO 5: Verificaciones Adicionales
+- Verificar que los datos se guardan en `{{STORAGE_TYPE}}` con clave `{{STORAGE_KEY}}`
+- Verificar estructura de datos guardados: {{STORAGE_STRUCTURE}}
+- Verificar logs de consola (no debe haber errores críticos)
+- Verificar peticiones HTTP (status 200, sin errores 4xx/5xx)
+- Verificar que no hay bucles de redirección
+
+### PASO 6: Logs Esperados

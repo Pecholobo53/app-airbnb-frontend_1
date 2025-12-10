@@ -61,13 +61,18 @@ export default function GuestsSelector({ guests, onChange }: GuestsSelectorProps
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <button className="w-full text-left">
+        <button 
+          id="guests-selector-trigger"
+          type="button"
+          className="w-full text-left"
+          aria-label="Seleccionar número de huéspedes"
+        >
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gray-400" />
             <div className="flex-1">
-              <label className="text-xs font-semibold text-gray-900 block mb-1">
+              <span className="text-xs font-semibold text-gray-900 block mb-1">
                 Huéspedes
-              </label>
+              </span>
               <p className="text-sm text-gray-600">
                 {getDisplayText()}
               </p>

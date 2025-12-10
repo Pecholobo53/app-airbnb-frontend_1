@@ -125,11 +125,13 @@ export default function PaymentSection({
             </label>
             <input
               id="cardNumber"
+              name="cardNumber"
               type="text"
               value={cardNumber}
               onChange={handleCardNumberChange}
               placeholder="1234 5678 9012 3456"
               maxLength={19}
+              autoComplete="cc-number"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
               disabled={isLoading}
             />
@@ -141,10 +143,12 @@ export default function PaymentSection({
             </label>
             <input
               id="cardHolder"
+              name="cardHolder"
               type="text"
               value={cardHolder}
               onChange={(e) => setCardHolder(e.target.value)}
               placeholder="Nombre como aparece en la tarjeta"
+              autoComplete="cc-name"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
               disabled={isLoading}
             />
@@ -157,11 +161,13 @@ export default function PaymentSection({
               </label>
               <input
                 id="expiryDate"
+                name="expiryDate"
                 type="text"
                 value={expiryDate}
                 onChange={handleExpiryChange}
                 placeholder="MM/YY"
                 maxLength={5}
+                autoComplete="cc-exp"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
                 disabled={isLoading}
               />
@@ -173,10 +179,12 @@ export default function PaymentSection({
               </label>
               <input
                 id="cvv"
+                name="cvv"
                 type="text"
                 value={cvv}
                 onChange={handleCvvChange}
                 placeholder="123"
+                autoComplete="cc-csc"
                 maxLength={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
                 disabled={isLoading}

@@ -101,16 +101,19 @@ export default function LocationInput({ value = '', onChange }: LocationInputPro
       <div className="flex items-center gap-2">
         <MapPin className="h-4 w-4 text-gray-400" />
         <div className="flex-1">
-          <label className="text-xs font-semibold text-gray-900 block mb-1">
+          <label htmlFor="location-input" className="text-xs font-semibold text-gray-900 block mb-1">
             Ubicación
           </label>
           <Input
+            id="location-input"
+            name="location"
             type="text"
             placeholder="¿A dónde vas?"
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => inputValue.length >= 2 && setShowDropdown(true)}
+            autoComplete="off"
             className="border-none p-0 h-auto focus-visible:ring-0 text-sm"
           />
         </div>

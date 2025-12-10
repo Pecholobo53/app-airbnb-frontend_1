@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               parsed.user.favorites = [];
             }
             console.log('👤 [LOAD SESSION] Usuario:', parsed.user.name);
+            console.log('🖼️ [LOAD SESSION] Avatar:', parsed.user.avatar ? `${parsed.user.avatar.substring(0, 50)}...` : 'NO HAY AVATAR');
           }
           
           const now = new Date();
@@ -130,7 +131,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(SESSION_KEY, JSON.stringify(correctedSession));
       } else {
         console.log('📅 [SAVE SESSION] Expira:', expiresAtDate.toLocaleString('es-ES'));
-        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        console.log('🖼️ [SAVE SESSION] Avatar en sesión:', session.user?.avatar ? `${session.user.avatar.substring(0, 50)}...` : 'NO HAY AVATAR');
+        
+        try {
+          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          console.log('✅ [SAVE SESSION] Sesión guardada exitosamente');
+        } catch (error) {
+          console.error('❌ [SAVE SESSION] Error guardando sesión:', error);
+          // Si el error es por tamaño (QuotaExceededError), intentar guardar sin avatar o comprimirlo
+          if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+            console.warn('⚠️ [SAVE SESSION] localStorage lleno. Considera reducir el tamaño del avatar.');
+            toast.warning('El avatar es muy grande. Se guardará sin imagen para evitar problemas.');
+            // Guardar sin avatar como fallback
+            const sessionWithoutAvatar = {
+              ...session,
+              user: {
+                ...session.user,
+                avatar: null,
+              },
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionWithoutAvatar));
+          }
+        }
       }
     } else if (!isLoading && !session) {
       console.log('🗑️ [SAVE SESSION] Eliminando sesión de localStorage');
@@ -145,11 +167,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const response = await AuthService.login(credentials);
       
-      if (response.success && response.data) {
-        // Log de depuración: ver qué viene del servidor
-        console.log('✅ [LOGIN] Respuesta exitosa del servidor');
-        console.log('📅 [LOGIN] expiresAt recibido:', response.data.expiresAt);
-        console.log('📅 [LOGIN] Tipo de expiresAt:', typeof response.data.expiresAt);
+        if (response.success && response.data) {
+          // Log de depuración: ver qué viene del servidor
+          console.log('✅ [LOGIN] Respuesta exitosa del servidor');
+          console.log('📅 [LOGIN] expiresAt recibido:', response.data.expiresAt);
+          console.log('📅 [LOGIN] Tipo de expiresAt:', typeof response.data.expiresAt);
+          console.log('🖼️ [LOGIN] Avatar recibido:', response.data.user?.avatar ? `${response.data.user.avatar.substring(0, 50)}...` : 'NO HAY AVATAR');
         console.log('📦 [LOGIN] Datos completos recibidos:', Object.keys(response.data));
         
         // Convertir fechas de string a Date si vienen del servidor
@@ -309,31 +332,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session) return false;
 
     try {
+      console.log('🔄 [UPDATE USER] Actualizando perfil con datos:', { 
+        ...data, 
+        avatar: data.avatar ? `${data.avatar.substring(0, 50)}...` : 'sin avatar' 
+      });
+      
       const response = await AuthService.updateProfile(session.user.id, data);
       
       if (response.success && response.data) {
+        // IMPORTANTE: Preservar el avatar si el backend no lo devuelve pero lo enviamos
+        const avatarToUse = response.data.avatar || data.avatar || session.user.avatar;
+        
         const updatedUser = {
           ...response.data,
+          // Asegurar que el avatar se preserve (prioridad: respuesta backend > datos enviados > sesión actual)
+          avatar: avatarToUse,
           createdAt: new Date(response.data.createdAt),
           updatedAt: new Date(response.data.updatedAt),
           // Asegurar que favorites siempre sea un array
           favorites: response.data.favorites || session.user.favorites || [],
         };
         
+        console.log('✅ [UPDATE USER] Usuario actualizado:', {
+          name: updatedUser.name,
+          avatar: updatedUser.avatar ? `${updatedUser.avatar.substring(0, 50)}...` : 'sin avatar',
+          avatarLength: updatedUser.avatar ? updatedUser.avatar.length : 0,
+          phone: updatedUser.phone
+        });
+        
         // Preservar expiresAt y accessToken/token de la sesión actual
-        setSession({
+        const newSession = {
           ...session,
           user: updatedUser,
           // Mantener expiresAt como Date (ya está en formato correcto)
           expiresAt: session.expiresAt,
-        });
+        };
+        
+        console.log('💾 [UPDATE USER] Guardando sesión con avatar:', newSession.user.avatar ? 'SÍ' : 'NO');
+        setSession(newSession);
+        
+        // Forzar guardado inmediato en localStorage para asegurar persistencia
+        try {
+          localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+          console.log('✅ [UPDATE USER] Sesión guardada en localStorage inmediatamente');
+        } catch (error) {
+          console.error('❌ [UPDATE USER] Error guardando en localStorage:', error);
+          // Si localStorage falla (puede ser por tamaño), al menos el estado está actualizado
+        }
+        
         toast.success('Perfil actualizado correctamente');
         return true;
       } else {
+        console.error('❌ [UPDATE USER] Error en respuesta:', response.error);
         toast.error(response.error?.message || 'Error al actualizar perfil');
         return false;
       }
     } catch (error) {
+      console.error('❌ [UPDATE USER] Excepción:', error);
       toast.error('Error de conexión. Intenta nuevamente.');
       return false;
     }

@@ -115,10 +115,12 @@ export default function BillingAddressForm({
           </label>
           <input
             id="address"
+            name="address"
             type="text"
             {...register('address')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
             placeholder="123 main street"
+            autoComplete="street-address"
             disabled={isLoading}
           />
           {errors.address && (
@@ -133,10 +135,12 @@ export default function BillingAddressForm({
           </label>
           <input
             id="city"
+            name="city"
             type="text"
             {...register('city')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
             placeholder="Barcelona"
+            autoComplete="address-level2"
             disabled={isLoading}
           />
           {errors.city && (
@@ -151,10 +155,12 @@ export default function BillingAddressForm({
           </label>
           <input
             id="state"
+            name="state"
             type="text"
             {...register('state')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
             placeholder="Cataluña"
+            autoComplete="address-level1"
             disabled={isLoading}
           />
           {errors.state && (
@@ -169,10 +175,12 @@ export default function BillingAddressForm({
           </label>
           <input
             id="postalCode"
+            name="postalCode"
             type="text"
             {...register('postalCode')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
             placeholder="08001"
+            autoComplete="postal-code"
             disabled={isLoading}
           />
           {errors.postalCode && (
@@ -187,8 +195,10 @@ export default function BillingAddressForm({
           </label>
           <select
             id="country"
+            name="country"
             {...register('country')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none bg-white"
+            autoComplete="country"
             disabled={isLoading}
           >
             <option value="España">España</option>

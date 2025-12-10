@@ -45,13 +45,18 @@ export default function DateRangePicker({ checkIn, checkOut, onChange }: DateRan
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <button className="w-full text-left">
+        <button 
+          id="date-range-trigger"
+          type="button"
+          className="w-full text-left"
+          aria-label="Seleccionar fechas"
+        >
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-gray-400" />
             <div className="flex-1">
-              <label className="text-xs font-semibold text-gray-900 block mb-1">
+              <span className="text-xs font-semibold text-gray-900 block mb-1">
                 Fechas
-              </label>
+              </span>
               <p className="text-sm text-gray-600">
                 {getDisplayText()}
                 {nights > 0 && (
