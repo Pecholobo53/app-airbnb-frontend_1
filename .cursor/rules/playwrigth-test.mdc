@@ -38,7 +38,7 @@ Actúa como un QA tester profesional y revisa el flujo de usuario especificado u
  Admin User_"name": "Juan Pérez",
   "email": "juan@example.com",
   "password": "Password123"
- API BACKEND RES DOCUMENTACION:
+ API BACKEND REST DOCUMENTACION:
  https://documenter.getpostman.com/view/49801848/2sB3dSP8Kg
 
 ### PASO 5: Verificaciones Adicionales
