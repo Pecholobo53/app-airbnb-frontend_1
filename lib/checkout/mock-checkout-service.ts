@@ -13,7 +13,7 @@ import {
   updateCheckoutSession,
   deleteCheckoutSession,
 } from './mock-checkout-db';
-import { MockDashboardService } from '@/lib/dashboard/mock-dashboard-service';
+import { DashboardService } from '@/lib/dashboard/dashboard-service';
 import { calculatePriceBreakdown } from '@/lib/pricing/calculate-price';
 
 /**
@@ -39,7 +39,7 @@ import { calculatePriceBreakdown } from '@/lib/pricing/calculate-price';
  * Notas:
  * - Todos los pagos son simulados (no procesa pagos reales)
  * - Las sesiones expiran después de 30 minutos
- * - Integra con MockDashboardService para crear reservas
+ * - Integra con DashboardService para crear reservas (API REST real)
  */
 
 // Simular delay de red
@@ -335,8 +335,8 @@ export class MockCheckoutService {
         };
       }
 
-      // Crear reserva usando MockDashboardService
-      const bookingResponse = await MockDashboardService.createBooking(
+      // Crear reserva usando DashboardService
+      const bookingResponse = await DashboardService.createBooking(
         session.userId,
         data.propertyId,
         data.checkIn,

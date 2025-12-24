@@ -26,3 +26,8 @@
 - **Rutas protegidas**: 5 rutas requieren autenticación y no fueron verificadas en detalle
 - **Sitemap/Robots**: No disponibles (404)
 
+
+
+
+
+

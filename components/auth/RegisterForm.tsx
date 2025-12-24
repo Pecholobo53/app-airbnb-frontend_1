@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterForm() {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, login } = useAuth();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -45,10 +45,46 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     const success = await registerUser(data);
-    setIsLoading(false);
-
+    
     if (success) {
-      router.push('/login?registered=true');
+      // Hacer login automático después del registro
+      const loginSuccess = await login({
+        email: data.email,
+        password: data.password,
+        rememberMe: false,
+      });
+      
+      setIsLoading(false);
+      
+      if (loginSuccess) {
+        // Esperar a que la sesión se guarde en localStorage
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (attempts < maxAttempts) {
+          const session = localStorage.getItem('airbnb_session');
+          if (session) {
+            try {
+              const parsed = JSON.parse(session);
+              if (parsed.user && parsed.user.id) {
+                // Pequeño delay adicional para asegurar que React haya actualizado el estado
+                await new Promise(resolve => setTimeout(resolve, 50));
+                router.push('/dashboard');
+                return;
+              }
+            } catch (e) {
+              console.error('Error parseando sesión:', e);
+            }
+          }
+          await new Promise(resolve => setTimeout(resolve, 50));
+          attempts++;
+        }
+        
+        // Si después de todos los intentos no se guardó, redirigir de todas formas
+        router.push('/dashboard');
+      }
+    } else {
+      setIsLoading(false);
     }
   };
 

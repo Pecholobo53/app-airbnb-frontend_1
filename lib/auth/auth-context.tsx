@@ -248,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Esto asegura que localStorage esté disponible antes de que el componente intente redirigir
         setSession(session);
         
-        toast.success(`¡Bienvenido, ${session.user.name}!`);
+        // No mostrar mensaje de bienvenida, redirigir directamente al dashboard
         return true;
       } else {
         toast.error(response.error?.message || 'Error al iniciar sesión');
@@ -265,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await AuthService.register(data);
       
       if (response.success) {
-        toast.success('¡Cuenta creada! Revisa tu email para verificar tu cuenta.');
+        // No mostrar mensaje, el login automático se encargará de la redirección
         return true;
       } else {
         toast.error(response.error?.message || 'Error al crear cuenta');

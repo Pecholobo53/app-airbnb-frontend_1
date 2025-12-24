@@ -9,14 +9,18 @@ import {
   BookingAction
 } from '@/types/dashboard';
 import { AuthResponse } from '@/types/auth';
-import { MockDashboardService } from './mock-dashboard-service';
 
 /**
  * DASHBOARD SERVICE - API REST REAL
  * 
  * Contexto:
  * Servicio de dashboard que realiza llamadas HTTP reales a la API REST.
- * Reemplaza el MockDashboardService con integración real al backend.
+ * Integración completa con backend sin fallback a mocks.
+ * 
+ * Mejoras implementadas:
+ * - Parsing seguro de JSON (maneja respuestas HTML/404)
+ * - Manejo robusto de errores con códigos específicos
+ * - Conversión automática de fechas
  * 
  * Base URL:
  * - Desarrollo: http://localhost:3000
@@ -41,8 +45,12 @@ import { MockDashboardService } from './mock-dashboard-service';
  * - Tokens expirados: Se manejan automáticamente
  * 
  * Autenticación:
- * - Los tokens se almacenan en localStorage
- * - Se incluyen en el header Authorization para requests autenticados
+ * - Los tokens se almacenan en localStorage con key 'airbnb_session'
+ * - Se incluyen automáticamente en el header Authorization: Bearer <token>
+ * - TODOS los endpoints del dashboard requieren JWT válido
+ * - Si no hay token, el backend retornará 401 Unauthorized
+ * - El token se busca en los campos 'token' o 'accessToken' de la sesión
+ * - Logging detallado para debugging de autenticación
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -63,12 +71,19 @@ async function apiRequest<T>(
       ? localStorage.getItem('airbnb_session') 
       : null;
     
+    console.log('🔑 [DASHBOARD SERVICE] Sesión en localStorage:', session ? 'Encontrada' : 'No encontrada');
+    
     let token = null;
     if (session) {
       try {
         const parsed = JSON.parse(session);
         // Buscar token en ambos campos (el backend puede usar 'token' o 'accessToken')
         token = parsed.token || parsed.accessToken;
+        console.log('🔑 [DASHBOARD SERVICE] Token extraído:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
+        console.log('🔑 [DASHBOARD SERVICE] Estructura de sesión:', Object.keys(parsed));
+        if (parsed.user) {
+          console.log('👤 [DASHBOARD SERVICE] Usuario en sesión:', parsed.user.name);
+        }
       } catch (parseError) {
         console.error('❌ [DASHBOARD SERVICE] Error parseando sesión:', parseError);
       }
@@ -81,12 +96,19 @@ async function apiRequest<T>(
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+      console.log('✅ [DASHBOARD SERVICE] Header Authorization agregado');
+    } else {
+      console.warn('⚠️ [DASHBOARD SERVICE] NO HAY TOKEN - Request sin autenticación');
+      console.warn('⚠️ [DASHBOARD SERVICE] El backend rechazará esta petición con 401 Unauthorized');
+      // Nota: No retornamos error aquí porque el backend debe manejar la autenticación
+      // Esto permite que el backend retorne mensajes de error más específicos
     }
 
-    console.log('📤 [DASHBOARD SERVICE] Request:', {
-      url,
-      method: options.method || 'GET',
-      hasToken: !!token
+    console.log('📤 [DASHBOARD SERVICE] Enviando request a:', url);
+    console.log('📤 [DASHBOARD SERVICE] Método:', options.method || 'GET');
+    console.log('📤 [DASHBOARD SERVICE] Headers:', { 
+      'Content-Type': 'application/json',
+      'Authorization': token ? 'Bearer ***' : 'NO TOKEN'
     });
 
     const response = await fetch(url, {
@@ -96,10 +118,80 @@ async function apiRequest<T>(
 
     console.log('📥 [DASHBOARD SERVICE] Response:', {
       status: response.status,
-      ok: response.ok
+      ok: response.ok,
+      hasToken: !!token,
+      statusText: response.statusText
     });
+    
+    // Logging especial para errores de autenticación
+    if (response.status === 401) {
+      console.error('🔒 [DASHBOARD SERVICE] Error 401 Unauthorized:', {
+        hasToken: !!token,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
+        endpoint: url
+      });
+    }
 
-    const data = await response.json();
+    // Manejo seguro de JSON - verificar content-type primero
+    let data: any;
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('❌ [DASHBOARD SERVICE] Error parseando JSON:', jsonError);
+        return {
+          success: false,
+          error: {
+            code: 'PARSE_ERROR',
+            message: 'Error al procesar respuesta del servidor',
+            status: response.status,
+          },
+        };
+      }
+    } else {
+      // Si no es JSON, intentar leer como texto para debugging
+      try {
+        const text = await response.text();
+        console.error('❌ [DASHBOARD SERVICE] Respuesta no es JSON:', {
+          contentType,
+          preview: text.substring(0, 200),
+          status: response.status
+        });
+        
+        // Determinar código de error basado en status HTTP
+        let errorCode = 'INVALID_RESPONSE';
+        if (response.status === 404) {
+          errorCode = 'NOT_FOUND';
+        } else if (response.status === 401) {
+          errorCode = 'UNAUTHORIZED';
+        } else if (response.status === 403) {
+          errorCode = 'FORBIDDEN';
+        } else if (response.status >= 500) {
+          errorCode = 'SERVER_ERROR';
+        }
+        
+        return {
+          success: false,
+          error: {
+            code: errorCode,
+            message: `El servidor respondió con ${contentType || 'text/html'} (Status: ${response.status})`,
+            status: response.status,
+          },
+        };
+      } catch (textError) {
+        console.error('❌ [DASHBOARD SERVICE] Error leyendo respuesta:', textError);
+        return {
+          success: false,
+          error: {
+            code: 'PARSE_ERROR',
+            message: 'Error al procesar respuesta del servidor',
+            status: response.status,
+          },
+        };
+      }
+    }
 
     if (!response.ok) {
       console.error('❌ [DASHBOARD SERVICE] Error:', {
@@ -107,11 +199,26 @@ async function apiRequest<T>(
         error: data.error || data.message,
       });
       
+      // Determinar código de error basado en status HTTP
+      let errorCode = 'NETWORK_ERROR';
+      if (response.status === 404) {
+        errorCode = 'NOT_FOUND';
+      } else if (response.status === 401) {
+        errorCode = 'UNAUTHORIZED';
+      } else if (response.status === 403) {
+        errorCode = 'FORBIDDEN';
+      } else if (response.status >= 500) {
+        errorCode = 'SERVER_ERROR';
+      } else if (data.error?.code) {
+        errorCode = data.error.code;
+      }
+      
       return {
         success: false,
         error: {
-          code: data.error?.code || 'NETWORK_ERROR',
+          code: errorCode,
           message: data.error?.message || data.message || 'Error en la petición',
+          status: response.status, // Incluir status para mejor debugging
         },
       };
     }
@@ -163,160 +270,105 @@ export class DashboardService {
    * OBTENER ESTADÍSTICAS DE HUÉSPED
    * 
    * Endpoint: GET /api/dashboard/guest?userId={userId}
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getGuestStats(guestId: string): Promise<DashboardResponse<GuestStats>> {
     console.log('📊 [DASHBOARD SERVICE] Obteniendo stats de huésped:', guestId);
     
-    const response = await apiRequest<GuestStats>(`/api/dashboard/guest?userId=${guestId}`, {
+    return apiRequest<GuestStats>(`/api/dashboard/guest?userId=${guestId}`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404')) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getGuestStats(guestId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER ESTADÍSTICAS DE ANFITRIÓN
    * 
    * Endpoint: GET /api/dashboard/host?userId={userId}
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getHostStats(hostId: string): Promise<DashboardResponse<HostStats>> {
     console.log('🏡 [DASHBOARD SERVICE] Obteniendo stats de anfitrión:', hostId);
     
-    const response = await apiRequest<HostStats>(`/api/dashboard/host?userId=${hostId}`, {
+    return apiRequest<HostStats>(`/api/dashboard/host?userId=${hostId}`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getHostStats(hostId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER PRÓXIMOS VIAJES (como huésped)
    * 
    * Endpoint: GET /api/bookings?guestId={guestId}&status=upcoming
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getUpcomingTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('✈️ [DASHBOARD SERVICE] Obteniendo próximos viajes:', guestId);
     
-    const response = await apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=upcoming`, {
+    return apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=upcoming`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getUpcomingTrips(guestId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER HISTORIAL DE VIAJES (como huésped)
    * 
    * Endpoint: GET /api/bookings?guestId={guestId}&status=past
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getPastTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('📚 [DASHBOARD SERVICE] Obteniendo historial:', guestId);
     
-    const response = await apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=past`, {
+    return apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=past`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getPastTrips(guestId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER SOLICITUDES PENDIENTES (como anfitrión)
    * 
    * Endpoint: GET /api/bookings?hostId={hostId}&status=pending
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getPendingRequests(hostId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('⏳ [DASHBOARD SERVICE] Obteniendo solicitudes pendientes:', hostId);
     
-    const response = await apiRequest<Booking[]>(`/api/bookings?hostId=${hostId}&status=pending`, {
+    return apiRequest<Booking[]>(`/api/bookings?hostId=${hostId}&status=pending`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getPendingRequests(hostId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER TODAS LAS RESERVAS (como anfitrión)
    * 
    * Endpoint: GET /api/bookings?hostId={hostId}
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getHostBookings(hostId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('🗓️ [DASHBOARD SERVICE] Obteniendo reservas del anfitrión:', hostId);
     
-    const response = await apiRequest<Booking[]>(`/api/bookings?hostId=${hostId}`, {
+    return apiRequest<Booking[]>(`/api/bookings?hostId=${hostId}`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getHostBookings(hostId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER DATOS MENSUALES
    * 
    * Endpoint: GET /api/dashboard/monthly?userId={userId}&mode={guest|host}
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getMonthlyData(userId: string, mode: 'guest' | 'host'): Promise<DashboardResponse<MonthlyData[]>> {
     console.log('📈 [DASHBOARD SERVICE] Obteniendo datos mensuales:', { userId, mode });
     
-    const response = await apiRequest<MonthlyData[]>(`/api/dashboard/monthly?userId=${userId}&mode=${mode}`, {
+    return apiRequest<MonthlyData[]>(`/api/dashboard/monthly?userId=${userId}&mode=${mode}`, {
       method: 'GET',
     });
-    
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.getMonthlyData(userId);
-    }
-    
-    return response;
   }
 
   /**
    * OBTENER RESERVA POR ID
    * 
    * Endpoint: GET /api/bookings/{bookingId}
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async getBookingById(bookingId: string): Promise<DashboardResponse<Booking>> {
     console.log('🔍 [DASHBOARD SERVICE] Obteniendo reserva:', bookingId);
@@ -333,7 +385,7 @@ export class DashboardService {
    * - POST /api/bookings/{bookingId}/accept - Aceptar reserva
    * - POST /api/bookings/{bookingId}/reject - Rechazar reserva
    * - POST /api/bookings/{bookingId}/cancel - Cancelar reserva
-   * Fallback: MockDashboardService si la API no está disponible
+   * Autenticación: JWT requerido (Bearer token)
    */
   static async handleBookingAction(
     bookingId: string,
@@ -362,17 +414,44 @@ export class DashboardService {
         };
     }
 
-    const response = await apiRequest<Booking>(endpoint, {
+    return apiRequest<Booking>(endpoint, {
       method: 'POST',
     });
+  }
+
+  /**
+   * CREAR NUEVA RESERVA
+   * 
+   * Endpoint: POST /api/bookings
+   * Autenticación: JWT requerido (Bearer token)
+   * Body: {
+   *   propertyId: string,
+   *   checkIn: string (ISO date),
+   *   checkOut: string (ISO date),
+   *   guests: { adults: number, children: number, infants: number },
+   *   pricing: { basePrice: number, nightsTotal: number, cleaningFee: number, serviceFee: number, total: number }
+   * }
+   */
+  static async createBooking(
+    guestId: string,
+    propertyId: string,
+    checkIn: Date,
+    checkOut: Date,
+    guests: { adults: number; children: number; infants: number },
+    pricing: { basePrice: number; nightsTotal: number; cleaningFee: number; serviceFee: number; total: number }
+  ): Promise<DashboardResponse<Booking>> {
+    console.log('📅 [DASHBOARD SERVICE] Creando reserva:', { guestId, propertyId, checkIn, checkOut });
     
-    // Si la API no está disponible (404), usar mock como fallback
-    if (!response.success && (response.error?.code === 'NETWORK_ERROR' || response.error?.message?.includes('404'))) {
-      console.warn('⚠️ [DASHBOARD SERVICE] API no disponible, usando mock como fallback');
-      return MockDashboardService.handleBookingAction(bookingId, action);
-    }
-    
-    return response;
+    return apiRequest<Booking>('/api/bookings', {
+      method: 'POST',
+      body: JSON.stringify({
+        propertyId,
+        checkIn: checkIn.toISOString(),
+        checkOut: checkOut.toISOString(),
+        guests,
+        pricing,
+      }),
+    });
   }
 }
 

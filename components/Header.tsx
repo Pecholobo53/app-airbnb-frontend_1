@@ -55,7 +55,11 @@ export default function Header() {
 
           {/* Barra de búsqueda - Desktop */}
           <form 
-            onSubmit={handleSearch}
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSearch(e);
+            }}
             className="hidden md:flex flex-1 max-w-md mx-4"
           >
             <div className="relative w-full">

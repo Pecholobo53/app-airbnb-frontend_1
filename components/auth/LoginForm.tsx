@@ -79,7 +79,14 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form 
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSubmit(onSubmit)(e);
+      }} 
+      className="space-y-4"
+    >
       {/* Email */}
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>

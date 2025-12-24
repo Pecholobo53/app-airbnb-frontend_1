@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { MockDashboardService } from '@/lib/dashboard/mock-dashboard-service';
+import { DashboardService } from '@/lib/dashboard/dashboard-service';
 import { Booking } from '@/types/dashboard';
 import TripCard from '@/components/dashboard/guest/TripCard';
 import { ROUTES } from '@/lib/constants';
@@ -47,8 +47,8 @@ export default function MisReservasPage() {
     try {
       // Cargar reservas futuras y pasadas en paralelo
       const [upcomingResponse, pastResponse] = await Promise.all([
-        MockDashboardService.getUpcomingTrips(user.id),
-        MockDashboardService.getPastTrips(user.id),
+        DashboardService.getUpcomingTrips(user.id),
+        DashboardService.getPastTrips(user.id),
       ]);
 
       if (upcomingResponse.success && upcomingResponse.data) {

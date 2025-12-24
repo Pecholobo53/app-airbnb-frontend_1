@@ -117,6 +117,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   /**
    * Cargar datos de HUÉSPED
+   * Maneja errores parciales - muestra datos disponibles aunque algunas llamadas fallen
    */
   const loadGuestData = async (userId: string) => {
     console.log('✈️ [DASHBOARD] Cargando datos de huésped...');
@@ -127,26 +128,89 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       DashboardService.getPastTrips(userId)
     ]);
 
-    if (statsRes.success && upcomingRes.success && pastRes.success) {
+    const errors: string[] = [];
+    let hasData = false;
+
+    // Manejar cada respuesta individualmente
+    if (statsRes.success && statsRes.data) {
+      setState(prev => ({ ...prev, guestStats: statsRes.data! }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Estadísticas de huésped cargadas');
+    } else {
+      const errorMsg = statsRes.error?.message || 'No se pudieron cargar las estadísticas';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando stats:', statsRes.error);
+      
+      // Valores por defecto para stats
       setState(prev => ({
         ...prev,
-        guestStats: statsRes.data!,
-        upcomingBookings: upcomingRes.data!,
-        pastBookings: pastRes.data!,
-        // Limpiar datos de host al cambiar de modo
-        hostStats: null,
-        pendingRequests: [],
-        confirmedBookings: [],
-        monthlyData: []
+        guestStats: {
+          guestId: userId,
+          currentYear: new Date().getFullYear(),
+          upcomingTrips: 0,
+          activeBookings: 0,
+          favoritesCount: 0,
+          completedTrips: 0,
+          totalSpentThisYear: 0,
+          averageTripCost: 0,
+          reviewsGiven: 0,
+          averageRatingGiven: 0,
+        }
       }));
-      console.log('✅ [DASHBOARD] Datos de huésped cargados');
+    }
+
+    if (upcomingRes.success && upcomingRes.data) {
+      setState(prev => ({ ...prev, upcomingBookings: upcomingRes.data! }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Próximos viajes cargados:', upcomingRes.data!.length);
     } else {
-      throw new Error('Error al cargar datos de huésped');
+      const errorMsg = upcomingRes.error?.message || 'No se pudieron cargar los próximos viajes';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando próximos viajes:', upcomingRes.error);
+      setState(prev => ({ ...prev, upcomingBookings: [] }));
+    }
+
+    if (pastRes.success && pastRes.data) {
+      setState(prev => ({ ...prev, pastBookings: pastRes.data! }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Historial cargado:', pastRes.data!.length);
+    } else {
+      const errorMsg = pastRes.error?.message || 'No se pudo cargar el historial';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando historial:', pastRes.error);
+      setState(prev => ({ ...prev, pastBookings: [] }));
+    }
+
+    // Limpiar datos de host al cambiar de modo
+    setState(prev => ({
+      ...prev,
+      hostStats: null,
+      pendingRequests: [],
+      confirmedBookings: [],
+      monthlyData: []
+    }));
+
+    // Mostrar errores si hay, pero no romper la UI
+    if (errors.length > 0) {
+      const errorMessage = errors.join('; ');
+      setState(prev => ({ ...prev, error: errorMessage }));
+      
+      if (hasData) {
+        // Si hay al menos algunos datos, mostrar warning
+        toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
+      } else {
+        // Si no hay datos, mostrar error
+        toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+      }
+    } else {
+      setState(prev => ({ ...prev, error: null }));
+      console.log('✅ [DASHBOARD] Todos los datos de huésped cargados correctamente');
     }
   };
 
   /**
    * Cargar datos de ANFITRIÓN
+   * Maneja errores parciales - muestra datos disponibles aunque algunas llamadas fallen
    */
   const loadHostData = async (userId: string) => {
     console.log('🏡 [DASHBOARD] Cargando datos de anfitrión...');
@@ -158,26 +222,101 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       DashboardService.getMonthlyData(userId, 'host')
     ]);
 
-    if (statsRes.success && pendingRes.success && bookingsRes.success && monthlyRes.success) {
-      // Filtrar bookings confirmados (excluyendo pendientes y cancelados)
-      const confirmed = bookingsRes.data!.filter(
-        b => b.status === 'confirmed' || b.status === 'active'
-      );
+    const errors: string[] = [];
+    let hasData = false;
 
+    // Manejar cada respuesta individualmente
+    if (statsRes.success && statsRes.data) {
+      setState(prev => ({ ...prev, hostStats: statsRes.data! }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Estadísticas de anfitrión cargadas');
+    } else {
+      const errorMsg = statsRes.error?.message || 'No se pudieron cargar las estadísticas';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando stats:', statsRes.error);
+      
+      // Valores por defecto para stats
       setState(prev => ({
         ...prev,
-        hostStats: statsRes.data!,
-        pendingRequests: pendingRes.data!,
-        confirmedBookings: confirmed,
-        monthlyData: monthlyRes.data!,
-        // Limpiar datos de guest al cambiar de modo
-        guestStats: null,
-        upcomingBookings: [],
-        pastBookings: []
+        hostStats: {
+          hostId: userId,
+          period: 'current_month',
+          totalRevenue: 0,
+          revenueTrend: 0,
+          activeProperties: 0,
+          totalBookings: 0,
+          pendingRequests: 0,
+          upcomingArrivals: 0,
+          occupancyRate: 0,
+          averageRating: 0,
+          totalReviews: 0,
+          responseRate: 0,
+          responseTime: 'N/A',
+          propertyStats: [],
+        }
       }));
-      console.log('✅ [DASHBOARD] Datos de anfitrión cargados');
+    }
+
+    if (pendingRes.success && pendingRes.data) {
+      setState(prev => ({ ...prev, pendingRequests: pendingRes.data! }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Solicitudes pendientes cargadas:', pendingRes.data!.length);
     } else {
-      throw new Error('Error al cargar datos de anfitrión');
+      const errorMsg = pendingRes.error?.message || 'No se pudieron cargar las solicitudes pendientes';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando solicitudes pendientes:', pendingRes.error);
+      setState(prev => ({ ...prev, pendingRequests: [] }));
+    }
+
+    if (bookingsRes.success && bookingsRes.data) {
+      // Filtrar bookings confirmados (excluyendo pendientes y cancelados)
+      const confirmed = bookingsRes.data.filter(
+        b => b.status === 'confirmed' || b.status === 'active'
+      );
+      setState(prev => ({ ...prev, confirmedBookings: confirmed }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Reservas del anfitrión cargadas:', confirmed.length);
+    } else {
+      const errorMsg = bookingsRes.error?.message || 'No se pudieron cargar las reservas';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando reservas:', bookingsRes.error);
+      setState(prev => ({ ...prev, confirmedBookings: [] }));
+    }
+
+    if (monthlyRes.success && monthlyRes.data) {
+      setState(prev => ({ ...prev, monthlyData: monthlyRes.data! }));
+      hasData = true;
+      console.log('✅ [DASHBOARD] Datos mensuales cargados:', monthlyRes.data!.length);
+    } else {
+      const errorMsg = monthlyRes.error?.message || 'No se pudieron cargar los datos mensuales';
+      errors.push(errorMsg);
+      console.warn('⚠️ [DASHBOARD] Error cargando datos mensuales:', monthlyRes.error);
+      setState(prev => ({ ...prev, monthlyData: [] }));
+    }
+
+    // Limpiar datos de guest al cambiar de modo
+    setState(prev => ({
+      ...prev,
+      guestStats: null,
+      upcomingBookings: [],
+      pastBookings: []
+    }));
+
+    // Mostrar errores si hay, pero no romper la UI
+    if (errors.length > 0) {
+      const errorMessage = errors.join('; ');
+      setState(prev => ({ ...prev, error: errorMessage }));
+      
+      if (hasData) {
+        // Si hay al menos algunos datos, mostrar warning
+        toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
+      } else {
+        // Si no hay datos, mostrar error
+        toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+      }
+    } else {
+      setState(prev => ({ ...prev, error: null }));
+      console.log('✅ [DASHBOARD] Todos los datos de anfitrión cargados correctamente');
     }
   };
 

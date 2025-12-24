@@ -49,3 +49,8 @@
 - Errores 404 en recursos estáticos podrían afectar la experiencia visual
 - Validaciones de formularios no verificadas en detalle
 
+
+
+
+
+
