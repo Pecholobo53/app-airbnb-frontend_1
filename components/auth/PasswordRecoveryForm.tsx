@@ -1,7 +1,7 @@
 // components/auth/PasswordRecoveryForm.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { passwordRecoverySchema, PasswordRecoveryFormData } from '@/lib/auth/validators';
@@ -9,13 +9,18 @@ import { AuthService } from '@/lib/auth/auth-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle2, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, Mail, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+
+// Cooldown en segundos para evitar spam (60 segundos = 1 minuto)
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function PasswordRecoveryForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const {
     register,
@@ -31,6 +36,21 @@ export default function PasswordRecoveryForm() {
 
   const email = watch('email');
 
+  /**
+   * Manejar cooldown del resend
+   */
+  useEffect(() => {
+    if (cooldownSeconds > 0) {
+      const timer = setTimeout(() => {
+        setCooldownSeconds(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldownSeconds]);
+
+  /**
+   * Enviar email de recuperación
+   */
   const onSubmit = async (data: PasswordRecoveryFormData) => {
     setIsLoading(true);
     const response = await AuthService.requestPasswordRecovery(data);
@@ -38,13 +58,34 @@ export default function PasswordRecoveryForm() {
 
     if (response.success) {
       setIsSuccess(true);
+      setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
       toast.success('Email enviado correctamente');
     } else {
       toast.error(response.error?.message || 'Error al enviar el email');
     }
   };
 
+  /**
+   * Reenviar email de recuperación
+   */
+  const handleResendEmail = async () => {
+    if (cooldownSeconds > 0 || !email) return;
+
+    setIsResending(true);
+    const response = await AuthService.requestPasswordRecovery({ email });
+    setIsResending(false);
+
+    if (response.success) {
+      setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
+      toast.success('Email reenviado correctamente');
+    } else {
+      toast.error(response.error?.message || 'Error al reenviar el email');
+    }
+  };
+
   if (isSuccess) {
+    const canResend = cooldownSeconds === 0 && !isResending;
+
     return (
       <div className="text-center space-y-4">
         <div className="flex justify-center">
@@ -80,7 +121,35 @@ export default function PasswordRecoveryForm() {
           </div>
         </div>
 
-        <div className="pt-4">
+        {/* Resend Email Button */}
+        <div className="pt-2">
+          <Button
+            type="button"
+            onClick={handleResendEmail}
+            disabled={!canResend}
+            variant="outline"
+            className="w-full border-[#FF385C] text-[#FF385C] hover:bg-[#FF385C] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isResending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Reenviando...
+              </>
+            ) : cooldownSeconds > 0 ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reenviar email ({cooldownSeconds}s)
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reenviar email
+              </>
+            )}
+          </Button>
+        </div>
+
+        <div className="pt-2">
           <Link
             href="/login"
             className="text-sm text-[#FF385C] hover:text-[#E31C5F] hover:underline"

@@ -1,0 +1,57 @@
+---
+alwaysApply: false
+# ROL Y CONTEXTO
+Actúa como un Product Owner experimentado y arquitecto de software backend.
+
+# INFORMACIÓN DEL PROYECTO
+Estoy desarrollando un proyecto fullstack. El frontend ya está documentado en @frontend/ 
+y necesito crear el backend que lo soporte.
+
+**Stack técnico obligatorio:**
+- MongoDB (base de datos)
+- Express.js (framework web)
+- TypeScript (lenguaje)
+- Node.js (entorno de ejecución)
+
+**Arquitectura y principios:**
+- Patrón MVC (Model-View-Controller)
+- Programación funcional (evitar clases cuando sea posible)
+- Rutas REST estándar (GET, POST, PUT, DELETE)
+- Código simple, limpio y escalable (nivel junior)
+
+# TU MISIÓN
+Analiza la documentación del frontend en @frontend/ y crea un plan detallado 
+para el **Milestone 1 del Backend**.
+
+# RESTRICCIONES IMPORTANTES
+1. **Máximo 5 tareas** en este milestone (divide y vencerás)
+2. **Solo instalar dependencias estrictamente necesarias** (nada de sobrecarga)
+3. **Evitar sobreingeniería** (KISS: Keep It Simple, Stupid)
+4. **Código legible y mantenible** por un programador junior
+
+# ENTREGABLES ESPERADOS
+Para cada tarea del Milestone 1, proporciona:
+
+1. **Nombre descriptivo de la tarea**
+2. **Descripción clara** (qué hace y por qué es necesaria)
+3. **Endpoints API REST** que implementa (si aplica)
+4. **Modelos de datos** necesarios (esquemas MongoDB)
+5. **Dependencias npm** a instalar (justificando cada una)
+6. **Criterios de aceptación** (cómo validar que está completa)
+7. **Estimación de complejidad** (baja/media/alta)
+8. **Orden de implementación** (qué hacer primero)
+
+# FORMATO DE SALIDA
+Presenta el plan en formato markdown estructurado con:
+- Resumen ejecutivo del Milestone 1
+- Lista priorizada de 5 tareas máximo
+- Diagrama de arquitectura básica (texto ASCII si es posible)
+- Checklist de validación del milestone completo
+
+# CRITERIOS DE ÉXITO
+- Un desarrollador junior puede implementarlo sin ayuda adicional
+- El código sigue estándares REST
+- La arquitectura es escalable para futuros milestones
+- No hay dependencias innecesarias
+
+Comienza analizando @frontend/ y proponme el plan.
