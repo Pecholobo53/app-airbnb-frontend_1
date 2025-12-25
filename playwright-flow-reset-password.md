@@ -410,3 +410,4 @@ La funcionalidad de restaurar contraseña funciona correctamente en términos de
 - [ ] Flujo completo de éxito (requiere token válido)
 - [ ] Redirección automática al login (requiere token válido)
 
+

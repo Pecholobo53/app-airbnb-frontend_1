@@ -22,6 +22,7 @@ export interface User {
   updatedAt: Date;
   provider: 'email' | 'google' | 'facebook';
   favorites: string[];  // IDs de propiedades favoritas
+  role?: 'admin' | 'user';  // Rol del usuario (admin o user)
 }
 
 /**

@@ -210,13 +210,29 @@ export class UserService {
     });
 
     if (response.success) {
-      console.log('✅ [USER SERVICE] Usuario obtenido:', response.data?.name);
+      console.log('✅ [USER SERVICE] Usuario obtenido');
+      
+      // MANEJO DE ESTRUCTURA ANIDADA
+      let userData: User;
+      if (response.data && (response.data as any).user) {
+        // Backend devuelve: { success: true, data: { user: {...} } }
+        userData = (response.data as any).user;
+        console.log('📦 [USER SERVICE] Estructura anidada detectada (data.user)');
+      } else {
+        // Backend devuelve: { success: true, data: {...} }
+        userData = response.data as User;
+        console.log('📦 [USER SERVICE] Estructura plana (data)');
+      }
       
       // Convertir fechas de string a Date
-      if (response.data) {
-        response.data.createdAt = new Date(response.data.createdAt);
-        response.data.updatedAt = new Date(response.data.updatedAt);
-        response.data.favorites = response.data.favorites || [];
+      if (userData) {
+        userData.createdAt = new Date(userData.createdAt);
+        userData.updatedAt = new Date(userData.updatedAt);
+        userData.favorites = userData.favorites || [];
+        
+        // Actualizar response.data con los datos correctos
+        response.data = userData;
+        console.log('✅ [USER SERVICE] Usuario procesado:', userData.name);
       }
     } else {
       console.error('❌ [USER SERVICE] Error obteniendo usuario:', response.error?.message);
@@ -413,6 +429,121 @@ export class UserService {
     }
 
     return response;
+  }
+
+  /**
+   * CREATE USER - Crear nuevo usuario (Admin)
+   * 
+   * Endpoint: POST /api/users
+   * Headers: Authorization: Bearer {token}
+   * Body: { name, email, password, phone?, role? }
+   * 
+   * @param data - Datos del usuario a crear
+   * @returns Usuario creado o error
+   */
+  static async createUser(data: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    role?: 'admin' | 'user';
+  }): Promise<AuthResponse<User>> {
+    console.log('➕ [USER SERVICE] Creando nuevo usuario:', data.email);
+    
+    const response = await apiRequest<User>(`/api/users`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+
+    if (response.success && response.data) {
+      console.log('✅ [USER SERVICE] Usuario creado:', response.data.name);
+      
+      // Convertir fechas de string a Date
+      response.data.createdAt = new Date(response.data.createdAt);
+      response.data.updatedAt = new Date(response.data.updatedAt);
+      response.data.favorites = response.data.favorites || [];
+    } else {
+      console.error('❌ [USER SERVICE] Error creando usuario:', response.error?.message);
+    }
+
+    return response;
+  }
+
+  /**
+   * GET USER STATS - Obtener estadísticas de usuarios
+   * 
+   * Endpoint: GET /api/users/stats (si existe)
+   * O calcula desde la lista de usuarios
+   * 
+   * @returns Estadísticas de usuarios
+   */
+  static async getUserStats(): Promise<AuthResponse<{
+    total: number;
+    verified: number;
+    unverified: number;
+    admins: number;
+    regularUsers: number;
+    newThisMonth: number;
+  }>> {
+    console.log('📊 [USER SERVICE] Obteniendo estadísticas de usuarios');
+    
+    try {
+      // Intentar obtener del endpoint de stats si existe
+      const statsResponse = await apiRequest<{
+        total: number;
+        verified: number;
+        unverified: number;
+        admins: number;
+        regularUsers: number;
+        newThisMonth: number;
+      }>(`/api/users/stats`, {
+        method: 'GET',
+      });
+
+      if (statsResponse.success) {
+        console.log('✅ [USER SERVICE] Estadísticas obtenidas del backend');
+        return statsResponse;
+      }
+    } catch (error) {
+      console.log('⚠️ [USER SERVICE] Endpoint de stats no disponible, calculando desde lista');
+    }
+
+    // Si no existe el endpoint, calcular desde la lista de usuarios
+    try {
+      const listResponse = await UserService.listUsers(1000, 0); // Obtener muchos usuarios
+      
+      if (listResponse.success && listResponse.data) {
+        const users = listResponse.data.users || [];
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        const stats = {
+          total: users.length,
+          verified: users.filter(u => u.emailVerified).length,
+          unverified: users.filter(u => !u.emailVerified).length,
+          admins: users.filter(u => u.role === 'admin').length,
+          regularUsers: users.filter(u => !u.role || u.role === 'user').length,
+          newThisMonth: users.filter(u => new Date(u.createdAt) >= startOfMonth).length,
+        };
+        
+        console.log('✅ [USER SERVICE] Estadísticas calculadas:', stats);
+        
+        return {
+          success: true,
+          data: stats,
+        };
+      }
+    } catch (error) {
+      console.error('❌ [USER SERVICE] Error calculando estadísticas:', error);
+    }
+
+    return {
+      success: false,
+      error: {
+        code: 'NETWORK_ERROR',
+        message: 'Error al obtener estadísticas de usuarios',
+      },
+    };
   }
 
   /**

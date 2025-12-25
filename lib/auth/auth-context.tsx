@@ -203,8 +203,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             updatedAt: new Date(response.data.user.updatedAt),
             // Asegurar que favorites siempre sea un array
             favorites: response.data.user.favorites || [],
+            // Asegurar que role se guarde si viene del backend
+            role: response.data.user.role || undefined,
           },
         };
+        
+        // Log para debugging de admin
+        console.log('👤 [LOGIN] Usuario logueado:', {
+          name: session.user.name,
+          email: session.user.email,
+          role: session.user.role || 'no definido',
+          hasRole: !!session.user.role
+        });
         
         console.log('💾 [LOGIN] Guardando sesión en localStorage');
         console.log('👤 [LOGIN] Usuario:', session.user.name);

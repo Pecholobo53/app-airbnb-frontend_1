@@ -192,15 +192,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     // Mostrar errores si hay, pero no romper la UI
     if (errors.length > 0) {
-      const errorMessage = errors.join('; ');
+      // Filtrar errores duplicados y crear mensaje único
+      const uniqueErrors = [...new Set(errors)];
+      const errorMessage = uniqueErrors.length === 1 
+        ? uniqueErrors[0] 
+        : `${uniqueErrors.length} errores: ${uniqueErrors.slice(0, 2).join(', ')}${uniqueErrors.length > 2 ? '...' : ''}`;
+      
       setState(prev => ({ ...prev, error: errorMessage }));
       
       if (hasData) {
         // Si hay al menos algunos datos, mostrar warning
         toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
       } else {
-        // Si no hay datos, mostrar error
-        toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+        // Si no hay datos, verificar si es un error 404 (ruta no encontrada)
+        const is404 = errors.some(e => e.toLowerCase().includes('ruta no encontrada') || e.toLowerCase().includes('not found'));
+        if (is404) {
+          toast.error('Los endpoints del dashboard no están disponibles en el backend. Verifica que el backend esté corriendo.', { duration: 7000 });
+        } else {
+          toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+        }
       }
     } else {
       setState(prev => ({ ...prev, error: null }));
@@ -304,15 +314,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     // Mostrar errores si hay, pero no romper la UI
     if (errors.length > 0) {
-      const errorMessage = errors.join('; ');
+      // Filtrar errores duplicados y crear mensaje único
+      const uniqueErrors = [...new Set(errors)];
+      const errorMessage = uniqueErrors.length === 1 
+        ? uniqueErrors[0] 
+        : `${uniqueErrors.length} errores: ${uniqueErrors.slice(0, 2).join(', ')}${uniqueErrors.length > 2 ? '...' : ''}`;
+      
       setState(prev => ({ ...prev, error: errorMessage }));
       
       if (hasData) {
         // Si hay al menos algunos datos, mostrar warning
         toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
       } else {
-        // Si no hay datos, mostrar error
-        toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+        // Si no hay datos, verificar si es un error 404 (ruta no encontrada)
+        const is404 = errors.some(e => e.toLowerCase().includes('ruta no encontrada') || e.toLowerCase().includes('not found'));
+        if (is404) {
+          toast.error('Los endpoints del dashboard no están disponibles en el backend. Verifica que el backend esté corriendo.', { duration: 7000 });
+        } else {
+          toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+        }
       }
     } else {
       setState(prev => ({ ...prev, error: null }));
