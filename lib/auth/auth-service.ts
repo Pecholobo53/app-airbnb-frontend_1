@@ -95,8 +95,9 @@ async function apiRequest<T>(
     console.log('📤 [AUTH SERVICE] Método:', options.method || 'GET');
     console.log('📤 [AUTH SERVICE] Headers:', { 
       'Content-Type': 'application/json',
-      'Authorization': token ? 'Bearer ***' : 'NO TOKEN'
+      'Authorization': token ? `Bearer ${token.substring(0, 20)}...` : 'NO TOKEN'
     });
+    console.log('📤 [AUTH SERVICE] Token completo (primeros 50 chars):', token ? token.substring(0, 50) : 'NO TOKEN');
 
     const response = await fetch(url, {
       ...options,
@@ -105,8 +106,32 @@ async function apiRequest<T>(
 
     console.log('📥 [AUTH SERVICE] Response status:', response.status);
     console.log('📥 [AUTH SERVICE] Response ok:', response.ok);
+    console.log('📥 [AUTH SERVICE] Response headers:', {
+      'content-type': response.headers.get('content-type'),
+      'authorization': response.headers.get('authorization') ? 'presente' : 'no presente'
+    });
 
     const data = await response.json();
+    
+    console.log('📥 [AUTH SERVICE] Response completa:', JSON.stringify(data).substring(0, 500));
+    console.log('📥 [AUTH SERVICE] Response data keys:', Object.keys(data));
+    console.log('📥 [AUTH SERVICE] Response data.data:', data.data ? Object.keys(data.data) : 'no data.data');
+    if (data.data) {
+      console.log('📥 [AUTH SERVICE] Response user data:', {
+        id: data.data.id,
+        name: data.data.name,
+        email: data.data.email,
+        phone: data.data.phone,
+        createdAt: data.data.createdAt,
+        updatedAt: data.data.updatedAt,
+        hasToken: !!(data.data.token || data.data.accessToken)
+      });
+      // NOTA: El token NO debe venir en la respuesta del perfil
+      // El token solo se envía en el header Authorization de la petición
+      if (data.data.token || data.data.accessToken) {
+        console.warn('⚠️ [AUTH SERVICE] El backend está devolviendo un token en la respuesta. Esto no es necesario.');
+      }
+    }
 
     if (!response.ok) {
       console.error('❌ [AUTH SERVICE] Error en response:', {
@@ -126,9 +151,38 @@ async function apiRequest<T>(
     }
 
     console.log('✅ [AUTH SERVICE] Request exitoso');
+    
+    // El backend puede devolver los datos en diferentes formatos:
+    // 1. { success: true, data: { user: {...} } } - Formato estándar
+    // 2. { success: true, data: {...} } - Datos directos
+    // 3. { user: {...} } - Sin wrapper success
+    // 4. {...} - Datos directos sin wrapper
+    
+    let userData = null;
+    if (data.data) {
+      // Si hay data.data, puede ser que los datos estén en data.data.user o directamente en data.data
+      userData = data.data.user || data.data;
+    } else if (data.user) {
+      // Si hay data.user directamente
+      userData = data.user;
+    } else if (data.success && !data.data) {
+      // Si hay success pero no data, puede que los datos estén en el nivel superior
+      userData = data;
+    } else {
+      // Último recurso: usar data directamente
+      userData = data;
+    }
+    
+    console.log('📥 [AUTH SERVICE] Datos extraídos:', {
+      hasUserData: !!userData,
+      userDataKeys: userData ? Object.keys(userData) : [],
+      userName: userData?.name,
+      userEmail: userData?.email
+    });
+    
     return {
       success: true,
-      data: data.data || data,
+      data: userData,
     };
   } catch (error) {
     console.error('❌ [AUTH SERVICE] Error en API request:', error);
@@ -325,25 +379,64 @@ export class AuthService {
    */
   static async updateProfile(userId: string, data: Partial<User>): Promise<AuthResponse<User>> {
     console.log('📝 [AUTH SERVICE] Actualizando perfil:', userId);
-    console.log('📤 [AUTH SERVICE] Datos a enviar:', { name: data.name, phone: data.phone, avatar: data.avatar ? 'presente' : 'no presente' });
+    console.log('📤 [AUTH SERVICE] Datos a enviar:', { 
+      name: data.name, 
+      phone: data.phone, 
+      avatar: data.avatar ? `presente (${data.avatar.length} chars)` : 'no presente' 
+    });
+    
+    const requestBody = {
+      name: data.name,
+      phone: data.phone,
+      avatar: data.avatar,
+    };
+    
+    console.log('📤 [AUTH SERVICE] Body completo:', JSON.stringify(requestBody).substring(0, 200) + '...');
     
     const response = await apiRequest<User>('/api/auth/profile', {
       method: 'PUT',
-      body: JSON.stringify({
-        name: data.name,
-        phone: data.phone,
-        avatar: data.avatar,
-      }),
+      body: JSON.stringify(requestBody),
+    });
+    
+    console.log('📥 [AUTH SERVICE] Respuesta del servidor:', {
+      success: response.success,
+      hasData: !!response.data,
+      status: 'ok',
+      error: response.error
     });
 
     if (response.success) {
       console.log('✅ [AUTH SERVICE] Perfil actualizado exitosamente');
       
-      // Convertir fechas de string a Date
+      // Convertir fechas de string a Date de forma segura
       if (response.data) {
-        response.data.createdAt = new Date(response.data.createdAt);
-        response.data.updatedAt = new Date(response.data.updatedAt);
+        // Convertir createdAt
+        if (response.data.createdAt) {
+          const createdAtDate = response.data.createdAt instanceof Date 
+            ? response.data.createdAt 
+            : new Date(response.data.createdAt);
+          response.data.createdAt = !isNaN(createdAtDate.getTime()) ? createdAtDate : new Date();
+        } else {
+          response.data.createdAt = new Date();
+        }
+        
+        // Convertir updatedAt
+        if (response.data.updatedAt) {
+          const updatedAtDate = response.data.updatedAt instanceof Date 
+            ? response.data.updatedAt 
+            : new Date(response.data.updatedAt);
+          response.data.updatedAt = !isNaN(updatedAtDate.getTime()) ? updatedAtDate : new Date();
+        } else {
+          response.data.updatedAt = new Date();
+        }
+        
+        // Asegurar que favorites siempre sea un array
         response.data.favorites = response.data.favorites || [];
+        
+        console.log('📅 [AUTH SERVICE] Fechas convertidas:', {
+          createdAt: response.data.createdAt.toISOString(),
+          updatedAt: response.data.updatedAt.toISOString()
+        });
       }
     } else {
       console.error('❌ [AUTH SERVICE] Error actualizando perfil:', response.error?.message);

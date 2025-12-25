@@ -17,6 +17,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfileSchema, UpdateProfileFormData } from '@/lib/auth/validators';
 import { toast } from 'sonner';
+import { DebugToken } from './debug-token';
 
 function PerfilContent() {
   const { user, updateUser } = useAuth();
@@ -40,6 +41,11 @@ function PerfilContent() {
   // Actualizar defaultValues cuando user cambia
   useEffect(() => {
     if (user) {
+      console.log('🔄 [PERFIL] Usuario actualizado, reseteando formulario:', {
+        name: user.name,
+        phone: user.phone,
+        hasAvatar: !!user.avatar
+      });
       reset({
         name: user.name || '',
         phone: user.phone || '',
@@ -51,8 +57,23 @@ function PerfilContent() {
     setIsLoading(true);
     
     try {
-      console.log('📝 Datos del formulario:', data);
-      console.log('🖼️ Avatar preview:', previewAvatar ? 'Sí' : 'No');
+      console.log('📝 [PERFIL] Datos del formulario:', data);
+      console.log('🖼️ [PERFIL] Avatar preview:', previewAvatar ? 'Sí' : 'No');
+      
+      // Verificar token antes de enviar
+      const session = localStorage.getItem('airbnb_session');
+      if (session) {
+        try {
+          const parsed = JSON.parse(session);
+          const token = parsed.token || parsed.accessToken;
+          console.log('🔑 [PERFIL] Token disponible:', token ? `${token.substring(0, 30)}...` : 'NO HAY TOKEN');
+          console.log('🔑 [PERFIL] Estructura de sesión:', Object.keys(parsed));
+        } catch (e) {
+          console.error('❌ [PERFIL] Error parseando sesión:', e);
+        }
+      } else {
+        console.warn('⚠️ [PERFIL] NO HAY SESIÓN EN LOCALSTORAGE');
+      }
       
       // Preparar datos para actualizar
       const updateData: Partial<User> = {
@@ -69,26 +90,34 @@ function PerfilContent() {
         if (base64Size > maxSize) {
           console.warn('⚠️ Avatar aún muy grande después de compresión:', Math.round(base64Size / 1024), 'KB');
           toast.error('La imagen es demasiado grande. Intenta con una imagen más pequeña.');
+          setIsLoading(false);
           return;
         }
         
         updateData.avatar = previewAvatar;
-        console.log('✅ Avatar agregado a updateData. Tamaño:', Math.round(base64Size / 1024), 'KB');
+        console.log('✅ [PERFIL] Avatar agregado a updateData. Tamaño:', Math.round(base64Size / 1024), 'KB');
       }
       
-      console.log('📤 Enviando datos:', updateData);
+      console.log('📤 [PERFIL] Enviando datos al backend:', {
+        name: updateData.name,
+        phone: updateData.phone,
+        hasAvatar: !!updateData.avatar
+      });
       
       const success = await updateUser(updateData);
       
       if (success) {
-        console.log('✅ Perfil actualizado exitosamente');
+        console.log('✅ [PERFIL] Perfil actualizado exitosamente');
+        toast.success('Perfil actualizado correctamente');
         setPreviewAvatar(null);
         setIsEditing(false);
       } else {
-        console.error('❌ Error: updateUser retornó false');
+        console.error('❌ [PERFIL] Error: updateUser retornó false');
+        toast.error('Error al actualizar el perfil. Revisa la consola para más detalles.');
       }
     } catch (error) {
-      console.error('❌ Error en onSubmit:', error);
+      console.error('❌ [PERFIL] Error en onSubmit:', error);
+      toast.error('Error inesperado al actualizar el perfil.');
     } finally {
       setIsLoading(false);
     }
@@ -368,11 +397,13 @@ function PerfilContent() {
                       <div>
                         <p className="text-sm text-gray-500">Miembro desde</p>
                         <p className="font-medium">
-                          {new Date(user.createdAt).toLocaleDateString('es-ES', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
+                          {user.createdAt && !isNaN(new Date(user.createdAt).getTime())
+                            ? new Date(user.createdAt).toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })
+                            : 'Fecha no disponible'}
                         </p>
                       </div>
                     </div>
@@ -403,6 +434,9 @@ function PerfilContent() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Debug Card (solo desarrollo) */}
+            <DebugToken />
 
             {/* Stats Card */}
             <Card>

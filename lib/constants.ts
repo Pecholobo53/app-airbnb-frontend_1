@@ -75,8 +75,12 @@ export const API_CONFIG = {
       VERIFY: '/api/auth/verify',
     },
     USERS: {
+      LIST: '/api/users',
       GET_BY_ID: '/api/users',
       SEARCH: '/api/users',
+      CREATE: '/api/users',
+      UPDATE: '/api/users',
+      DELETE: '/api/users',
     },
   },
 } as const;

@@ -378,16 +378,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const response = await AuthService.updateProfile(session.user.id, data);
       
+      console.log('📥 [UPDATE USER] Respuesta recibida:', {
+        success: response.success,
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : [],
+        error: response.error,
+        fullResponse: JSON.stringify(response).substring(0, 500)
+      });
+      
+      // Log detallado de la estructura de datos
+      if (response.data) {
+        console.log('📥 [UPDATE USER] Estructura de response.data:', {
+          id: response.data.id,
+          name: response.data.name,
+          email: response.data.email,
+          phone: response.data.phone,
+          avatar: response.data.avatar ? `${response.data.avatar.substring(0, 50)}...` : 'no avatar',
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
+          allKeys: Object.keys(response.data)
+        });
+      }
+      
       if (response.success && response.data) {
         // IMPORTANTE: Preservar el avatar si el backend no lo devuelve pero lo enviamos
         const avatarToUse = response.data.avatar || data.avatar || session.user.avatar;
+        
+        // Convertir fechas de forma segura
+        const createdAtDate = response.data.createdAt 
+          ? (response.data.createdAt instanceof Date 
+              ? response.data.createdAt 
+              : new Date(response.data.createdAt))
+          : session.user.createdAt || new Date();
+        
+        const updatedAtDate = response.data.updatedAt 
+          ? (response.data.updatedAt instanceof Date 
+              ? response.data.updatedAt 
+              : new Date(response.data.updatedAt))
+          : new Date();
+        
+        // Validar que las fechas sean válidas
+        const validCreatedAt = !isNaN(createdAtDate.getTime()) ? createdAtDate : new Date();
+        const validUpdatedAt = !isNaN(updatedAtDate.getTime()) ? updatedAtDate : new Date();
         
         const updatedUser = {
           ...response.data,
           // Asegurar que el avatar se preserve (prioridad: respuesta backend > datos enviados > sesión actual)
           avatar: avatarToUse,
-          createdAt: new Date(response.data.createdAt),
-          updatedAt: new Date(response.data.updatedAt),
+          createdAt: validCreatedAt,
+          updatedAt: validUpdatedAt,
           // Asegurar que favorites siempre sea un array
           favorites: response.data.favorites || session.user.favorites || [],
         };
@@ -408,12 +447,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         console.log('💾 [UPDATE USER] Guardando sesión con avatar:', newSession.user.avatar ? 'SÍ' : 'NO');
+        console.log('💾 [UPDATE USER] Nuevo usuario a guardar:', {
+          name: newSession.user.name,
+          phone: newSession.user.phone,
+          email: newSession.user.email,
+          avatarLength: newSession.user.avatar ? newSession.user.avatar.length : 0
+        });
+        
+        // Actualizar el estado PRIMERO
         setSession(newSession);
         
         // Forzar guardado inmediato en localStorage para asegurar persistencia
         try {
           localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
           console.log('✅ [UPDATE USER] Sesión guardada en localStorage inmediatamente');
+          
+          // Verificar que se guardó correctamente
+          const verification = localStorage.getItem(SESSION_KEY);
+          if (verification) {
+            const verified = JSON.parse(verification);
+            console.log('✅ [UPDATE USER] Verificación de guardado:', {
+              name: verified.user?.name,
+              phone: verified.user?.phone,
+              hasAvatar: !!verified.user?.avatar
+            });
+          }
         } catch (error) {
           console.error('❌ [UPDATE USER] Error guardando en localStorage:', error);
           // Si localStorage falla (puede ser por tamaño), al menos el estado está actualizado

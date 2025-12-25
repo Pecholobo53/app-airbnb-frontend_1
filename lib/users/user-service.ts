@@ -10,22 +10,28 @@ import {
  * 
  * Contexto:
  * Servicio de usuarios que realiza llamadas HTTP reales a la API REST.
- * Maneja operaciones relacionadas con usuarios (obtener, buscar, etc.)
+ * Maneja operaciones relacionadas con usuarios (obtener, buscar, crear, actualizar, eliminar)
  * 
  * Base URL:
  * - Desarrollo: http://localhost:3000
  * - Producción: Configurado via NEXT_PUBLIC_API_URL
  * 
  * Endpoints:
+ * - GET /api/users - Listar usuarios (con paginación)
  * - GET /api/users/{userId} - Obtener usuario por ID
  * - GET /api/users?search=... - Buscar usuarios
+ * - POST /api/users - Crear usuario (admin)
+ * - PUT /api/users/{userId} - Actualizar usuario completo
+ * - PATCH /api/users/{userId} - Actualizar usuario parcial
+ * - DELETE /api/users/{userId} - Eliminar usuario
  * - GET /api/auth/me - Obtener perfil del usuario autenticado (ya en AuthService)
  * - PUT /api/auth/profile - Actualizar perfil (ya en AuthService)
  * 
  * Manejo de Errores:
  * - Errores de red: Se capturan y se retornan con código NETWORK_ERROR
- * - Errores HTTP: Se parsean del response del servidor
+ * - Errores HTTP: Se parsean del response del servidor con códigos específicos
  * - Tokens expirados: Se manejan automáticamente
+ * - Respuestas no JSON: Se validan antes de parsear
  * 
  * Autenticación:
  * - Los tokens se almacenan en localStorage
@@ -95,7 +101,35 @@ async function apiRequest<T>(
     console.log('📥 [USER SERVICE] Response status:', response.status);
     console.log('📥 [USER SERVICE] Response ok:', response.ok);
 
-    const data = await response.json();
+    // Verificar si la respuesta es JSON válida
+    let data;
+    const contentType = response.headers.get('content-type');
+    
+    try {
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // Si no es JSON, intentar leer como texto para logging
+        const text = await response.text();
+        console.warn('⚠️ [USER SERVICE] Response no es JSON:', text.substring(0, 100));
+        return {
+          success: false,
+          error: {
+            code: 'INVALID_RESPONSE',
+            message: 'La respuesta del servidor no es válida.',
+          },
+        };
+      }
+    } catch (jsonError) {
+      console.error('❌ [USER SERVICE] Error parseando respuesta:', jsonError);
+      return {
+        success: false,
+        error: {
+          code: 'INVALID_RESPONSE',
+          message: 'La respuesta del servidor no es válida.',
+        },
+      };
+    }
 
     if (!response.ok) {
       console.error('❌ [USER SERVICE] Error en response:', {
@@ -105,10 +139,24 @@ async function apiRequest<T>(
         fullResponse: data,
       });
       
+      // Determinar código de error basado en status HTTP
+      let errorCode = 'NETWORK_ERROR';
+      if (response.status === 404) {
+        errorCode = 'NOT_FOUND';
+      } else if (response.status === 401) {
+        errorCode = 'UNAUTHORIZED';
+      } else if (response.status === 403) {
+        errorCode = 'FORBIDDEN';
+      } else if (response.status >= 500) {
+        errorCode = 'SERVER_ERROR';
+      } else if (data.error?.code) {
+        errorCode = data.error.code;
+      }
+      
       return {
         success: false,
         error: {
-          code: data.error?.code || 'NETWORK_ERROR',
+          code: errorCode,
           message: data.error?.message || data.message || 'Error en la petición',
         },
       };
@@ -121,11 +169,23 @@ async function apiRequest<T>(
     };
   } catch (error) {
     console.error('❌ [USER SERVICE] Error en API request:', error);
+    
+    // Manejar errores específicos
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Error de conexión. Verifica tu conexión a internet.',
+        },
+      };
+    }
+    
     return {
       success: false,
       error: {
         code: 'NETWORK_ERROR',
-        message: 'Error de conexión. Verifica tu conexión a internet.',
+        message: error instanceof Error ? error.message : 'Error de conexión. Verifica tu conexión a internet.',
       },
     };
   }
@@ -160,6 +220,51 @@ export class UserService {
       }
     } else {
       console.error('❌ [USER SERVICE] Error obteniendo usuario:', response.error?.message);
+    }
+
+    return response;
+  }
+
+  /**
+   * LIST USERS - Listar usuarios con paginación
+   * 
+   * Endpoint: GET /api/users?limit=...&offset=...
+   * Headers: Authorization: Bearer {token}
+   * 
+   * @param limit - Límite de resultados (opcional, default: 20)
+   * @param offset - Offset para paginación (opcional, default: 0)
+   * @returns Lista de usuarios
+   */
+  static async listUsers(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<AuthResponse<{ users: User[]; total: number }>> {
+    console.log('📋 [USER SERVICE] Listando usuarios:', { limit, offset });
+    
+    const params = new URLSearchParams({
+      limit: limit.toString(),
+      offset: offset.toString(),
+    });
+
+    const response = await apiRequest<{ users: User[]; total: number }>(
+      `/api/users?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+
+    if (response.success && response.data) {
+      console.log('✅ [USER SERVICE] Usuarios listados:', response.data.users.length);
+      
+      // Convertir fechas de string a Date para cada usuario
+      response.data.users = response.data.users.map(user => ({
+        ...user,
+        createdAt: new Date(user.createdAt),
+        updatedAt: new Date(user.updatedAt),
+        favorites: user.favorites || [],
+      }));
+    } else {
+      console.error('❌ [USER SERVICE] Error listando usuarios:', response.error?.message);
     }
 
     return response;
@@ -208,6 +313,103 @@ export class UserService {
       }));
     } else {
       console.error('❌ [USER SERVICE] Error buscando usuarios:', response.error?.message);
+    }
+
+    return response;
+  }
+
+  /**
+   * UPDATE USER (PUT) - Actualizar usuario completo
+   * 
+   * Endpoint: PUT /api/users/{userId}
+   * Headers: Authorization: Bearer {token}
+   * Body: { name, email, phone, avatar, ... }
+   * 
+   * @param userId - ID del usuario a actualizar
+   * @param data - Datos del usuario a actualizar
+   * @returns Usuario actualizado o error
+   */
+  static async updateUser(
+    userId: string,
+    data: Partial<User>
+  ): Promise<AuthResponse<User>> {
+    console.log('📝 [USER SERVICE] Actualizando usuario (PUT):', userId);
+    
+    const response = await apiRequest<User>(`/api/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+
+    if (response.success && response.data) {
+      console.log('✅ [USER SERVICE] Usuario actualizado:', response.data.name);
+      
+      // Convertir fechas de string a Date
+      response.data.createdAt = new Date(response.data.createdAt);
+      response.data.updatedAt = new Date(response.data.updatedAt);
+      response.data.favorites = response.data.favorites || [];
+    } else {
+      console.error('❌ [USER SERVICE] Error actualizando usuario:', response.error?.message);
+    }
+
+    return response;
+  }
+
+  /**
+   * UPDATE USER (PATCH) - Actualizar usuario parcial
+   * 
+   * Endpoint: PATCH /api/users/{userId}
+   * Headers: Authorization: Bearer {token}
+   * Body: { name?, email?, phone?, avatar?, ... }
+   * 
+   * @param userId - ID del usuario a actualizar
+   * @param data - Datos parciales del usuario a actualizar
+   * @returns Usuario actualizado o error
+   */
+  static async patchUser(
+    userId: string,
+    data: Partial<User>
+  ): Promise<AuthResponse<User>> {
+    console.log('📝 [USER SERVICE] Actualizando usuario (PATCH):', userId);
+    
+    const response = await apiRequest<User>(`/api/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+
+    if (response.success && response.data) {
+      console.log('✅ [USER SERVICE] Usuario actualizado:', response.data.name);
+      
+      // Convertir fechas de string a Date
+      response.data.createdAt = new Date(response.data.createdAt);
+      response.data.updatedAt = new Date(response.data.updatedAt);
+      response.data.favorites = response.data.favorites || [];
+    } else {
+      console.error('❌ [USER SERVICE] Error actualizando usuario:', response.error?.message);
+    }
+
+    return response;
+  }
+
+  /**
+   * DELETE USER - Eliminar usuario
+   * 
+   * Endpoint: DELETE /api/users/{userId}
+   * Headers: Authorization: Bearer {token}
+   * 
+   * @param userId - ID del usuario a eliminar
+   * @returns Confirmación de eliminación o error
+   */
+  static async deleteUser(userId: string): Promise<AuthResponse<void>> {
+    console.log('🗑️ [USER SERVICE] Eliminando usuario:', userId);
+    
+    const response = await apiRequest<void>(`/api/users/${userId}`, {
+      method: 'DELETE',
+    });
+
+    if (response.success) {
+      console.log('✅ [USER SERVICE] Usuario eliminado exitosamente');
+    } else {
+      console.error('❌ [USER SERVICE] Error eliminando usuario:', response.error?.message);
     }
 
     return response;
