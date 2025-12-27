@@ -239,5 +239,8 @@ La implementación del dashboard está **COMPLETA Y FUNCIONAL**. El servicio rea
 
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 23cbeb270db5b790c19aefad1bb60cc9c22ed085

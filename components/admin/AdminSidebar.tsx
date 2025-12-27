@@ -15,19 +15,8 @@ export function AdminSidebar() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      // Pequeño delay para asegurar que el localStorage se limpie
-      await new Promise(resolve => setTimeout(resolve, 100));
-      // Redirigir a login
-      router.push('/login');
-      // Forzar recarga para limpiar cualquier estado residual
-      router.refresh();
-    } catch (error) {
-      console.error('Error en logout:', error);
-      // Redirigir de todas formas
-      router.push('/login');
-    }
+    await logout();
+    router.push('/login');
   };
 
   const navItems = [

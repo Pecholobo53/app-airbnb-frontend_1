@@ -78,5 +78,3 @@ Todas las funcionalidades principales están implementadas y funcionando correct
 
 **Fecha de Finalización:** 25 de Diciembre, 2025
 
-
-

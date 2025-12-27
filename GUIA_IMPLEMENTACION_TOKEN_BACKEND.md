@@ -850,5 +850,3 @@ Response: {
 **Complejidad:** Media
 
 
-
-
