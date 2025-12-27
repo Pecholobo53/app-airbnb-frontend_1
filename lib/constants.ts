@@ -30,6 +30,8 @@ export const ROUTES = {
   CONFIGURACION: '/configuracion',
   MIS_RESERVAS: '/mis-reservas',
   CHECKOUT: '/checkout',
+  ADMIN: '/admin',
+  ADMIN_USERS: '/admin/users',
 } as const;
 
 /**

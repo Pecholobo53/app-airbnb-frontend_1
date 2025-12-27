@@ -213,11 +213,19 @@ async function apiRequest<T>(
         errorCode = data.error.code;
       }
       
+      // Mejorar mensaje de error para 404
+      let errorMessage = data.error?.message || data.message || 'Error en la petición';
+      if (response.status === 404) {
+        errorMessage = 'Ruta no encontrada';
+        console.warn('⚠️ [DASHBOARD SERVICE] Endpoint no encontrado (404):', url);
+        console.warn('💡 [DASHBOARD SERVICE] Verifica que el backend tenga este endpoint implementado');
+      }
+      
       return {
         success: false,
         error: {
           code: errorCode,
-          message: data.error?.message || data.message || 'Error en la petición',
+          message: errorMessage,
           status: response.status, // Incluir status para mejor debugging
         },
       };
@@ -274,10 +282,22 @@ export class DashboardService {
    */
   static async getGuestStats(guestId: string): Promise<DashboardResponse<GuestStats>> {
     console.log('📊 [DASHBOARD SERVICE] Obteniendo stats de huésped:', guestId);
+    console.log('📊 [DASHBOARD SERVICE] Endpoint:', `/api/dashboard/guest?userId=${guestId}`);
     
-    return apiRequest<GuestStats>(`/api/dashboard/guest?userId=${guestId}`, {
+    const response = await apiRequest<GuestStats>(`/api/dashboard/guest?userId=${guestId}`, {
       method: 'GET',
     });
+    
+    if (!response.success) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo stats de huésped:', {
+        code: response.error?.code,
+        message: response.error?.message,
+        status: response.error?.status,
+        endpoint: `/api/dashboard/guest?userId=${guestId}`
+      });
+    }
+    
+    return response;
   }
 
   /**
@@ -302,10 +322,22 @@ export class DashboardService {
    */
   static async getUpcomingTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('✈️ [DASHBOARD SERVICE] Obteniendo próximos viajes:', guestId);
+    console.log('✈️ [DASHBOARD SERVICE] Endpoint:', `/api/bookings?guestId=${guestId}&status=upcoming`);
     
-    return apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=upcoming`, {
+    const response = await apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=upcoming`, {
       method: 'GET',
     });
+    
+    if (!response.success) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo próximos viajes:', {
+        code: response.error?.code,
+        message: response.error?.message,
+        status: response.error?.status,
+        endpoint: `/api/bookings?guestId=${guestId}&status=upcoming`
+      });
+    }
+    
+    return response;
   }
 
   /**
@@ -316,10 +348,22 @@ export class DashboardService {
    */
   static async getPastTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('📚 [DASHBOARD SERVICE] Obteniendo historial:', guestId);
+    console.log('📚 [DASHBOARD SERVICE] Endpoint:', `/api/bookings?guestId=${guestId}&status=past`);
     
-    return apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=past`, {
+    const response = await apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=past`, {
       method: 'GET',
     });
+    
+    if (!response.success) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo historial:', {
+        code: response.error?.code,
+        message: response.error?.message,
+        status: response.error?.status,
+        endpoint: `/api/bookings?guestId=${guestId}&status=past`
+      });
+    }
+    
+    return response;
   }
 
   /**

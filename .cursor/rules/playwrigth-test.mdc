@@ -38,6 +38,12 @@ Actúa como un QA tester profesional y revisa el flujo de usuario especificado u
  Admin User_"name": "Juan Pérez",
   "email": "juan@example.com",
   "password": "Password123"
+ 
+  Usuario nuevo: "armando"
+  "email": "armando@yahoo.es"
+  "password": "Pecholobo33,,"
+
+
  API BACKEND REST DOCUMENTACION:
  https://documenter.getpostman.com/view/49801848/2sB3dSP8Kg
 
@@ -48,4 +54,7 @@ Actúa como un QA tester profesional y revisa el flujo de usuario especificado u
 - Verificar peticiones HTTP (status 200, sin errores 4xx/5xx)
 - Verificar que no hay bucles de redirección
 
-### PASO 6: Logs Esperados
+### PASO 6: Logs Esperados### PASO 6: Hacer pruebas detalladas por funcionalidad, con su reporte. Ejemplo
+
+Modulo usuario:
+Probar CRUD completo
