@@ -43,8 +43,19 @@ export default function RegisterForm() {
   const acceptTerms = watch('acceptTerms');
 
   const onSubmit = async (data: RegisterFormData) => {
+    console.log('📝 [REGISTER FORM] onSubmit llamado con datos:', {
+      name: data.name,
+      email: data.email,
+      passwordLength: data.password.length,
+      acceptTerms: data.acceptTerms
+    });
+    
     setIsLoading(true);
-    const success = await registerUser(data);
+    
+    try {
+      console.log('📝 [REGISTER FORM] Llamando a registerUser()...');
+      const success = await registerUser(data);
+      console.log('📝 [REGISTER FORM] Respuesta de registerUser():', success);
     
     if (success) {
       // Hacer login automático después del registro
@@ -83,7 +94,12 @@ export default function RegisterForm() {
         // Si después de todos los intentos no se guardó, redirigir de todas formas
         router.push('/dashboard');
       }
-    } else {
+      } else {
+        console.error('❌ [REGISTER FORM] Registro falló');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('❌ [REGISTER FORM] Error inesperado durante el registro:', error);
       setIsLoading(false);
     }
   };
@@ -111,9 +127,12 @@ export default function RegisterForm() {
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
+          name="email"
           type="email"
           placeholder="tu@email.com"
           autoComplete="off"
+          data-form-type="other"
+          data-lpignore="true"
           {...register('email')}
           className={errors.email ? 'border-red-500' : ''}
           disabled={isLoading}
@@ -129,9 +148,12 @@ export default function RegisterForm() {
         <div className="relative">
           <Input
             id="password"
+            name="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Mínimo 8 caracteres"
-            autoComplete="new-password"
+            autoComplete="off"
+            data-form-type="other"
+            data-lpignore="true"
             {...register('password')}
             className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}
@@ -161,9 +183,12 @@ export default function RegisterForm() {
         <div className="relative">
           <Input
             id="confirmPassword"
+            name="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="Repite tu contraseña"
-            autoComplete="new-password"
+            autoComplete="off"
+            data-form-type="other"
+            data-lpignore="true"
             {...register('confirmPassword')}
             className={errors.confirmPassword ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}

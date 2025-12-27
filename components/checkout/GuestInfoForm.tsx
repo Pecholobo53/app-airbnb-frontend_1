@@ -96,7 +96,6 @@ export default function GuestInfoForm({
           </label>
           <input
             id="name"
-            name="name"
             type="text"
             {...register('name')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
@@ -116,7 +115,6 @@ export default function GuestInfoForm({
           </label>
           <input
             id="email"
-            name="email"
             type="email"
             {...register('email')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
@@ -136,7 +134,6 @@ export default function GuestInfoForm({
           </label>
           <input
             id="phone"
-            name="phone"
             type="tel"
             {...register('phone')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"

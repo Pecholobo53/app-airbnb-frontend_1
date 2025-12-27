@@ -162,50 +162,96 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
     try {
+      // Limpiar cualquier sesión anterior antes de hacer login
+      // Esto asegura que no haya conflictos con sesiones previas
+      const existingSession = localStorage.getItem(SESSION_KEY);
+      if (existingSession) {
+        console.log('🧹 [LOGIN] Limpiando sesión anterior antes de nuevo login');
+        localStorage.removeItem(SESSION_KEY);
+        // Limpiar también el estado de React para evitar conflictos
+        setSession(null);
+        // Pequeño delay para asegurar que el localStorage y el estado se limpien
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
       // Log de depuración: ver qué se está enviando
       console.log('🔐 [LOGIN] Iniciando login con rememberMe:', credentials.rememberMe);
+      console.log('📧 [LOGIN] Email:', credentials.email);
       
       const response = await AuthService.login(credentials);
       
-        if (response.success && response.data) {
-          // Log de depuración: ver qué viene del servidor
-          console.log('✅ [LOGIN] Respuesta exitosa del servidor');
-          console.log('📅 [LOGIN] expiresAt recibido:', response.data.expiresAt);
-          console.log('📅 [LOGIN] Tipo de expiresAt:', typeof response.data.expiresAt);
-          console.log('🖼️ [LOGIN] Avatar recibido:', response.data.user?.avatar ? `${response.data.user.avatar.substring(0, 50)}...` : 'NO HAY AVATAR');
-        console.log('📦 [LOGIN] Datos completos recibidos:', Object.keys(response.data));
+      if (response.success && response.data) {
+        // Log de depuración: ver qué viene del servidor
+        console.log('✅ [LOGIN] Respuesta exitosa del servidor');
+        console.log('📦 [LOGIN] Estructura completa de response.data:', JSON.stringify(response.data, null, 2).substring(0, 1000));
+        console.log('📦 [LOGIN] Keys de response.data:', Object.keys(response.data));
         
-        // Convertir fechas de string a Date si vienen del servidor
-        // Si expiresAt no viene del backend, usar fecha por defecto (24h desde ahora)
-        let expiresAtDate: Date;
-        if (response.data.expiresAt) {
-          expiresAtDate = new Date(response.data.expiresAt);
-          // Validar que la fecha sea válida
-          if (isNaN(expiresAtDate.getTime())) {
-            console.warn('⚠️ [LOGIN] expiresAt inválido del servidor, usando fecha por defecto (24h)');
-            expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-          }
+        // El backend puede devolver los datos en diferentes formatos:
+        // 1. { user: {...}, accessToken: "...", expiresAt: "..." } - Formato AuthSession
+        // 2. { ...user, accessToken: "...", expiresAt: "..." } - Usuario plano con token
+        // 3. { user: {...}, token: "..." } - Con token en lugar de accessToken
+        
+        // Extraer usuario y token de diferentes estructuras posibles
+        let userData: User;
+        let accessToken: string | undefined;
+        let expiresAt: Date;
+        
+        if (response.data.user) {
+          // Formato: { user: {...}, accessToken: "...", expiresAt: "..." }
+          userData = response.data.user;
+          accessToken = response.data.accessToken || response.data.token;
+          expiresAt = response.data.expiresAt 
+            ? new Date(response.data.expiresAt)
+            : new Date(Date.now() + 24 * 60 * 60 * 1000);
+        } else if (response.data.id || response.data.email) {
+          // Formato: { ...user, accessToken: "...", expiresAt: "..." } - Usuario plano
+          // Separar campos del usuario de campos de sesión
+          const { accessToken: token, token: token2, expiresAt: expAt, ...userFields } = response.data;
+          userData = userFields as User;
+          accessToken = token || token2;
+          expiresAt = expAt 
+            ? new Date(expAt)
+            : new Date(Date.now() + 24 * 60 * 60 * 1000);
         } else {
-          console.warn('⚠️ [LOGIN] expiresAt no viene del servidor, usando fecha por defecto (24h)');
-          expiresAtDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          // Estructura no reconocida
+          console.error('❌ [LOGIN] Estructura de respuesta no reconocida:', response.data);
+          toast.error('El servidor devolvió una respuesta con formato inesperado.');
+          return false;
         }
         
-        console.log('📅 [LOGIN] expiresAt convertido (Date):', expiresAtDate);
-        console.log('📅 [LOGIN] Fecha de expiración:', expiresAtDate.toLocaleString('es-ES'));
-        console.log('⏰ [LOGIN] Tiempo hasta expiración:', Math.round((expiresAtDate.getTime() - Date.now()) / (1000 * 60 * 60)), 'horas');
+        // Validar que tenemos datos de usuario válidos
+        if (!userData || (!userData.id && !userData.email)) {
+          console.error('❌ [LOGIN] Respuesta exitosa pero sin datos de usuario válidos');
+          toast.error('El servidor respondió correctamente pero no devolvió datos de usuario válidos.');
+          return false;
+        }
         
+        // Validar fecha de expiración
+        if (isNaN(expiresAt.getTime())) {
+          console.warn('⚠️ [LOGIN] expiresAt inválido, usando fecha por defecto (24h)');
+          expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        }
+        
+        console.log('📅 [LOGIN] expiresAt:', expiresAt.toLocaleString('es-ES'));
+        console.log('⏰ [LOGIN] Tiempo hasta expiración:', Math.round((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)), 'horas');
+        console.log('👤 [LOGIN] Usuario extraído:', {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          hasToken: !!accessToken
+        });
+        
+        // Construir sesión con estructura correcta
         const session: AuthSession = {
-          ...response.data,
-          expiresAt: expiresAtDate,
           user: {
-            ...response.data.user,
-            createdAt: new Date(response.data.user.createdAt),
-            updatedAt: new Date(response.data.user.updatedAt),
-            // Asegurar que favorites siempre sea un array
-            favorites: response.data.user.favorites || [],
-            // Asegurar que role se guarde si viene del backend
-            role: response.data.user.role || undefined,
+            ...userData,
+            createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date(),
+            updatedAt: userData.updatedAt ? new Date(userData.updatedAt) : new Date(),
+            favorites: userData.favorites || [],
+            role: userData.role || undefined,
           },
+          accessToken: accessToken || '',
+          expiresAt: expiresAt,
         };
         
         // Log para debugging de admin
@@ -261,28 +307,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // No mostrar mensaje de bienvenida, redirigir directamente al dashboard
         return true;
       } else {
-        toast.error(response.error?.message || 'Error al iniciar sesión');
+        // Mensaje de error más específico según el tipo de error
+        const errorMessage = response.error?.message || 'Error al iniciar sesión';
+        const errorCode = response.error?.code || 'UNKNOWN_ERROR';
+        
+        // Mensajes más específicos según el código de error
+        if (errorCode === 'NETWORK_ERROR') {
+          toast.error('No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000');
+        } else if (errorCode === 'UNAUTHORIZED') {
+          toast.error('Credenciales inválidas. Verifica tu email y contraseña.');
+        } else {
+          toast.error(errorMessage);
+        }
+        
+        console.error('❌ [LOGIN] Error en login:', {
+          code: errorCode,
+          message: errorMessage,
+          fullError: response.error
+        });
         return false;
       }
     } catch (error) {
-      toast.error('Error de conexión. Intenta nuevamente.');
+      // Error inesperado (excepción)
+      console.error('❌ [LOGIN] Excepción durante login:', error);
+      
+      let errorMessage = 'Error de conexión. Intenta nuevamente.';
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000';
+      }
+      
+      toast.error(errorMessage);
       return false;
     }
   }, []);
 
   const register = useCallback(async (data: RegisterData): Promise<boolean> => {
     try {
+      console.log('📝 [REGISTER] Iniciando registro:', data.email);
+      
       const response = await AuthService.register(data);
       
       if (response.success) {
+        console.log('✅ [REGISTER] Usuario registrado exitosamente');
         // No mostrar mensaje, el login automático se encargará de la redirección
         return true;
       } else {
-        toast.error(response.error?.message || 'Error al crear cuenta');
+        // Mensaje de error más específico según el tipo de error
+        const errorMessage = response.error?.message || 'Error al crear cuenta';
+        const errorCode = response.error?.code || 'UNKNOWN_ERROR';
+        
+        // Mensajes más específicos según el código de error
+        if (errorCode === 'NETWORK_ERROR') {
+          toast.error('No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000');
+        } else if (errorCode === 'CONFLICT' || errorMessage.includes('ya está registrado') || errorMessage.includes('already exists')) {
+          toast.error('Este email ya está registrado. ¿Ya tienes una cuenta? Intenta iniciar sesión.');
+        } else if (errorCode === 'VALIDATION_ERROR') {
+          toast.error(errorMessage);
+        } else {
+          toast.error(errorMessage);
+        }
+        
+        console.error('❌ [REGISTER] Error en registro:', {
+          code: errorCode,
+          message: errorMessage,
+          fullError: response.error
+        });
         return false;
       }
     } catch (error) {
-      toast.error('Error de conexión. Intenta nuevamente.');
+      // Error inesperado (excepción)
+      console.error('❌ [REGISTER] Excepción durante registro:', error);
+      
+      let errorMessage = 'Error de conexión. Intenta nuevamente.';
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000';
+      }
+      
+      toast.error(errorMessage);
       return false;
     }
   }, []);
@@ -290,10 +391,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await AuthService.logout();
-      setSession(null);
-      toast.info('Sesión cerrada correctamente');
     } catch (error) {
       // Incluso si falla el logout en el servidor, limpiamos la sesión local
+      console.warn('⚠️ [LOGOUT] Error en logout del servidor, limpiando sesión local');
+    } finally {
+      // Limpiar explícitamente el localStorage ANTES de actualizar el estado
+      console.log('🗑️ [LOGOUT] Limpiando sesión de localStorage');
+      localStorage.removeItem(SESSION_KEY);
+      
+      // Verificar que se limpió correctamente
+      const verification = localStorage.getItem(SESSION_KEY);
+      if (verification) {
+        console.warn('⚠️ [LOGOUT] La sesión no se limpió correctamente, forzando limpieza');
+        localStorage.removeItem(SESSION_KEY);
+      } else {
+        console.log('✅ [LOGOUT] Sesión eliminada correctamente del localStorage');
+      }
+      
+      // Actualizar el estado después de limpiar localStorage
       setSession(null);
       toast.info('Sesión cerrada correctamente');
     }

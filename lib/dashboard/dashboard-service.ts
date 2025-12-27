@@ -89,9 +89,9 @@ async function apiRequest<T>(
       }
     }
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (token) {
@@ -146,7 +146,6 @@ async function apiRequest<T>(
           error: {
             code: 'PARSE_ERROR',
             message: 'Error al procesar respuesta del servidor',
-            status: response.status,
           },
         };
       }
@@ -177,7 +176,6 @@ async function apiRequest<T>(
           error: {
             code: errorCode,
             message: `El servidor respondió con ${contentType || 'text/html'} (Status: ${response.status})`,
-            status: response.status,
           },
         };
       } catch (textError) {
@@ -187,7 +185,6 @@ async function apiRequest<T>(
           error: {
             code: 'PARSE_ERROR',
             message: 'Error al procesar respuesta del servidor',
-            status: response.status,
           },
         };
       }
@@ -226,7 +223,6 @@ async function apiRequest<T>(
         error: {
           code: errorCode,
           message: errorMessage,
-          status: response.status, // Incluir status para mejor debugging
         },
       };
     }

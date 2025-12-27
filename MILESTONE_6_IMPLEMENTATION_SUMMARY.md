@@ -188,3 +188,5 @@ El módulo admin está completo y listo para uso en producción.
 2. Agregar funcionalidades opcionales si se necesitan
 3. Mejoras en UI/UX según feedback
 
+
+

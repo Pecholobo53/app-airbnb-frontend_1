@@ -411,3 +411,5 @@ La funcionalidad de restaurar contraseña funciona correctamente en términos de
 - [ ] Redirección automática al login (requiere token válido)
 
 
+
+

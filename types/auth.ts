@@ -91,7 +91,9 @@ export type AuthError =
   | 'TOKEN_EXPIRED'
   | 'USER_NOT_FOUND'
   | 'WEAK_PASSWORD'
-  | 'NETWORK_ERROR';
+  | 'NETWORK_ERROR'
+  | 'TIMEOUT_ERROR'
+  | 'NOT_FOUND';
 
 /**
  * Respuesta estándar de servicios de autenticación

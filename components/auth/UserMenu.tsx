@@ -22,8 +22,19 @@ export default function UserMenu() {
   if (!user) return null;
 
   const handleLogout = async () => {
-    await logout();
-    router.push(ROUTES.HOME);
+    try {
+      await logout();
+      // Pequeño delay para asegurar que el localStorage se limpie
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // Redirigir a login para que el usuario pueda iniciar sesión con otro perfil
+      router.push(ROUTES.LOGIN);
+      // Forzar recarga para limpiar cualquier estado residual
+      router.refresh();
+    } catch (error) {
+      console.error('Error en logout:', error);
+      // Redirigir de todas formas
+      router.push(ROUTES.LOGIN);
+    }
   };
 
   return (

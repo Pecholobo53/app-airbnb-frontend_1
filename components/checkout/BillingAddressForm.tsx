@@ -115,7 +115,6 @@ export default function BillingAddressForm({
           </label>
           <input
             id="address"
-            name="address"
             type="text"
             {...register('address')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
@@ -135,7 +134,6 @@ export default function BillingAddressForm({
           </label>
           <input
             id="city"
-            name="city"
             type="text"
             {...register('city')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
@@ -155,7 +153,6 @@ export default function BillingAddressForm({
           </label>
           <input
             id="state"
-            name="state"
             type="text"
             {...register('state')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
@@ -175,7 +172,6 @@ export default function BillingAddressForm({
           </label>
           <input
             id="postalCode"
-            name="postalCode"
             type="text"
             {...register('postalCode')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
@@ -195,7 +191,6 @@ export default function BillingAddressForm({
           </label>
           <select
             id="country"
-            name="country"
             {...register('country')}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none bg-white"
             autoComplete="country"

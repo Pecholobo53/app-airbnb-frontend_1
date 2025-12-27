@@ -193,7 +193,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     // Mostrar errores si hay, pero no romper la UI
     if (errors.length > 0) {
       // Filtrar errores duplicados y crear mensaje único
-      const uniqueErrors = [...new Set(errors)];
+      const uniqueErrors = Array.from(new Set(errors));
       const errorMessage = uniqueErrors.length === 1 
         ? uniqueErrors[0] 
         : `${uniqueErrors.length} errores: ${uniqueErrors.slice(0, 2).join(', ')}${uniqueErrors.length > 2 ? '...' : ''}`;
@@ -207,7 +207,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         // Si no hay datos, verificar si es un error 404 (ruta no encontrada)
         const is404 = errors.some(e => e.toLowerCase().includes('ruta no encontrada') || e.toLowerCase().includes('not found'));
         if (is404) {
-          toast.error('Los endpoints del dashboard no están disponibles en el backend. Verifica que el backend esté corriendo.', { duration: 7000 });
+          // No mostrar error si los endpoints no están implementados en el backend
+          // El dashboard funcionará con valores por defecto (0) sin mostrar errores molestos
+          console.warn('⚠️ [DASHBOARD] Endpoints del dashboard no implementados en el backend. Mostrando valores por defecto.');
+          // NO mostrar toast de error - el dashboard funcionará sin datos
         } else {
           toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
         }
@@ -315,7 +318,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     // Mostrar errores si hay, pero no romper la UI
     if (errors.length > 0) {
       // Filtrar errores duplicados y crear mensaje único
-      const uniqueErrors = [...new Set(errors)];
+      const uniqueErrors = Array.from(new Set(errors));
       const errorMessage = uniqueErrors.length === 1 
         ? uniqueErrors[0] 
         : `${uniqueErrors.length} errores: ${uniqueErrors.slice(0, 2).join(', ')}${uniqueErrors.length > 2 ? '...' : ''}`;
@@ -329,7 +332,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         // Si no hay datos, verificar si es un error 404 (ruta no encontrada)
         const is404 = errors.some(e => e.toLowerCase().includes('ruta no encontrada') || e.toLowerCase().includes('not found'));
         if (is404) {
-          toast.error('Los endpoints del dashboard no están disponibles en el backend. Verifica que el backend esté corriendo.', { duration: 7000 });
+          // No mostrar error si los endpoints no están implementados en el backend
+          // El dashboard funcionará con valores por defecto (0) sin mostrar errores molestos
+          console.warn('⚠️ [DASHBOARD] Endpoints del dashboard no implementados en el backend. Mostrando valores por defecto.');
+          // NO mostrar toast de error - el dashboard funcionará sin datos
         } else {
           toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
         }

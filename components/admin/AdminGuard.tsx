@@ -49,7 +49,7 @@ export default function AdminGuard({ children }: AdminGuardProps) {
       // Verificación 1: Helper isAdmin (verifica role y email conocido)
       if (isAdmin(user)) {
         console.log('✅ [ADMIN GUARD] Usuario es admin (verificado localmente)');
-        console.log('👤 [ADMIN GUARD] Usuario:', user.email, 'Role:', user.role || 'no definido');
+        console.log('👤 [ADMIN GUARD] Usuario:', user?.email || 'no disponible', 'Role:', user?.role || 'no definido');
         adminStatus = true;
       }
       // Verificación 2: Probar acceso a endpoint de admin

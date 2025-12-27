@@ -19,8 +19,6 @@ export default function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [emailReadOnly, setEmailReadOnly] = useState(true);
-  const [passwordReadOnly, setPasswordReadOnly] = useState(true);
 
   const {
     register,
@@ -40,50 +38,74 @@ export default function LoginForm() {
   const rememberMe = watch('rememberMe');
 
   const onSubmit = async (data: LoginFormData) => {
+    console.log('🔐 [LOGIN FORM] onSubmit llamado con datos:', {
+      email: data.email,
+      passwordLength: data.password.length,
+      rememberMe: data.rememberMe
+    });
+    
     setIsLoading(true);
-    const success = await login(data);
-    setIsLoading(false);
-
-    if (success) {
-      // Esperar a que la sesión se guarde en localStorage y el contexto se actualice
-      // Verificar que la sesión esté realmente guardada antes de redirigir
-      let attempts = 0;
-      const maxAttempts = 10;
+    
+    try {
+      console.log('🔐 [LOGIN FORM] Llamando a login()...');
+      const success = await login(data);
+      console.log('🔐 [LOGIN FORM] Respuesta de login():', success);
       
-      while (attempts < maxAttempts) {
-        const session = localStorage.getItem('airbnb_session');
-        if (session) {
-          try {
-            const parsed = JSON.parse(session);
-            if (parsed.user && parsed.user.id) {
-              console.log('✅ [LOGIN FORM] Sesión confirmada en localStorage, redirigiendo...');
-              // Pequeño delay adicional para asegurar que React haya actualizado el estado
-              await new Promise(resolve => setTimeout(resolve, 50));
-              router.push('/dashboard');
-              return;
+      if (success) {
+        // Esperar a que la sesión se guarde en localStorage y el contexto se actualice
+        // Verificar que la sesión esté realmente guardada antes de redirigir
+        let attempts = 0;
+        const maxAttempts = 20; // Aumentado para dar más tiempo
+        
+        while (attempts < maxAttempts) {
+          const session = localStorage.getItem('airbnb_session');
+          if (session) {
+            try {
+              const parsed = JSON.parse(session);
+              if (parsed.user && parsed.user.id) {
+                console.log('✅ [LOGIN FORM] Sesión confirmada en localStorage, redirigiendo...');
+                console.log('👤 [LOGIN FORM] Usuario logueado:', parsed.user.email);
+                // Pequeño delay adicional para asegurar que React haya actualizado el estado
+                await new Promise(resolve => setTimeout(resolve, 100));
+                router.push('/dashboard');
+                return;
+              }
+            } catch (e) {
+              console.error('❌ [LOGIN FORM] Error parseando sesión:', e);
             }
-          } catch (e) {
-            console.error('❌ [LOGIN FORM] Error parseando sesión:', e);
           }
+          // Esperar 100ms antes de intentar de nuevo (aumentado para dar más tiempo)
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
         }
-        // Esperar 50ms antes de intentar de nuevo
-        await new Promise(resolve => setTimeout(resolve, 50));
-        attempts++;
+        
+        // Si después de todos los intentos no se guardó, redirigir de todas formas
+        // (el estado del contexto debería estar actualizado)
+        console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en localStorage, redirigiendo de todas formas');
+        router.push('/dashboard');
+      } else {
+        // El login falló, el mensaje de error ya se mostró en el toast
+        console.error('❌ [LOGIN FORM] Login falló');
       }
-      
-      // Si después de todos los intentos no se guardó, redirigir de todas formas
-      // (el estado del contexto debería estar actualizado)
-      console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en localStorage, redirigiendo de todas formas');
-      router.push('/dashboard');
+    } catch (error) {
+      console.error('❌ [LOGIN FORM] Error inesperado durante el login:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <form 
       onSubmit={(e) => {
+        console.log('🔵 [LOGIN FORM] Form onSubmit handler ejecutado');
+        console.log('🔵 [LOGIN FORM] Event:', e.type);
+        console.log('🔵 [LOGIN FORM] Form values:', watch());
+        console.log('🔵 [LOGIN FORM] Form errors:', errors);
         e.preventDefault();
         e.stopPropagation();
-        handleSubmit(onSubmit)(e);
+        console.log('🔵 [LOGIN FORM] Llamando a handleSubmit(onSubmit)...');
+        const result = handleSubmit(onSubmit)(e);
+        console.log('🔵 [LOGIN FORM] handleSubmit retornó:', result);
       }} 
       className="space-y-4"
     >
@@ -92,12 +114,12 @@ export default function LoginForm() {
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
+          name="email"
           type="email"
-          name="login-email"
           placeholder="tu@email.com"
-          autoComplete="username"
-          readOnly={emailReadOnly}
-          onFocus={() => setEmailReadOnly(false)}
+          autoComplete="off"
+          data-form-type="other"
+          data-lpignore="true"
           {...register('email')}
           className={errors.email ? 'border-red-500' : ''}
           disabled={isLoading}
@@ -113,12 +135,12 @@ export default function LoginForm() {
         <div className="relative">
           <Input
             id="password"
+            name="password"
             type={showPassword ? 'text' : 'password'}
-            name="login-password"
             placeholder="••••••••"
-            autoComplete="new-password"
-            readOnly={passwordReadOnly}
-            onFocus={() => setPasswordReadOnly(false)}
+            autoComplete="off"
+            data-form-type="other"
+            data-lpignore="true"
             {...register('password')}
             className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
             disabled={isLoading}
