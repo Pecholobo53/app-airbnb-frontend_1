@@ -14,6 +14,7 @@ import { User } from '@/types/auth';
  */
 const ADMIN_EMAILS = [
   'juan@example.com',
+  'armandito@gmail.com',
 ] as const;
 
 /**
@@ -68,4 +69,6 @@ export async function verifyAdminAccess(token: string): Promise<boolean> {
     return false;
   }
 }
+
+
 

@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { isAdmin } from '@/lib/utils/admin';
 
 export default function SocialAuthButtons() {
   const { loginWithGoogle, loginWithFacebook } = useAuth();
@@ -18,6 +19,21 @@ export default function SocialAuthButtons() {
     const success = await loginWithGoogle();
     setIsLoadingGoogle(false);
     if (success) {
+      // Esperar a que la sesión se guarde y verificar el rol
+      await new Promise(resolve => setTimeout(resolve, 200));
+      try {
+        const session = localStorage.getItem('airbnb_session');
+        if (session) {
+          const parsed = JSON.parse(session);
+          if (parsed.user) {
+            const userIsAdmin = isAdmin(parsed.user);
+            router.push(userIsAdmin ? '/admin' : '/dashboard');
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('Error verificando rol después de login social:', e);
+      }
       router.push('/dashboard');
     }
   };
@@ -27,6 +43,21 @@ export default function SocialAuthButtons() {
     const success = await loginWithFacebook();
     setIsLoadingFacebook(false);
     if (success) {
+      // Esperar a que la sesión se guarde y verificar el rol
+      await new Promise(resolve => setTimeout(resolve, 200));
+      try {
+        const session = localStorage.getItem('airbnb_session');
+        if (session) {
+          const parsed = JSON.parse(session);
+          if (parsed.user) {
+            const userIsAdmin = isAdmin(parsed.user);
+            router.push(userIsAdmin ? '/admin' : '/dashboard');
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('Error verificando rol después de login social:', e);
+      }
       router.push('/dashboard');
     }
   };

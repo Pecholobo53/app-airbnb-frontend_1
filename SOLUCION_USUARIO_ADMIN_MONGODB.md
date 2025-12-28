@@ -309,3 +309,5 @@ Esto garantiza que:
 **Última Actualización:** 2025-12-27  
 **Estado:** ⚠️ Requiere acción en backend/MongoDB para hashear contraseña
 
+
+

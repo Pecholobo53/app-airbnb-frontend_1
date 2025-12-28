@@ -304,3 +304,5 @@ El formulario no está ejecutando `onSubmit`, posiblemente debido a:
 **Generado por:** Playwright MCP Agent  
 **Herramientas usadas:** Playwright Navigation, Screenshots, Console Logs, JavaScript Evaluation
 
+
+

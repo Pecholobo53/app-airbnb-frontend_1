@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { isAdmin } from '@/lib/utils/admin';
 
 export default function LoginForm() {
   const { login } = useAuth();
@@ -65,9 +66,23 @@ export default function LoginForm() {
               if (parsed.user && parsed.user.id) {
                 console.log('✅ [LOGIN FORM] Sesión confirmada en localStorage, redirigiendo...');
                 console.log('👤 [LOGIN FORM] Usuario logueado:', parsed.user.email);
+                console.log('👤 [LOGIN FORM] Rol del usuario:', parsed.user.role || 'no definido');
+                
+                // Verificar si el usuario es administrador
+                const userIsAdmin = isAdmin(parsed.user);
+                console.log('🔐 [LOGIN FORM] ¿Es administrador?', userIsAdmin);
+                
                 // Pequeño delay adicional para asegurar que React haya actualizado el estado
                 await new Promise(resolve => setTimeout(resolve, 100));
-                router.push('/dashboard');
+                
+                // Redirigir según el rol del usuario
+                if (userIsAdmin) {
+                  console.log('✅ [LOGIN FORM] Redirigiendo a panel de administración...');
+                  router.push('/admin');
+                } else {
+                  console.log('✅ [LOGIN FORM] Redirigiendo a dashboard de usuario...');
+                  router.push('/dashboard');
+                }
                 return;
               }
             } catch (e) {
@@ -79,9 +94,30 @@ export default function LoginForm() {
           attempts++;
         }
         
-        // Si después de todos los intentos no se guardó, redirigir de todas formas
+        // Si después de todos los intentos no se guardó, intentar leer del localStorage una vez más
         // (el estado del contexto debería estar actualizado)
-        console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en localStorage, redirigiendo de todas formas');
+        console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en localStorage, intentando lectura final...');
+        
+        // Último intento de leer del localStorage
+        try {
+          const finalSession = localStorage.getItem('airbnb_session');
+          if (finalSession) {
+            const parsed = JSON.parse(finalSession);
+            if (parsed.user) {
+              const userIsAdmin = isAdmin(parsed.user);
+              if (userIsAdmin) {
+                console.log('✅ [LOGIN FORM] Usuario es admin (lectura final), redirigiendo a /admin');
+                router.push('/admin');
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('❌ [LOGIN FORM] Error en lectura final:', e);
+        }
+        
+        // Fallback: redirigir a dashboard si no se pudo determinar el rol
+        console.log('✅ [LOGIN FORM] Redirigiendo a /dashboard (fallback)');
         router.push('/dashboard');
       } else {
         // El login falló, el mensaje de error ya se mostró en el toast
@@ -118,6 +154,9 @@ export default function LoginForm() {
           type="email"
           placeholder="tu@email.com"
           autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
           data-form-type="other"
           data-lpignore="true"
           {...register('email')}
@@ -138,7 +177,7 @@ export default function LoginForm() {
             name="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
             data-lpignore="true"
             {...register('password')}

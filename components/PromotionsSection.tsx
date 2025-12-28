@@ -93,7 +93,7 @@ export default function PromotionsSection() {
         </div>
 
         {/* Promotions Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {featuredProperties.map((property, index) => {
             const { discount, originalPrice, discountPrice } = calculateDiscount(property);
             const roomTypeLabels: Record<string, string> = {
@@ -111,11 +111,11 @@ export default function PromotionsSection() {
               <Link
                 key={property.id}
                 href={`/propiedad/${property.id}`}
-                className="promo-card group cursor-pointer block"
+                className="promo-card group cursor-pointer flex flex-col h-full"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Image */}
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden flex-shrink-0">
                   <Image
                     src={property.images[0]}
                     alt={property.title}
@@ -137,18 +137,18 @@ export default function PromotionsSection() {
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-bold text-lg text-texto-100 group-hover:text-acento-200 transition-colors">
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex items-start justify-between mb-3 flex-shrink-0">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h3 className="font-bold text-lg text-texto-100 group-hover:text-acento-200 transition-colors line-clamp-2 min-h-[3.5rem]">
                         {property.title}
                       </h3>
                       <div className="flex items-center text-texto-200 text-sm mt-1">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {property.location.city}, {property.location.country}
+                        <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">{property.location.city}, {property.location.country}</span>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <div className="text-lg font-bold text-acento-200">
                         €{discountPrice}
                       </div>
@@ -159,7 +159,7 @@ export default function PromotionsSection() {
                   </div>
 
                   {/* Details */}
-                  <div className="flex items-center justify-between text-sm text-texto-200 mb-4">
+                  <div className="flex items-center justify-between text-sm text-texto-200 mb-4 flex-shrink-0">
                     <div className="flex items-center">
                       <Users className="w-4 h-4 mr-1" />
                       Hasta {property.capacity.guests} huéspedes
@@ -171,7 +171,7 @@ export default function PromotionsSection() {
                   </div>
 
                   {/* CTA Button */}
-                  <div className="w-full btn-primary text-center">
+                  <div className="w-full btn-primary text-center mt-auto">
                     Ver Detalles
                   </div>
                 </div>

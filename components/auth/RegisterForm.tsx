@@ -131,6 +131,9 @@ export default function RegisterForm() {
           type="email"
           placeholder="tu@email.com"
           autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
           data-form-type="other"
           data-lpignore="true"
           {...register('email')}
@@ -151,7 +154,7 @@ export default function RegisterForm() {
             name="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Mínimo 8 caracteres"
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
             data-lpignore="true"
             {...register('password')}
@@ -186,7 +189,7 @@ export default function RegisterForm() {
             name="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="Repite tu contraseña"
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
             data-lpignore="true"
             {...register('confirmPassword')}

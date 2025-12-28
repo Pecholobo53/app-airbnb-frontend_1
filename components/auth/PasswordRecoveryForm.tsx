@@ -179,6 +179,12 @@ export default function PasswordRecoveryForm() {
           id="email"
           type="email"
           placeholder="tu@email.com"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          data-form-type="other"
+          data-lpignore="true"
           {...register('email')}
           className={errors.email ? 'border-red-500' : ''}
           disabled={isLoading}

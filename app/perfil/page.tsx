@@ -17,7 +17,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfileSchema, UpdateProfileFormData } from '@/lib/auth/validators';
 import { toast } from 'sonner';
-import { DebugToken } from './debug-token';
 
 function PerfilContent() {
   const { user, updateUser } = useAuth();
@@ -434,9 +433,6 @@ function PerfilContent() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Debug Card (solo desarrollo) */}
-            <DebugToken />
 
             {/* Stats Card */}
             <Card>

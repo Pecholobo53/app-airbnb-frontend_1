@@ -258,3 +258,5 @@ Si después de estas correcciones aún aparece "error de conexión":
 **Última Actualización:** 2025-12-27  
 **Estado:** ✅ Correcciones aplicadas, pendiente de pruebas
 
+
+
