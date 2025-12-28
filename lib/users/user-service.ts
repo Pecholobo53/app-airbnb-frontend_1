@@ -147,6 +147,8 @@ async function apiRequest<T>(
         errorCode = 'UNAUTHORIZED';
       } else if (response.status === 403) {
         errorCode = 'FORBIDDEN';
+      } else if (response.status === 429) {
+        errorCode = 'RATE_LIMIT';
       } else if (response.status >= 500) {
         errorCode = 'SERVER_ERROR';
       } else if (data.error?.code) {

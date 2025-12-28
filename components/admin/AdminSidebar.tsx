@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, LayoutDashboard, LogOut, Home } from 'lucide-react';
+import { Users, LayoutDashboard, LogOut, Home, Shield, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -29,6 +29,16 @@ export function AdminSidebar() {
       title: 'Usuarios',
       href: '/admin/users',
       icon: Users,
+    },
+    {
+      title: 'Permisos',
+      href: '/admin/permissions',
+      icon: Shield,
+    },
+    {
+      title: 'Actividad',
+      href: '/admin/activity',
+      icon: Activity,
     },
   ];
 

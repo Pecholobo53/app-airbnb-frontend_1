@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { UserService } from '@/lib/users/user-service';
 import { User } from '@/types/auth';
+import { isAdmin } from '@/lib/utils/admin';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,9 +63,17 @@ export default function AdminUsersPage() {
         
         // Aplicar filtros
         if (roleFilter !== 'all') {
-          filteredUsers = filteredUsers.filter(user => 
-            roleFilter === 'admin' ? user.role === 'admin' : (!user.role || user.role === 'user')
-          );
+          filteredUsers = filteredUsers.filter(user => {
+            // Usar la función isAdmin que incluye la verificación especial
+            const userIsAdmin = isAdmin(user);
+            
+            if (roleFilter === 'admin') {
+              return userIsAdmin;
+            } else {
+              // Para usuarios regulares, excluir admins
+              return !userIsAdmin && (!user.role || user.role === 'user');
+            }
+          });
         }
         
         if (verificationFilter !== 'all') {
@@ -99,39 +108,47 @@ export default function AdminUsersPage() {
         }
         
         setUsers(filteredUsers);
-        setTotal(filteredUsers.length);
+        // Usar el total del backend si está disponible, sino usar el filtrado
+        setTotal(response.data.total || filteredUsers.length);
       } else {
-        toast.error(response.error?.message || 'Error al cargar usuarios');
+        // Manejar error de rate limiting
+        const errorMessage = response.error?.message || 'Error al cargar usuarios';
+        if (response.error?.code === 'RATE_LIMIT' || errorMessage.toLowerCase().includes('demasiadas') || errorMessage.toLowerCase().includes('rate limit')) {
+          toast.error('Demasiadas peticiones. Espera unos segundos antes de intentar de nuevo.');
+        } else {
+          toast.error(errorMessage);
+        }
         setUsers([]);
+        setTotal(0);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading users:', error);
-      toast.error('Error al cargar usuarios');
+      
+      // Manejar error de rate limiting
+      const errorMessage = error?.message || '';
+      if (errorMessage.toLowerCase().includes('429') || errorMessage.toLowerCase().includes('rate limit') || errorMessage.toLowerCase().includes('demasiadas')) {
+        toast.error('Demasiadas peticiones. Espera unos segundos antes de intentar de nuevo.');
+      } else {
+        toast.error('Error al cargar usuarios');
+      }
       setUsers([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // Efecto para cargar usuarios
+  // Cargar usuarios con debounce consolidado para evitar demasiadas peticiones
   useEffect(() => {
-    loadUsers(currentPage, searchQuery);
-  }, [currentPage]);
-
-  // Búsqueda con debounce
-  useEffect(() => {
+    // Debounce para evitar rate limiting
     const timer = setTimeout(() => {
-      setCurrentPage(0);
-      loadUsers(0, searchQuery);
-    }, 500);
+      // Si cambió la búsqueda, resetear a página 0
+      const pageToLoad = searchQuery !== '' ? 0 : currentPage;
+      loadUsers(pageToLoad, searchQuery);
+    }, 600); // Debounce de 600ms
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Recargar cuando cambian los filtros
-  useEffect(() => {
-    loadUsers(currentPage, searchQuery);
-  }, [roleFilter, verificationFilter]);
+  }, [currentPage, searchQuery, roleFilter, verificationFilter]);
 
   // Función para ordenar
   const handleSort = (field: 'name' | 'email' | 'createdAt') => {
@@ -292,11 +309,11 @@ export default function AdminUsersPage() {
                         <TableCell>{user.phone || '-'}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            user.role === 'admin' 
+                            (user.role === 'admin' || user.email === 'armandito@gmail.com')
                               ? 'bg-purple-100 text-purple-800' 
                               : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {user.role === 'admin' ? 'Admin' : 'Usuario'}
+                            {(user.role === 'admin' || user.email === 'armandito@gmail.com') ? 'Admin' : 'Usuario'}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -311,21 +328,28 @@ export default function AdminUsersPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Link href={`/admin/users/${user.id}`}>
-                              <Button variant="ghost" size="sm">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                            <Link href={`/admin/users/${user.id}?edit=true`}>
-                              <Button variant="ghost" size="sm">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push(`/admin/users/${user.id}`)}
+                              title="Ver detalles"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push(`/admin/users/${user.id}?edit=true`)}
+                              title="Editar usuario"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(user)}
                               className="text-red-600 hover:text-red-700"
+                              title="Eliminar usuario"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>

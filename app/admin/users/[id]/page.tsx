@@ -75,11 +75,18 @@ export default function AdminUserDetailPage() {
         
         if (response.success && response.data) {
           setUser(response.data);
+          const userRole = response.data.role || (response.data.email === 'armandito@gmail.com' ? 'admin' : 'user');
+          console.log('👤 [EDIT USER] Usuario cargado:', {
+            name: response.data.name,
+            email: response.data.email,
+            role: response.data.role,
+            userRole,
+          });
           reset({
             name: response.data.name,
             email: response.data.email,
             phone: response.data.phone || '',
-            role: response.data.role || 'user',
+            role: userRole,
           });
         } else {
           toast.error(response.error?.message || 'Error al cargar usuario');
@@ -105,12 +112,19 @@ export default function AdminUserDetailPage() {
 
     setSaving(true);
     try {
+      console.log('💾 [EDIT USER] Guardando cambios:', {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+      });
+      
       // Intentar con PATCH primero (actualización parcial)
       const response = await UserService.patchUser(userId, {
         name: data.name,
         email: data.email,
         phone: data.phone || undefined,
-        role: data.role || undefined,
+        role: data.role || user.role || 'user',
       });
 
       if (response.success) {
@@ -259,11 +273,16 @@ export default function AdminUserDetailPage() {
                   <div>
                     <Label htmlFor="role">Rol</Label>
                     <Select
-                      value={role || 'user'}
-                      onValueChange={(value) => setValue('role', value as 'admin' | 'user')}
+                      value={role || user?.role || 'user'}
+                      onValueChange={(value) => {
+                        console.log('🔐 [EDIT USER] Cambiando rol a:', value);
+                        setValue('role', value as 'admin' | 'user', { shouldValidate: true });
+                      }}
                     >
                       <SelectTrigger id="role" className={errors.role ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Selecciona un rol" />
+                        <SelectValue placeholder="Selecciona un rol">
+                          {role === 'admin' ? 'Administrador' : 'Usuario'}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="user">Usuario</SelectItem>

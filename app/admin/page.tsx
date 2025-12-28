@@ -24,19 +24,19 @@ export default function AdminDashboardPage() {
       title: 'Permisos',
       description: 'Gestionar roles y permisos',
       icon: Shield,
-      href: '#',
+      href: '/admin/permissions',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      disabled: true,
+      disabled: false,
     },
     {
       title: 'Actividad',
       description: 'Ver logs y actividad del sistema',
       icon: Activity,
-      href: '#',
+      href: '/admin/activity',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      disabled: true,
+      disabled: false,
     },
   ];
 
