@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, LayoutDashboard, LogOut, Home, Shield, Activity } from 'lucide-react';
+import { Users, LayoutDashboard, LogOut, Home, Shield, Activity, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -39,6 +39,11 @@ export function AdminSidebar() {
       title: 'Actividad',
       href: '/admin/activity',
       icon: Activity,
+    },
+    {
+      title: 'Propiedades',
+      href: '/admin/properties',
+      icon: Building2,
     },
   ];
 

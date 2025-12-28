@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { LocationSuggestion } from '@/types/search';
-import { MockSearchService } from '@/lib/search/mock-search-service';
+import { LocationService } from '@/lib/locations/location-service';
 
 interface LocationInputProps {
   value?: string;
@@ -53,10 +53,14 @@ export default function LocationInput({ value = '', onChange }: LocationInputPro
     setIsLoading(true);
     
     timeoutRef.current = setTimeout(async () => {
-      const response = await MockSearchService.searchLocations(newValue);
+      const response = await LocationService.getSuggestions(newValue, 10);
       if (response.success && response.data) {
         setSuggestions(response.data);
         setShowDropdown(true);
+      } else {
+        // Si hay error, mostrar sugerencias vacías
+        setSuggestions([]);
+        setShowDropdown(false);
       }
       setIsLoading(false);
     }, 300);

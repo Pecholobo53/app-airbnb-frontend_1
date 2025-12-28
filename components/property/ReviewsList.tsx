@@ -6,7 +6,7 @@ import { Review } from '@/types/search';
 import ReviewCard from './ReviewCard';
 import ReviewsSection from './ReviewsSection';
 import { Button } from '@/components/ui/button';
-import { MockSearchService } from '@/lib/search/mock-search-service';
+import { PropertyService } from '@/lib/properties/property-service';
 
 interface ReviewsListProps {
   propertyId: string;
@@ -41,15 +41,17 @@ export default function ReviewsList({
         setIsLoading(true);
         
         // Cargar reviews
-        const reviewsResponse = await MockSearchService.getPropertyReviews(propertyId);
+        const reviewsResponse = await PropertyService.getPropertyReviews(propertyId, currentPage, reviewsPerPage);
         if (reviewsResponse.success && reviewsResponse.data) {
-          setReviews(reviewsResponse.data);
-        }
-
-        // Cargar stats
-        const statsResponse = await MockSearchService.getReviewStats(propertyId);
-        if (statsResponse.success && statsResponse.data) {
-          setStats(statsResponse.data);
+          setReviews(reviewsResponse.data.reviews);
+          // Calcular stats desde las reviews
+          if (reviewsResponse.data.reviews.length > 0) {
+            const avgRating = reviewsResponse.data.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviewsResponse.data.reviews.length;
+            setStats({
+              average: avgRating,
+              total: reviewsResponse.data.total
+            });
+          }
         }
       } catch (error) {
         console.error('Error cargando reviews:', error);

@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { SearchQuery, SearchFilters, SearchResults, SortOption, SearchState } from '@/types/search';
-import { MockSearchService } from './mock-search-service';
+import { PropertyService } from '@/lib/properties/property-service';
 import { toast } from 'sonner';
 
 interface SearchContextType extends SearchState {
@@ -57,7 +57,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     console.log('🔍 [CONTEXT] performSearch con filters:', filtersToUse);
 
     try {
-      const response = await MockSearchService.searchProperties({
+      const response = await PropertyService.searchProperties({
         query: queryToUse,
         filters: filtersToUse,
         sortBy: state.sortBy,
@@ -98,7 +98,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 
     try {
       const nextPage = state.results.page + 1;
-      const response = await MockSearchService.searchProperties({
+      const response = await PropertyService.searchProperties({
         query: state.query,
         filters: state.filters,
         sortBy: state.sortBy,

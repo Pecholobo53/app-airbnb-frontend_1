@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Property } from '@/types/search';
-import { MockSearchService } from '@/lib/search/mock-search-service';
+import { PropertyService } from '@/lib/properties/property-service';
 import PropertyGallery from '@/components/property/PropertyGallery';
 import PropertyHeader from '@/components/property/PropertyHeader';
 import PropertyInfo from '@/components/property/PropertyInfo';
@@ -37,12 +37,12 @@ export default function PropertyDetailPage() {
       setError(null);
       
       try {
-        const response = await MockSearchService.getPropertyById(propertyId);
+        const response = await PropertyService.getPropertyById(propertyId);
         
         if (response.success && response.data) {
           setProperty(response.data);
         } else {
-          setError('Propiedad no encontrada');
+          setError(response.error?.message || 'Propiedad no encontrada');
         }
       } catch (err) {
         console.error('Error cargando propiedad:', err);
@@ -114,8 +114,8 @@ export default function PropertyDetailPage() {
             {/* Reviews */}
             <ReviewsList
               propertyId={property.id}
-              initialRating={property.rating.overall}
-              initialReviewCount={property.rating.reviewCount}
+              initialRating={property.rating?.overall || 0}
+              initialReviewCount={property.rating?.reviewCount || 0}
             />
 
             {/* Mapa */}

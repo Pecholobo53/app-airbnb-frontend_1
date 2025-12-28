@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/lib/auth/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Shield, Activity } from 'lucide-react';
+import { Users, Shield, Activity, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { UserStats } from '@/components/admin/UserStats';
@@ -36,6 +36,15 @@ export default function AdminDashboardPage() {
       href: '/admin/activity',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
+      disabled: false,
+    },
+    {
+      title: 'Propiedades',
+      description: 'Gestionar propiedades del sistema',
+      icon: Building2,
+      href: '/admin/properties',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
       disabled: false,
     },
   ];

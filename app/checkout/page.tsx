@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { MockCheckoutService } from '@/lib/checkout/mock-checkout-service';
-import { MockSearchService } from '@/lib/search/mock-search-service';
+import { PropertyService } from '@/lib/properties/property-service';
 import { parseCheckoutParams } from '@/lib/checkout/utils';
 import { calculatePriceBreakdown } from '@/lib/pricing/calculate-price';
 import { CheckoutData, GuestInfo, PaymentInfo, BillingAddress } from '@/types/checkout';
@@ -81,10 +81,10 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Cargar propiedad
-      const propertyResponse = await MockSearchService.getPropertyById(params.propertyId);
+      // Cargar propiedad usando el servicio real
+      const propertyResponse = await PropertyService.getPropertyById(params.propertyId);
       if (!propertyResponse.success || !propertyResponse.data) {
-        setError('Propiedad no encontrada');
+        setError(propertyResponse.error?.message || 'Propiedad no encontrada');
         setIsLoading(false);
         return;
       }

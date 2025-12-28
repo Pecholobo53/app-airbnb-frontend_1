@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Property } from '@/types/search';
-import { MockSearchService } from '@/lib/search/mock-search-service';
+import { PropertyService } from '@/lib/properties/property-service';
 import PropertyCard from '@/components/search/PropertyCard';
 
 interface SimilarPropertiesProps {
@@ -25,23 +25,11 @@ export default function SimilarProperties({ currentProperty }: SimilarProperties
       try {
         setIsLoading(true);
         
-        // Buscar propiedades en la misma ciudad
-        const response = await MockSearchService.searchProperties({
-          query: {
-            location: currentProperty.location.city
-          },
-          filters: {},
-          sortBy: 'recommended',
-          page: 1,
-          perPage: 6
-        });
+        // Obtener propiedades similares usando el endpoint de la API
+        const response = await PropertyService.getSimilarProperties(currentProperty.id, 6);
 
         if (response.success && response.data) {
-          // Filtrar la propiedad actual
-          const filtered = response.data.properties.filter(
-            p => p.id !== currentProperty.id
-          );
-          setSimilarProperties(filtered.slice(0, 6));
+          setSimilarProperties(response.data.properties);
         }
       } catch (error) {
         console.error('Error cargando propiedades similares:', error);

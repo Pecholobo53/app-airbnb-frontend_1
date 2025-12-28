@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Users, Percent, Star } from 'lucide-react';
 import { Property } from '@/types/search';
-import { MockSearchService } from '@/lib/search/mock-search-service';
+import { PropertyService } from '@/lib/properties/property-service';
 
 /**
  * Promotions Section Component - Sección de ofertas y promociones
@@ -19,9 +19,21 @@ export default function PromotionsSection() {
     async function loadFeatured() {
       try {
         setIsLoading(true);
-        const response = await MockSearchService.getFeaturedProperties(6);
+        // Buscar propiedades destacadas usando el servicio real
+        // Nota: El backend debería soportar un filtro 'featured' o retornar propiedades destacadas
+        const response = await PropertyService.searchProperties({
+          query: {},
+          filters: {},
+          sortBy: 'recommended',
+          page: 1,
+          perPage: 6
+        });
+        
         if (response.success && response.data) {
-          setFeaturedProperties(response.data);
+          // Filtrar propiedades destacadas si el backend no las filtra automáticamente
+          const featured = response.data.properties.filter(p => p.featured === true);
+          // Si no hay destacadas, usar las primeras 6
+          setFeaturedProperties(featured.length > 0 ? featured.slice(0, 6) : response.data.properties.slice(0, 6));
         }
       } catch (error) {
         console.error('Error cargando propiedades destacadas:', error);
