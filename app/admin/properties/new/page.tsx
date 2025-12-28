@@ -66,6 +66,54 @@ export default function NewPropertyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 [FORM] handleSubmit ejecutado');
+    
+    // Verificar autenticación ANTES de procesar el formulario
+    const session = typeof window !== 'undefined' 
+      ? localStorage.getItem('airbnb_session') 
+      : null;
+    
+    if (!session) {
+      console.error('❌ [FORM] NO HAY SESIÓN - El usuario no está autenticado');
+      toast.error('Debes iniciar sesión para crear una propiedad');
+      router.push('/login');
+      return;
+    }
+    
+    let user = null;
+    try {
+      const parsed = JSON.parse(session);
+      const token = parsed.token || parsed.accessToken;
+      user = parsed.user;
+      if (!token) {
+        console.error('❌ [FORM] NO HAY TOKEN en la sesión');
+        toast.error('Sesión inválida. Por favor, inicia sesión nuevamente');
+        router.push('/login');
+        return;
+      }
+      if (!user || !user.id) {
+        console.error('❌ [FORM] NO HAY USUARIO en la sesión');
+        toast.error('Sesión inválida. Por favor, inicia sesión nuevamente');
+        router.push('/login');
+        return;
+      }
+      console.log('✅ [FORM] Usuario autenticado, token presente:', `${token.substring(0, 20)}...`);
+      console.log('✅ [FORM] Usuario ID:', user.id);
+    } catch (error) {
+      console.error('❌ [FORM] Error verificando sesión:', error);
+      toast.error('Error de autenticación. Por favor, inicia sesión nuevamente');
+      router.push('/login');
+      return;
+    }
+    console.log('📋 [FORM] Estado actual del formulario:', {
+      title: formData.title,
+      description: formData.description,
+      city: formData.location.city,
+      country: formData.location.country,
+      basePrice: formData.pricing.basePrice,
+      imagesCount: formData.images.length,
+      amenitiesCount: formData.amenities.length,
+    });
     setIsSaving(true);
 
     try {
@@ -78,6 +126,8 @@ export default function NewPropertyPage() {
 
       if (!formData.description || formData.description.trim() === '') {
         errors.push('La descripción es requerida');
+      } else if (formData.description.trim().length < 50) {
+        errors.push('La descripción debe tener al menos 50 caracteres');
       }
 
       if (!formData.location.city || formData.location.city.trim() === '') {
@@ -119,47 +169,363 @@ export default function NewPropertyPage() {
       }
 
       // Preparar datos para enviar - asegurar que todos los objetos requeridos estén presentes
-      const dataToSend: CreatePropertyData = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        location: {
-          city: formData.location.city.trim(),
-          country: formData.location.country.trim(),
-          coordinates: {
-            lat: formData.location.coordinates.lat || 0,
-            lng: formData.location.coordinates.lng || 0,
-          },
-          ...(formData.location.region?.trim() && { region: formData.location.region.trim() }),
-          ...(formData.location.address?.trim() && { address: formData.location.address.trim() }),
+      // Construir location con validación de campos
+      const locationData = {
+        city: (formData.location.city || '').trim(),
+        country: (formData.location.country || '').trim(),
+        coordinates: {
+          lat: Number(formData.location.coordinates?.lat) || 0,
+          lng: Number(formData.location.coordinates?.lng) || 0,
         },
-        propertyType: formData.propertyType,
-        roomType: formData.roomType,
-        pricing: {
-          basePrice: formData.pricing.basePrice,
-          currency: formData.pricing.currency,
-          ...(formData.pricing.cleaningFee && formData.pricing.cleaningFee > 0 && { cleaningFee: formData.pricing.cleaningFee }),
-          ...(formData.pricing.serviceFee && formData.pricing.serviceFee > 0 && { serviceFee: formData.pricing.serviceFee }),
-        },
-        capacity: {
-          guests: formData.capacity.guests,
-          bedrooms: formData.capacity.bedrooms,
-          beds: formData.capacity.beds,
-          bathrooms: formData.capacity.bathrooms,
-        },
-        amenities: formData.amenities,
-        availability: {
-          minNights: formData.availability.minNights,
-          maxNights: formData.availability.maxNights,
-          instantBook: formData.availability.instantBook,
-          ...(formData.availability.checkInTime && { checkInTime: formData.availability.checkInTime }),
-          ...(formData.availability.checkOutTime && { checkOutTime: formData.availability.checkOutTime }),
-        },
-        images: formData.images,
+      };
+      
+      // Agregar campos opcionales solo si tienen valor
+      const region = (formData.location.region || '').trim();
+      if (region) {
+        locationData.region = region;
+      }
+      
+      const address = (formData.location.address || '').trim();
+      if (address) {
+        locationData.address = address;
+      }
+
+      // Construir pricing con validación
+      const pricingData = {
+        basePrice: Number(formData.pricing.basePrice) || 0,
+        currency: (formData.pricing.currency || 'EUR') as 'EUR' | 'USD' | 'GBP',
+      };
+      
+      const cleaningFee = Number(formData.pricing.cleaningFee);
+      if (cleaningFee > 0) {
+        pricingData.cleaningFee = cleaningFee;
+      }
+      
+      const serviceFee = Number(formData.pricing.serviceFee);
+      if (serviceFee > 0) {
+        pricingData.serviceFee = serviceFee;
+      }
+
+      // Construir availability con validación
+      const availabilityData = {
+        minNights: Number(formData.availability.minNights) || 1,
+        maxNights: Number(formData.availability.maxNights) || 365,
+        instantBook: Boolean(formData.availability.instantBook),
+      };
+      
+      const checkInTime = (formData.availability.checkInTime || '').trim();
+      if (checkInTime) {
+        availabilityData.checkInTime = checkInTime;
+      }
+      
+      const checkOutTime = (formData.availability.checkOutTime || '').trim();
+      if (checkOutTime) {
+        availabilityData.checkOutTime = checkOutTime;
+      }
+
+      // Función helper para eliminar valores undefined de un objeto
+      // NO elimina objetos requeridos, solo campos opcionales con undefined
+      const removeUndefined = (obj: any, isRequired: boolean = false): any => {
+        if (obj === null) {
+          return obj; // null es válido, no lo eliminamos
+        }
+        if (obj === undefined) {
+          return isRequired ? obj : undefined; // undefined solo se elimina si no es requerido
+        }
+        if (Array.isArray(obj)) {
+          return obj.map(item => removeUndefined(item, false)).filter(item => item !== undefined);
+        }
+        if (typeof obj === 'object') {
+          const cleaned: any = {};
+          for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+              const value = obj[key];
+              // No incluir undefined, pero sí incluir null y otros valores
+              if (value !== undefined) {
+                cleaned[key] = removeUndefined(value, false);
+              }
+            }
+          }
+          return cleaned;
+        }
+        return obj;
       };
 
-      console.log('📤 Enviando datos:', JSON.stringify(dataToSend, null, 2));
+      // Construir el objeto final asegurando que todos los campos requeridos estén presentes
+      // NO usar spread operator para campos opcionales que puedan ser undefined
+      const dataToSend: CreatePropertyData & { host?: any } = {
+        title: String(formData.title || '').trim(),
+        description: String(formData.description || '').trim(),
+        location: {
+          city: String(locationData.city || '').trim(),
+          country: String(locationData.country || '').trim(),
+          coordinates: {
+            lat: Number(locationData.coordinates?.lat) || 0,
+            lng: Number(locationData.coordinates?.lng) || 0,
+          },
+        },
+        propertyType: formData.propertyType || 'entire_place',
+        roomType: formData.roomType || 'apartment',
+        pricing: {
+          basePrice: Number(pricingData.basePrice) || 0,
+          currency: (pricingData.currency || 'EUR') as 'EUR' | 'USD' | 'GBP',
+        },
+        capacity: {
+          guests: Number(formData.capacity?.guests) || 1,
+          bedrooms: Number(formData.capacity?.bedrooms) || 1,
+          beds: Number(formData.capacity?.beds) || 1,
+          bathrooms: Number(formData.capacity?.bathrooms) || 1,
+        },
+        amenities: Array.isArray(formData.amenities) ? formData.amenities.filter(Boolean) : [],
+        availability: {
+          minNights: Number(availabilityData.minNights) || 1,
+          maxNights: Number(availabilityData.maxNights) || 365,
+          instantBook: Boolean(availabilityData.instantBook),
+        },
+        images: Array.isArray(formData.images) ? formData.images.filter(Boolean) : [],
+        // Agregar el campo host que el backend requiere
+        host: {
+          id: user.id,
+          name: user.name || '',
+          email: user.email || '',
+          isSuperhost: user.isSuperhost || false, // Boolean requerido por el backend
+          avatar: user.avatar || '', // String requerido por el backend (puede ser vacío)
+        },
+      };
 
-      const response = await PropertyService.createProperty(dataToSend);
+      // Agregar campos opcionales SOLO si tienen valor válido (no undefined, no null, no vacío)
+      if (locationData.region && String(locationData.region).trim()) {
+        dataToSend.location.region = String(locationData.region).trim();
+      }
+      if (locationData.address && String(locationData.address).trim()) {
+        dataToSend.location.address = String(locationData.address).trim();
+      }
+      if (pricingData.cleaningFee && Number(pricingData.cleaningFee) > 0) {
+        dataToSend.pricing.cleaningFee = Number(pricingData.cleaningFee);
+      }
+      if (pricingData.serviceFee && Number(pricingData.serviceFee) > 0) {
+        dataToSend.pricing.serviceFee = Number(pricingData.serviceFee);
+      }
+      if (availabilityData.checkInTime && String(availabilityData.checkInTime).trim()) {
+        dataToSend.availability.checkInTime = String(availabilityData.checkInTime).trim();
+      }
+      if (availabilityData.checkOutTime && String(availabilityData.checkOutTime).trim()) {
+        dataToSend.availability.checkOutTime = String(availabilityData.checkOutTime).trim();
+      }
+
+      // Validar que todos los objetos requeridos estén presentes antes de limpiar
+      if (!dataToSend.location || typeof dataToSend.location !== 'object') {
+        throw new Error('El objeto location es requerido');
+      }
+      if (!dataToSend.location.coordinates || typeof dataToSend.location.coordinates !== 'object') {
+        throw new Error('El objeto coordinates es requerido dentro de location');
+      }
+      if (!dataToSend.pricing || typeof dataToSend.pricing !== 'object') {
+        throw new Error('El objeto pricing es requerido');
+      }
+      if (!dataToSend.capacity || typeof dataToSend.capacity !== 'object') {
+        throw new Error('El objeto capacity es requerido');
+      }
+      if (!dataToSend.availability || typeof dataToSend.availability !== 'object') {
+        throw new Error('El objeto availability es requerido');
+      }
+
+      // Log detallado de cada campo antes de enviar
+      console.log('📤 [FORM] Datos antes de limpiar:', {
+        title: dataToSend.title,
+        description: dataToSend.description,
+        location: dataToSend.location,
+        locationType: typeof dataToSend.location,
+        coordinates: dataToSend.location.coordinates,
+        coordinatesType: typeof dataToSend.location.coordinates,
+        propertyType: dataToSend.propertyType,
+        roomType: dataToSend.roomType,
+        pricing: dataToSend.pricing,
+        pricingType: typeof dataToSend.pricing,
+        capacity: dataToSend.capacity,
+        capacityType: typeof dataToSend.capacity,
+        amenities: dataToSend.amenities,
+        amenitiesIsArray: Array.isArray(dataToSend.amenities),
+        availability: dataToSend.availability,
+        availabilityType: typeof dataToSend.availability,
+        images: dataToSend.images,
+        imagesIsArray: Array.isArray(dataToSend.images),
+      });
+
+      // NO limpiar el objeto - enviarlo tal cual está construido
+      // El backend debe recibir exactamente lo que construimos
+      // Solo usar JSON.stringify que automáticamente omite undefined
+      const cleanedData = dataToSend as CreatePropertyData;
+      
+      // Verificación final exhaustiva ANTES de serializar
+      console.log('🔍 [FORM] Verificación final ANTES de serializar:');
+      console.log('  ✅ location existe:', !!cleanedData.location, typeof cleanedData.location);
+      console.log('  ✅ location.coordinates existe:', !!cleanedData.location?.coordinates, typeof cleanedData.location?.coordinates);
+      console.log('  ✅ pricing existe:', !!cleanedData.pricing, typeof cleanedData.pricing);
+      console.log('  ✅ capacity existe:', !!cleanedData.capacity, typeof cleanedData.capacity);
+      console.log('  ✅ availability existe:', !!cleanedData.availability, typeof cleanedData.availability);
+      console.log('  ✅ host existe:', !!(cleanedData as any).host, typeof (cleanedData as any).host);
+      if ((cleanedData as any).host) {
+        console.log('  ✅ host.id:', (cleanedData as any).host.id);
+        console.log('  ✅ host.name:', (cleanedData as any).host.name);
+        console.log('  ✅ host.email:', (cleanedData as any).host.email);
+      }
+      
+      // Garantizar que los objetos requeridos estén presentes
+      if (!cleanedData.location || typeof cleanedData.location !== 'object') {
+        throw new Error('CRÍTICO: location no es un objeto válido');
+      }
+      if (!cleanedData.location.coordinates || typeof cleanedData.location.coordinates !== 'object') {
+        throw new Error('CRÍTICO: location.coordinates no es un objeto válido');
+      }
+      if (!cleanedData.pricing || typeof cleanedData.pricing !== 'object') {
+        throw new Error('CRÍTICO: pricing no es un objeto válido');
+      }
+      if (!cleanedData.capacity || typeof cleanedData.capacity !== 'object') {
+        throw new Error('CRÍTICO: capacity no es un objeto válido');
+      }
+      if (!cleanedData.availability || typeof cleanedData.availability !== 'object') {
+        throw new Error('CRÍTICO: availability no es un objeto válido');
+      }
+      
+      console.log('✅ [FORM] Todos los objetos requeridos están presentes y son válidos');
+
+      // Validación final exhaustiva antes de enviar
+      const validationErrors: string[] = [];
+
+      // Validar campos requeridos
+      if (!cleanedData.title || cleanedData.title.trim() === '') {
+        validationErrors.push('El título es requerido');
+      }
+      if (!cleanedData.description || cleanedData.description.trim() === '') {
+        validationErrors.push('La descripción es requerida');
+      }
+      if (!cleanedData.location || typeof cleanedData.location !== 'object') {
+        validationErrors.push('El objeto location es requerido');
+      } else {
+        if (!cleanedData.location.city || cleanedData.location.city.trim() === '') {
+          validationErrors.push('La ciudad es requerida');
+        }
+        if (!cleanedData.location.country || cleanedData.location.country.trim() === '') {
+          validationErrors.push('El país es requerido');
+        }
+        if (!cleanedData.location.coordinates || typeof cleanedData.location.coordinates !== 'object') {
+          validationErrors.push('Las coordenadas son requeridas');
+        } else {
+          if (typeof cleanedData.location.coordinates.lat !== 'number' || isNaN(cleanedData.location.coordinates.lat)) {
+            validationErrors.push('La latitud debe ser un número válido');
+          }
+          if (typeof cleanedData.location.coordinates.lng !== 'number' || isNaN(cleanedData.location.coordinates.lng)) {
+            validationErrors.push('La longitud debe ser un número válido');
+          }
+        }
+      }
+      if (!cleanedData.pricing || typeof cleanedData.pricing !== 'object') {
+        validationErrors.push('El objeto pricing es requerido');
+      } else {
+        if (typeof cleanedData.pricing.basePrice !== 'number' || cleanedData.pricing.basePrice <= 0) {
+          validationErrors.push('El precio base debe ser un número mayor a 0');
+        }
+        if (!cleanedData.pricing.currency || !['EUR', 'USD', 'GBP'].includes(cleanedData.pricing.currency)) {
+          validationErrors.push('La moneda debe ser EUR, USD o GBP');
+        }
+      }
+      if (!cleanedData.capacity || typeof cleanedData.capacity !== 'object') {
+        validationErrors.push('El objeto capacity es requerido');
+      } else {
+        if (typeof cleanedData.capacity.guests !== 'number' || cleanedData.capacity.guests < 1) {
+          validationErrors.push('Debe haber al menos 1 huésped');
+        }
+        if (typeof cleanedData.capacity.bedrooms !== 'number' || cleanedData.capacity.bedrooms < 1) {
+          validationErrors.push('Debe haber al menos 1 habitación');
+        }
+        if (typeof cleanedData.capacity.beds !== 'number' || cleanedData.capacity.beds < 1) {
+          validationErrors.push('Debe haber al menos 1 cama');
+        }
+        if (typeof cleanedData.capacity.bathrooms !== 'number' || cleanedData.capacity.bathrooms < 1) {
+          validationErrors.push('Debe haber al menos 1 baño');
+        }
+      }
+      if (!cleanedData.availability || typeof cleanedData.availability !== 'object') {
+        validationErrors.push('El objeto availability es requerido');
+      } else {
+        if (typeof cleanedData.availability.minNights !== 'number' || cleanedData.availability.minNights < 1) {
+          validationErrors.push('Las noches mínimas deben ser al menos 1');
+        }
+        if (typeof cleanedData.availability.maxNights !== 'number' || cleanedData.availability.maxNights < cleanedData.availability.minNights) {
+          validationErrors.push('Las noches máximas deben ser mayores o iguales a las mínimas');
+        }
+        if (typeof cleanedData.availability.instantBook !== 'boolean') {
+          validationErrors.push('instantBook debe ser un valor booleano');
+        }
+      }
+      if (!Array.isArray(cleanedData.images) || cleanedData.images.length === 0) {
+        validationErrors.push('Debes agregar al menos una imagen');
+      }
+      if (!Array.isArray(cleanedData.amenities)) {
+        validationErrors.push('Las amenidades deben ser un array');
+      }
+      if (!cleanedData.propertyType || !['entire_place', 'private_room', 'shared_room'].includes(cleanedData.propertyType)) {
+        validationErrors.push('El tipo de propiedad es inválido');
+      }
+      if (!cleanedData.roomType || !['apartment', 'house', 'villa', 'loft', 'cabin', 'hotel', 'cottage', 'castle'].includes(cleanedData.roomType)) {
+        validationErrors.push('El tipo de alojamiento es inválido');
+      }
+
+      if (validationErrors.length > 0) {
+        console.error('❌ [FORM] Errores de validación:', validationErrors);
+        toast.error(`Errores de validación: ${validationErrors.join(', ')}`);
+        setIsSaving(false);
+        return;
+      }
+
+      console.log('📤 [FORM] JSON completo (limpiado y validado):', JSON.stringify(cleanedData, null, 2));
+      console.log('✅ [FORM] Todos los campos requeridos están presentes y válidos');
+      
+      // Log detallado de cada objeto antes de enviar
+      console.log('🔍 [FORM] Verificación detallada antes de enviar:');
+      console.log('  📍 location:', {
+        exists: !!cleanedData.location,
+        city: cleanedData.location?.city,
+        country: cleanedData.location?.country,
+        hasCoordinates: !!cleanedData.location?.coordinates,
+        coordinates: cleanedData.location?.coordinates,
+        keys: cleanedData.location ? Object.keys(cleanedData.location) : [],
+      });
+      console.log('  💰 pricing:', {
+        exists: !!cleanedData.pricing,
+        basePrice: cleanedData.pricing?.basePrice,
+        currency: cleanedData.pricing?.currency,
+        keys: cleanedData.pricing ? Object.keys(cleanedData.pricing) : [],
+      });
+      console.log('  👥 capacity:', {
+        exists: !!cleanedData.capacity,
+        guests: cleanedData.capacity?.guests,
+        bedrooms: cleanedData.capacity?.bedrooms,
+        beds: cleanedData.capacity?.beds,
+        bathrooms: cleanedData.capacity?.bathrooms,
+        keys: cleanedData.capacity ? Object.keys(cleanedData.capacity) : [],
+      });
+      console.log('  📅 availability:', {
+        exists: !!cleanedData.availability,
+        minNights: cleanedData.availability?.minNights,
+        maxNights: cleanedData.availability?.maxNights,
+        instantBook: cleanedData.availability?.instantBook,
+        keys: cleanedData.availability ? Object.keys(cleanedData.availability) : [],
+      });
+      console.log('  🏠 propertyType:', cleanedData.propertyType);
+      console.log('  🛏️ roomType:', cleanedData.roomType);
+      console.log('  🖼️ images:', Array.isArray(cleanedData.images) ? cleanedData.images.length : 'NO ES ARRAY');
+      console.log('  ⭐ amenities:', Array.isArray(cleanedData.amenities) ? cleanedData.amenities.length : 'NO ES ARRAY');
+      console.log('  👤 host:', (cleanedData as any).host ? {
+        id: (cleanedData as any).host.id,
+        name: (cleanedData as any).host.name,
+        email: (cleanedData as any).host.email,
+      } : 'NO EXISTE');
+
+      console.log('🚀 [FORM] Llamando a PropertyService.createProperty...');
+      const response = await PropertyService.createProperty(cleanedData);
+      console.log('📥 [FORM] Respuesta recibida:', response);
 
       if (response.success && response.data) {
         toast.success('Propiedad creada exitosamente');

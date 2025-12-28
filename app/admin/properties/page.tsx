@@ -201,48 +201,20 @@ export default function AdminPropertiesPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (property?.id) {
-                                  try {
-                                    router.push(`/propiedad/${property.id}`);
-                                  } catch (error) {
-                                    console.error('Error navegando a detalles:', error);
-                                    toast.error('Error al abrir los detalles de la propiedad');
-                                  }
-                                } else {
-                                  toast.error('ID de propiedad no válido');
-                                }
-                              }}
-                              title="Ver detalles"
+                            <Link 
+                              href={`/propiedad/${property.id}`}
+                              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+                              title="Ver detalles de la propiedad"
                             >
                               <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (property?.id) {
-                                  try {
-                                    router.push(`/admin/properties/${property.id}/edit`);
-                                  } catch (error) {
-                                    console.error('Error navegando a edición:', error);
-                                    toast.error('Error al abrir la edición de la propiedad');
-                                  }
-                                } else {
-                                  toast.error('ID de propiedad no válido');
-                                }
-                              }}
-                              title="Editar"
+                            </Link>
+                            <Link 
+                              href={`/admin/properties/${property.id}/edit`}
+                              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+                              title="Editar propiedad"
                             >
                               <Edit className="w-4 h-4" />
-                            </Button>
+                            </Link>
                           </div>
                         </TableCell>
                       </TableRow>

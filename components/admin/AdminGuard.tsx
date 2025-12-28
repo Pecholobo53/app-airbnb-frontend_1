@@ -42,14 +42,43 @@ export default function AdminGuard({ children }: AdminGuardProps) {
       }
 
       // Verificar si es admin de múltiples formas:
-      // 1. Usar helper isAdmin (verifica role y email conocido)
-      // 2. Si no, verificar con el backend
+      // 1. Verificar directamente desde localStorage (más confiable)
+      // 2. Usar helper isAdmin con el usuario del contexto
+      // 3. Si no, verificar con el backend
       let adminStatus = false;
+      let userToCheck = user;
 
-      // Verificación 1: Helper isAdmin (verifica role y email conocido)
-      if (isAdmin(user)) {
+      // Verificación 0: Leer directamente del localStorage (más confiable al navegar)
+      try {
+        const session = localStorage.getItem('airbnb_session');
+        if (session) {
+          const parsed = JSON.parse(session);
+          if (parsed.user) {
+            // Usar el usuario del localStorage si el contexto aún no está listo
+            if (!userToCheck || !userToCheck.role) {
+              userToCheck = parsed.user;
+              console.log('📦 [ADMIN GUARD] Usando usuario del localStorage:', userToCheck.email);
+            }
+            
+            // Verificar rol directamente del localStorage
+            if (parsed.user.role === 'admin' || isAdmin(parsed.user)) {
+              console.log('✅ [ADMIN GUARD] Usuario es admin (verificado desde localStorage)');
+              console.log('👤 [ADMIN GUARD] Usuario:', parsed.user.email, 'Role:', parsed.user.role || 'no definido');
+              adminStatus = true;
+              setHasAdminAccess(true);
+              setIsChecking(false);
+              return;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ [ADMIN GUARD] Error leyendo localStorage:', error);
+      }
+
+      // Verificación 1: Helper isAdmin con usuario del contexto o localStorage
+      if (userToCheck && isAdmin(userToCheck)) {
         console.log('✅ [ADMIN GUARD] Usuario es admin (verificado localmente)');
-        console.log('👤 [ADMIN GUARD] Usuario:', user.email, 'Role:', user.role || 'no definido');
+        console.log('👤 [ADMIN GUARD] Usuario:', userToCheck.email, 'Role:', userToCheck.role || 'no definido');
         adminStatus = true;
       }
       // Verificación 2: Probar acceso a endpoint de admin
@@ -63,7 +92,7 @@ export default function AdminGuard({ children }: AdminGuardProps) {
             
             if (token) {
               console.log('🔍 [ADMIN GUARD] Verificando permisos con el backend...');
-              console.log('👤 [ADMIN GUARD] Usuario:', user?.email, 'Role:', user?.role || 'no definido');
+              console.log('👤 [ADMIN GUARD] Usuario:', userToCheck?.email, 'Role:', userToCheck?.role || 'no definido');
               adminStatus = await verifyAdminAccess(token);
               
               if (adminStatus) {
@@ -80,6 +109,12 @@ export default function AdminGuard({ children }: AdminGuardProps) {
           console.error('❌ [ADMIN GUARD] Error verificando permisos:', error);
           adminStatus = false;
         }
+      }
+
+      // Si no es admin y está en una ruta de admin, redirigir al dashboard correcto
+      if (!adminStatus && isAuthenticated) {
+        console.log('⚠️ [ADMIN GUARD] Usuario no es admin, pero está autenticado. Verificando redirección...');
+        // No redirigir aquí, solo mostrar el mensaje de acceso denegado
       }
 
       setHasAdminAccess(adminStatus);
