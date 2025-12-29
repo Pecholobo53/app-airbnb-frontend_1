@@ -4,7 +4,10 @@
 import { useState, useEffect } from 'react';
 import { UserService } from '@/lib/users/user-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, UserCheck, UserX, Shield, UserPlus, Loader2 } from 'lucide-react';
+import { Users, UserCheck, UserX, Shield, UserPlus, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { requestCache } from '@/lib/utils/request-cache';
 
 interface UserStats {
   total: number;
@@ -18,25 +21,97 @@ interface UserStats {
 export function UserStats() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const loadStats = async (showToast = false) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('📊 [USER STATS] Iniciando carga de estadísticas...');
+      
+      // Usar caché para evitar múltiples peticiones
+      const response = await requestCache.getOrFetch(
+        'user-stats',
+        () => {
+          console.log('📤 [USER STATS] Ejecutando petición a API...');
+          return UserService.getUserStats();
+        },
+        5 * 60 * 1000 // 5 minutos de caché
+      );
+      
+      console.log('📥 [USER STATS] Respuesta recibida:', {
+        success: response.success,
+        hasData: !!response.data,
+        error: response.error,
+      });
+      
+      if (response.success && response.data) {
+        console.log('✅ [USER STATS] Estadísticas cargadas exitosamente:', response.data);
+        setStats(response.data);
+        if (showToast) {
+          toast.success('Estadísticas actualizadas');
+        }
+      } else {
+        // Manejar errores de rate limiting
+        const errorMessage = response.error?.message || 'Error al cargar estadísticas';
+        const errorCode = response.error?.code || 'UNKNOWN_ERROR';
+        const isRateLimit = errorCode === 'RATE_LIMIT' || 
+                           errorCode === '429' ||
+                           errorMessage.toLowerCase().includes('demasiadas') ||
+                           errorMessage.toLowerCase().includes('rate limit') ||
+                           errorMessage.toLowerCase().includes('429');
+        
+        console.error('❌ [USER STATS] Error cargando estadísticas:', {
+          code: errorCode,
+          message: errorMessage,
+          isRateLimit,
+        });
+        
+        if (isRateLimit) {
+          const rateLimitMessage = 'Demasiadas peticiones. Espera unos segundos antes de intentar de nuevo.';
+          setError(rateLimitMessage);
+          if (showToast) {
+            toast.error(rateLimitMessage);
+          }
+        } else {
+          // Mensaje más descriptivo
+          const finalMessage = errorMessage.includes('Error al obtener estadísticas')
+            ? errorMessage
+            : `Error al obtener estadísticas de usuarios: ${errorMessage}`;
+          setError(finalMessage);
+          if (showToast) {
+            toast.error(finalMessage);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ [USER STATS] Excepción al cargar estadísticas:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al cargar estadísticas';
+      const finalMessage = `Error inesperado: ${errorMessage}`;
+      setError(finalMessage);
+      if (showToast) {
+        toast.error(finalMessage);
+      }
+    } finally {
+      setLoading(false);
+      setIsRetrying(false);
+    }
+  };
 
   useEffect(() => {
-    const loadStats = async () => {
-      setLoading(true);
-      try {
-        const response = await UserService.getUserStats();
-        
-        if (response.success && response.data) {
-          setStats(response.data);
-        }
-      } catch (error) {
-        console.error('Error loading stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadStats();
   }, []);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    // Invalidar caché antes de reintentar
+    requestCache.invalidate('user-stats');
+    // Esperar un poco antes de reintentar (backoff)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await loadStats(true);
+  };
 
   if (loading) {
     return (
@@ -54,11 +129,73 @@ export function UserStats() {
     );
   }
 
-  if (!stats) {
+  if (error) {
+    const isRateLimit = error.toLowerCase().includes('demasiadas') || 
+                       error.toLowerCase().includes('rate limit') ||
+                       error.toLowerCase().includes('429');
+    
+    return (
+      <Card className="border-red-200 bg-red-50">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center text-center space-y-4">
+            <div className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="w-5 h-5" />
+              <p className="font-semibold">Error al cargar estadísticas</p>
+            </div>
+            <div className="text-sm text-gray-700 max-w-md space-y-2">
+              <p className="font-medium">{error}</p>
+              {isRateLimit ? (
+                <div className="text-xs text-gray-600 space-y-1 mt-2">
+                  <p>💡 El servidor está recibiendo demasiadas peticiones.</p>
+                  <p>Espera unos segundos y vuelve a intentar.</p>
+                </div>
+              ) : (
+                <div className="text-xs text-gray-600 mt-2">
+                  <p>Verifica tu conexión a internet y que el servidor esté disponible.</p>
+                </div>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              disabled={isRetrying || loading}
+              className="mt-2"
+            >
+              {isRetrying ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Reintentando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Reintentar
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!stats && !loading) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-gray-500">No se pudieron cargar las estadísticas</p>
+          <div className="text-center space-y-4">
+            <p className="text-gray-500">No se pudieron cargar las estadísticas</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              disabled={isRetrying || loading}
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reintentar
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -132,6 +269,7 @@ export function UserStats() {
     </div>
   );
 }
+
 
 
 

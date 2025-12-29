@@ -149,6 +149,15 @@ async function apiRequest<T>(
         errorCode = 'FORBIDDEN';
       } else if (response.status === 429) {
         errorCode = 'RATE_LIMIT';
+        // Mensaje más descriptivo para rate limiting
+        const rateLimitMessage = data.error?.message || data.message || 'Demasiadas peticiones. Intenta de nuevo más tarde.';
+        return {
+          success: false,
+          error: {
+            code: errorCode,
+            message: rateLimitMessage,
+          },
+        };
       } else if (response.status >= 500) {
         errorCode = 'SERVER_ERROR';
       } else if (data.error?.code) {
@@ -475,7 +484,7 @@ export class UserService {
    * GET USER STATS - Obtener estadísticas de usuarios
    * 
    * Endpoint: GET /api/users/stats (si existe)
-   * O calcula desde la lista de usuarios
+   * O calcula desde la lista de usuarios (con límite reducido para evitar rate limiting)
    * 
    * @returns Estadísticas de usuarios
    */
@@ -502,31 +511,90 @@ export class UserService {
         method: 'GET',
       });
 
-      if (statsResponse.success) {
-        console.log('✅ [USER SERVICE] Estadísticas obtenidas del backend');
+      if (statsResponse.success && statsResponse.data) {
+        console.log('✅ [USER SERVICE] Estadísticas obtenidas del endpoint /api/users/stats');
         return statsResponse;
+      } else {
+        // Si el endpoint existe pero falla, verificar si es rate limiting
+        if (statsResponse.error?.code === 'RATE_LIMIT' || statsResponse.error?.code === '429') {
+          console.warn('⚠️ [USER SERVICE] Rate limiting en endpoint de stats');
+          return statsResponse; // Retornar el error directamente
+        }
+        console.log('⚠️ [USER SERVICE] Endpoint de stats no disponible o falló, intentando calcular desde lista');
       }
     } catch (error) {
       console.log('⚠️ [USER SERVICE] Endpoint de stats no disponible, calculando desde lista');
     }
 
     // Si no existe el endpoint, calcular desde la lista de usuarios
+    // Usar un límite más razonable para evitar rate limiting
     try {
-      const listResponse = await UserService.listUsers(1000, 0); // Obtener muchos usuarios
+      console.log('📋 [USER SERVICE] Obteniendo lista de usuarios para calcular estadísticas...');
+      
+      // Obtener usuarios en lotes más pequeños para evitar rate limiting
+      // Primero intentar con un límite pequeño
+      const listResponse = await UserService.listUsers(100, 0); // Reducido de 1000 a 100
       
       if (listResponse.success && listResponse.data) {
         const users = listResponse.data.users || [];
+        const total = listResponse.data.total || users.length;
+        
+        // Si hay más usuarios, intentar obtener el total real
+        let allUsers = users;
+        if (total > 100 && users.length === 100) {
+          console.log(`📋 [USER SERVICE] Hay ${total} usuarios totales, pero solo obteniendo muestra de 100 para evitar rate limiting`);
+          // No obtener todos para evitar rate limiting
+          // Usar la muestra para calcular proporciones
+        }
+        
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         
-        const stats = {
-          total: users.length,
-          verified: users.filter(u => u.emailVerified).length,
-          unverified: users.filter(u => !u.emailVerified).length,
-          admins: users.filter(u => u.role === 'admin').length,
-          regularUsers: users.filter(u => !u.role || u.role === 'user').length,
-          newThisMonth: users.filter(u => new Date(u.createdAt) >= startOfMonth).length,
+        // Calcular estadísticas desde la muestra
+        // Normalizar roles para comparación (case-insensitive, sin espacios)
+        const normalizeRole = (role: string | null | undefined): string => {
+          if (!role) return '';
+          return role.toString().toLowerCase().trim();
         };
+        
+        // Log para debugging: ver qué roles se están recibiendo
+        console.log('🔍 [USER SERVICE] Roles encontrados en usuarios:', 
+          allUsers.map(u => ({ 
+            id: u.id?.substring(0, 8), 
+            email: u.email, 
+            role: u.role,
+            normalizedRole: normalizeRole(u.role)
+          }))
+        );
+        
+        const stats = {
+          total: total, // Usar el total del backend si está disponible
+          verified: allUsers.filter(u => u.emailVerified).length,
+          unverified: allUsers.filter(u => !u.emailVerified).length,
+          // Filtro mejorado: normaliza el rol antes de comparar
+          admins: allUsers.filter(u => {
+            const normalized = normalizeRole(u.role);
+            return normalized === 'admin' || normalized === 'administrator';
+          }).length,
+          regularUsers: allUsers.filter(u => {
+            const normalized = normalizeRole(u.role);
+            return !normalized || normalized === 'user' || normalized === '';
+          }).length,
+          newThisMonth: allUsers.filter(u => new Date(u.createdAt) >= startOfMonth).length,
+        };
+        
+        console.log('📊 [USER SERVICE] Estadísticas calculadas (antes de ajuste proporcional):', stats);
+        
+        // Si tenemos una muestra, ajustar proporcionalmente (solo si el total es mayor)
+        if (total > allUsers.length && allUsers.length > 0) {
+          const ratio = total / allUsers.length;
+          stats.verified = Math.round(stats.verified * ratio);
+          stats.unverified = Math.round(stats.unverified * ratio);
+          stats.admins = Math.round(stats.admins * ratio);
+          stats.regularUsers = Math.round(stats.regularUsers * ratio);
+          stats.newThisMonth = Math.round(stats.newThisMonth * ratio);
+          console.log('📊 [USER SERVICE] Estadísticas ajustadas proporcionalmente desde muestra');
+        }
         
         console.log('✅ [USER SERVICE] Estadísticas calculadas:', stats);
         
@@ -534,18 +602,42 @@ export class UserService {
           success: true,
           data: stats,
         };
+      } else {
+        // Verificar si es rate limiting
+        if (listResponse.error?.code === 'RATE_LIMIT' || 
+            listResponse.error?.code === '429' ||
+            listResponse.error?.message?.toLowerCase().includes('demasiadas')) {
+          console.error('❌ [USER SERVICE] Rate limiting al obtener lista de usuarios');
+          return {
+            success: false,
+            error: {
+              code: 'RATE_LIMIT',
+              message: listResponse.error?.message || 'Demasiadas peticiones. Intenta de nuevo más tarde.',
+            },
+          };
+        }
+        
+        console.error('❌ [USER SERVICE] Error obteniendo lista de usuarios:', listResponse.error);
+        return {
+          success: false,
+          error: {
+            code: listResponse.error?.code || 'NETWORK_ERROR',
+            message: listResponse.error?.message || 'Error al obtener estadísticas de usuarios',
+          },
+        };
       }
     } catch (error) {
       console.error('❌ [USER SERVICE] Error calculando estadísticas:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: `Error al obtener estadísticas de usuarios: ${errorMessage}`,
+        },
+      };
     }
-
-    return {
-      success: false,
-      error: {
-        code: 'NETWORK_ERROR',
-        message: 'Error al obtener estadísticas de usuarios',
-      },
-    };
   }
 
   /**

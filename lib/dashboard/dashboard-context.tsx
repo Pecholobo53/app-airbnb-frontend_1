@@ -106,12 +106,24 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       console.error('❌ [DASHBOARD] Error al cargar datos:', error);
+      
+      // Detectar errores de rate limiting
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isRateLimit = errorMessage.toLowerCase().includes('demasiadas') ||
+                         errorMessage.toLowerCase().includes('rate limit') ||
+                         errorMessage.toLowerCase().includes('429');
+      
+      const finalErrorMessage = isRateLimit
+        ? 'Demasiadas peticiones. Intenta de nuevo más tarde.'
+        : 'Error al cargar datos del dashboard';
+      
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: 'Error al cargar datos del dashboard'
+        error: finalErrorMessage
       }));
-      toast.error('Error al cargar dashboard');
+      
+      toast.error(finalErrorMessage);
     }
   };
 
