@@ -68,12 +68,12 @@ export default function RegisterForm() {
       setIsLoading(false);
       
       if (loginSuccess) {
-        // Esperar a que la sesión se guarde en localStorage
+        // Esperar a que la sesión se guarde en sessionStorage
         let attempts = 0;
         const maxAttempts = 10;
         
         while (attempts < maxAttempts) {
-          const session = localStorage.getItem('airbnb_session');
+          const session = sessionStorage.getItem('airbnb_session');
           if (session) {
             try {
               const parsed = JSON.parse(session);

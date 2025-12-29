@@ -48,21 +48,21 @@ export default function AdminGuard({ children }: AdminGuardProps) {
       let adminStatus = false;
       let userToCheck = user;
 
-      // Verificación 0: Leer directamente del localStorage (más confiable al navegar)
+      // Verificación 0: Leer directamente del sessionStorage (más confiable al navegar)
       try {
-        const session = localStorage.getItem('airbnb_session');
+        const session = sessionStorage.getItem('airbnb_session');
         if (session) {
           const parsed = JSON.parse(session);
           if (parsed.user) {
-            // Usar el usuario del localStorage si el contexto aún no está listo
+            // Usar el usuario del sessionStorage si el contexto aún no está listo
             if (!userToCheck || !userToCheck.role) {
               userToCheck = parsed.user;
-              console.log('📦 [ADMIN GUARD] Usando usuario del localStorage:', userToCheck.email);
+              console.log('📦 [ADMIN GUARD] Usando usuario del sessionStorage:', userToCheck.email);
             }
             
-            // Verificar rol directamente del localStorage
+            // Verificar rol directamente del sessionStorage
             if (parsed.user.role === 'admin' || isAdmin(parsed.user)) {
-              console.log('✅ [ADMIN GUARD] Usuario es admin (verificado desde localStorage)');
+              console.log('✅ [ADMIN GUARD] Usuario es admin (verificado desde sessionStorage)');
               console.log('👤 [ADMIN GUARD] Usuario:', parsed.user.email, 'Role:', parsed.user.role || 'no definido');
               adminStatus = true;
               setHasAdminAccess(true);
@@ -72,7 +72,7 @@ export default function AdminGuard({ children }: AdminGuardProps) {
           }
         }
       } catch (error) {
-        console.error('❌ [ADMIN GUARD] Error leyendo localStorage:', error);
+        console.error('❌ [ADMIN GUARD] Error leyendo sessionStorage:', error);
       }
 
       // Verificación 1: Helper isAdmin con usuario del contexto o localStorage
@@ -84,7 +84,7 @@ export default function AdminGuard({ children }: AdminGuardProps) {
       // Verificación 2: Probar acceso a endpoint de admin
       else {
         try {
-          const session = localStorage.getItem('airbnb_session');
+          const session = sessionStorage.getItem('airbnb_session');
           
           if (session) {
             const parsed = JSON.parse(session);

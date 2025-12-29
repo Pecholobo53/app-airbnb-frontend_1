@@ -22,7 +22,7 @@ export default function SocialAuthButtons() {
       // Esperar a que la sesión se guarde y verificar el rol
       await new Promise(resolve => setTimeout(resolve, 200));
       try {
-        const session = localStorage.getItem('airbnb_session');
+        const session = sessionStorage.getItem('airbnb_session');
         if (session) {
           const parsed = JSON.parse(session);
           if (parsed.user) {
@@ -46,7 +46,7 @@ export default function SocialAuthButtons() {
       // Esperar a que la sesión se guarde y verificar el rol
       await new Promise(resolve => setTimeout(resolve, 200));
       try {
-        const session = localStorage.getItem('airbnb_session');
+        const session = sessionStorage.getItem('airbnb_session');
         if (session) {
           const parsed = JSON.parse(session);
           if (parsed.user) {

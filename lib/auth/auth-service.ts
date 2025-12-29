@@ -41,7 +41,7 @@ import {
  * - Tokens expirados: Se manejan automáticamente
  * 
  * Autenticación:
- * - Los tokens se almacenan en localStorage
+ * - Los tokens se almacenan en sessionStorage (se limpia al cerrar el navegador)
  * - Se incluyen en el header Authorization para requests autenticados
  */
 
@@ -57,12 +57,12 @@ async function apiRequest<T>(
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    // Obtener token del localStorage si existe
+    // Obtener token del sessionStorage si existe
     const session = typeof window !== 'undefined' 
-      ? localStorage.getItem('airbnb_session') 
+      ? sessionStorage.getItem('airbnb_session') 
       : null;
     
-    console.log('🔑 [AUTH SERVICE] Sesión en localStorage:', session ? 'Encontrada' : 'No encontrada');
+    console.log('🔑 [AUTH SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
     
     let token = null;
     if (session) {

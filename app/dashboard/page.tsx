@@ -44,13 +44,13 @@ function DashboardContent() {
       return;
     }
 
-    // Verificar también desde localStorage por si el contexto aún no está actualizado
+    // Verificar también desde sessionStorage por si el contexto aún no está actualizado
     try {
-      const session = localStorage.getItem('airbnb_session');
+      const session = sessionStorage.getItem('airbnb_session');
       if (session) {
         const parsed = JSON.parse(session);
         if (parsed.user && isAdmin(parsed.user)) {
-          console.log('🔄 [DASHBOARD] Usuario es admin (desde localStorage), redirigiendo a /admin');
+          console.log('🔄 [DASHBOARD] Usuario es admin (desde sessionStorage), redirigiendo a /admin');
           router.push('/admin');
           return;
         }

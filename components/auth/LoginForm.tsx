@@ -53,18 +53,18 @@ export default function LoginForm() {
       console.log('🔐 [LOGIN FORM] Respuesta de login():', success);
       
       if (success) {
-        // Esperar a que la sesión se guarde en localStorage y el contexto se actualice
+        // Esperar a que la sesión se guarde en sessionStorage y el contexto se actualice
         // Verificar que la sesión esté realmente guardada antes de redirigir
         let attempts = 0;
         const maxAttempts = 20; // Aumentado para dar más tiempo
         
         while (attempts < maxAttempts) {
-          const session = localStorage.getItem('airbnb_session');
+          const session = sessionStorage.getItem('airbnb_session');
           if (session) {
             try {
               const parsed = JSON.parse(session);
               if (parsed.user && parsed.user.id) {
-                console.log('✅ [LOGIN FORM] Sesión confirmada en localStorage, redirigiendo...');
+                console.log('✅ [LOGIN FORM] Sesión confirmada en sessionStorage, redirigiendo...');
                 console.log('👤 [LOGIN FORM] Usuario logueado:', parsed.user.email);
                 console.log('👤 [LOGIN FORM] Rol del usuario:', parsed.user.role || 'no definido');
                 
@@ -94,13 +94,13 @@ export default function LoginForm() {
           attempts++;
         }
         
-        // Si después de todos los intentos no se guardó, intentar leer del localStorage una vez más
+        // Si después de todos los intentos no se guardó, intentar leer del sessionStorage una vez más
         // (el estado del contexto debería estar actualizado)
-        console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en localStorage, intentando lectura final...');
+        console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en sessionStorage, intentando lectura final...');
         
-        // Último intento de leer del localStorage
+        // Último intento de leer del sessionStorage
         try {
-          const finalSession = localStorage.getItem('airbnb_session');
+          const finalSession = sessionStorage.getItem('airbnb_session');
           if (finalSession) {
             const parsed = JSON.parse(finalSession);
             if (parsed.user) {

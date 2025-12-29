@@ -34,7 +34,7 @@ import {
  * - Respuestas no JSON: Se validan antes de parsear
  * 
  * Autenticación:
- * - Los tokens se almacenan en localStorage
+ * - Los tokens se almacenan en sessionStorage (se limpia al cerrar el navegador)
  * - Se incluyen en el header Authorization para requests autenticados
  */
 
@@ -51,12 +51,12 @@ async function apiRequest<T>(
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    // Obtener token del localStorage si existe
+    // Obtener token del sessionStorage si existe
     const session = typeof window !== 'undefined' 
-      ? localStorage.getItem('airbnb_session') 
+      ? sessionStorage.getItem('airbnb_session') 
       : null;
     
-    console.log('🔑 [USER SERVICE] Sesión en localStorage:', session ? 'Encontrada' : 'No encontrada');
+    console.log('🔑 [USER SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
     
     let token = null;
     if (session) {
@@ -558,9 +558,9 @@ export class UserService {
       return null;
     }
     
-    const session = localStorage.getItem('airbnb_session');
+    const session = sessionStorage.getItem('airbnb_session');
     if (!session) {
-      console.log('❌ [DEBUG] No hay sesión en localStorage');
+      console.log('❌ [DEBUG] No hay sesión en sessionStorage');
       console.log('💡 [DEBUG] Necesitas iniciar sesión primero en /login');
       return null;
     }

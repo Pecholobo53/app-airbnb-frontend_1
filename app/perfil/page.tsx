@@ -60,7 +60,7 @@ function PerfilContent() {
       console.log('🖼️ [PERFIL] Avatar preview:', previewAvatar ? 'Sí' : 'No');
       
       // Verificar token antes de enviar
-      const session = localStorage.getItem('airbnb_session');
+      const session = sessionStorage.getItem('airbnb_session');
       if (session) {
         try {
           const parsed = JSON.parse(session);

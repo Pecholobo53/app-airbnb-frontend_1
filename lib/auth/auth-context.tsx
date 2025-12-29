@@ -28,14 +28,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Limpiar cualquier sesión antigua de localStorage (migración a sessionStorage)
+    if (typeof window !== 'undefined') {
+      const oldSession = localStorage.getItem(SESSION_KEY);
+      if (oldSession) {
+        console.log('🧹 [LOAD SESSION] Limpiando sesión antigua de localStorage');
+        localStorage.removeItem(SESSION_KEY);
+      }
+    }
+
     const loadSession = () => {
       try {
-        const stored = localStorage.getItem(SESSION_KEY);
+        const stored = sessionStorage.getItem(SESSION_KEY);
         if (stored) {
-          console.log('📂 [LOAD SESSION] Sesión encontrada en localStorage');
+          console.log('📂 [LOAD SESSION] Sesión encontrada en sessionStorage');
           const parsed: AuthSession = JSON.parse(stored);
           
-          // Convertir fechas de string a Date si vienen del localStorage
+          // Convertir fechas de string a Date si vienen del sessionStorage
           if (parsed.expiresAt) {
             const expiresAtDate = new Date(parsed.expiresAt);
             parsed.expiresAt = expiresAtDate;
@@ -84,15 +93,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setSession(parsed);
           } else {
             console.log('❌ [LOAD SESSION] Sesión expirada o inválida, eliminando...');
-            localStorage.removeItem(SESSION_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
             toast.info('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
           }
         } else {
-          console.log('📭 [LOAD SESSION] No hay sesión guardada en localStorage');
+          console.log('📭 [LOAD SESSION] No hay sesión guardada en sessionStorage');
         }
       } catch (error) {
         console.error('❌ [LOAD SESSION] Error al cargar sesión:', error);
-        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Solo guardar si ya terminó de cargar (evitar guardar durante la carga inicial)
     if (!isLoading && session) {
-      console.log('💾 [SAVE SESSION] Guardando sesión en localStorage');
+      console.log('💾 [SAVE SESSION] Guardando sesión en sessionStorage');
       
       // Validar que expiresAt sea una fecha válida antes de guardar
       let expiresAtDate: Date;
@@ -128,19 +137,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           expiresAt: expiresAtDate,
         };
         console.log('📅 [SAVE SESSION] Expira (corregido):', expiresAtDate.toLocaleString('es-ES'));
-        localStorage.setItem(SESSION_KEY, JSON.stringify(correctedSession));
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(correctedSession));
       } else {
         console.log('📅 [SAVE SESSION] Expira:', expiresAtDate.toLocaleString('es-ES'));
         console.log('🖼️ [SAVE SESSION] Avatar en sesión:', session.user?.avatar ? `${session.user.avatar.substring(0, 50)}...` : 'NO HAY AVATAR');
         
         try {
-          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
           console.log('✅ [SAVE SESSION] Sesión guardada exitosamente');
         } catch (error) {
           console.error('❌ [SAVE SESSION] Error guardando sesión:', error);
           // Si el error es por tamaño (QuotaExceededError), intentar guardar sin avatar o comprimirlo
           if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-            console.warn('⚠️ [SAVE SESSION] localStorage lleno. Considera reducir el tamaño del avatar.');
+            console.warn('⚠️ [SAVE SESSION] sessionStorage lleno. Considera reducir el tamaño del avatar.');
             toast.warning('El avatar es muy grande. Se guardará sin imagen para evitar problemas.');
             // Guardar sin avatar como fallback
             const sessionWithoutAvatar = {
@@ -150,13 +159,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 avatar: null,
               },
             };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionWithoutAvatar));
+            sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionWithoutAvatar));
           }
         }
       }
     } else if (!isLoading && !session) {
-      console.log('🗑️ [SAVE SESSION] Eliminando sesión de localStorage');
-      localStorage.removeItem(SESSION_KEY);
+      console.log('🗑️ [SAVE SESSION] Eliminando sesión de sessionStorage');
+      sessionStorage.removeItem(SESSION_KEY);
     }
   }, [session, isLoading]);
 
@@ -164,13 +173,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // Limpiar cualquier sesión anterior antes de hacer login
       // Esto asegura que no haya conflictos con sesiones previas
-      const existingSession = localStorage.getItem(SESSION_KEY);
+      const existingSession = sessionStorage.getItem(SESSION_KEY);
       if (existingSession) {
         console.log('🧹 [LOGIN] Limpiando sesión anterior antes de nuevo login');
-        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
         // Limpiar también el estado de React para evitar conflictos
         setSession(null);
-        // Pequeño delay para asegurar que el localStorage y el estado se limpien
+        // Pequeño delay para asegurar que el sessionStorage y el estado se limpien
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
@@ -262,27 +271,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           hasRole: !!session.user.role
         });
         
-        console.log('💾 [LOGIN] Guardando sesión en localStorage');
+        console.log('💾 [LOGIN] Guardando sesión en sessionStorage');
         console.log('👤 [LOGIN] Usuario:', session.user.name);
         
-        // Guardar sesión PRIMERO en localStorage para asegurar persistencia inmediata
+        // Guardar sesión PRIMERO en sessionStorage para asegurar persistencia inmediata
         // antes de actualizar el estado (esto garantiza que esté disponible para la redirección)
         try {
-          localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-          console.log('✅ [LOGIN] Sesión guardada en localStorage inmediatamente');
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+          console.log('✅ [LOGIN] Sesión guardada en sessionStorage inmediatamente');
           
           // Verificar que se guardó correctamente
-          const verification = localStorage.getItem(SESSION_KEY);
+          const verification = sessionStorage.getItem(SESSION_KEY);
           if (verification) {
-            console.log('✅ [LOGIN] Sesión verificada en localStorage');
+            console.log('✅ [LOGIN] Sesión verificada en sessionStorage');
           } else {
             console.error('❌ [LOGIN] Sesión no se pudo verificar después de guardar');
           }
         } catch (error) {
-          console.error('❌ [LOGIN] Error guardando sesión en localStorage:', error);
-          // Si localStorage falla (puede ser por tamaño), al menos el estado está actualizado
+          console.error('❌ [LOGIN] Error guardando sesión en sessionStorage:', error);
+          // Si sessionStorage falla (puede ser por tamaño), al menos el estado está actualizado
           if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-            console.warn('⚠️ [LOGIN] localStorage lleno. Considera reducir el tamaño del avatar.');
+            console.warn('⚠️ [LOGIN] sessionStorage lleno. Considera reducir el tamaño del avatar.');
             // Guardar sin avatar como fallback
             const sessionWithoutAvatar = {
               ...session,
@@ -292,7 +301,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               },
             };
             try {
-              localStorage.setItem(SESSION_KEY, JSON.stringify(sessionWithoutAvatar));
+              sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionWithoutAvatar));
               console.log('✅ [LOGIN] Sesión guardada sin avatar como fallback');
             } catch (fallbackError) {
               console.error('❌ [LOGIN] Error incluso guardando sin avatar:', fallbackError);
@@ -395,20 +404,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Incluso si falla el logout en el servidor, limpiamos la sesión local
       console.warn('⚠️ [LOGOUT] Error en logout del servidor, limpiando sesión local');
     } finally {
-      // Limpiar explícitamente el localStorage ANTES de actualizar el estado
-      console.log('🗑️ [LOGOUT] Limpiando sesión de localStorage');
+      // Limpiar explícitamente el sessionStorage ANTES de actualizar el estado
+      console.log('🗑️ [LOGOUT] Limpiando sesión de sessionStorage');
+      sessionStorage.removeItem(SESSION_KEY);
+      
+      // También limpiar localStorage por si acaso hay datos antiguos
       localStorage.removeItem(SESSION_KEY);
       
       // Verificar que se limpió correctamente
-      const verification = localStorage.getItem(SESSION_KEY);
+      const verification = sessionStorage.getItem(SESSION_KEY);
       if (verification) {
         console.warn('⚠️ [LOGOUT] La sesión no se limpió correctamente, forzando limpieza');
-        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
       } else {
-        console.log('✅ [LOGOUT] Sesión eliminada correctamente del localStorage');
+        console.log('✅ [LOGOUT] Sesión eliminada correctamente del sessionStorage');
       }
       
-      // Actualizar el estado después de limpiar localStorage
+      // Actualizar el estado después de limpiar sessionStorage
       setSession(null);
       toast.info('Sesión cerrada correctamente');
     }
@@ -582,13 +594,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Actualizar el estado PRIMERO
         setSession(newSession);
         
-        // Forzar guardado inmediato en localStorage para asegurar persistencia
+        // Forzar guardado inmediato en sessionStorage para asegurar persistencia
         try {
-          localStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
-          console.log('✅ [UPDATE USER] Sesión guardada en localStorage inmediatamente');
+          sessionStorage.setItem(SESSION_KEY, JSON.stringify(newSession));
+          console.log('✅ [UPDATE USER] Sesión guardada en sessionStorage inmediatamente');
           
           // Verificar que se guardó correctamente
-          const verification = localStorage.getItem(SESSION_KEY);
+          const verification = sessionStorage.getItem(SESSION_KEY);
           if (verification) {
             const verified = JSON.parse(verification);
             console.log('✅ [UPDATE USER] Verificación de guardado:', {
@@ -598,8 +610,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
           }
         } catch (error) {
-          console.error('❌ [UPDATE USER] Error guardando en localStorage:', error);
-          // Si localStorage falla (puede ser por tamaño), al menos el estado está actualizado
+          console.error('❌ [UPDATE USER] Error guardando en sessionStorage:', error);
+          // Si sessionStorage falla (puede ser por tamaño), al menos el estado está actualizado
         }
         
         toast.success('Perfil actualizado correctamente');

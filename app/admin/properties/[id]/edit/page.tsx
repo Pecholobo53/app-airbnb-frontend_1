@@ -17,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import ImageUpload from '@/components/properties/ImageUpload';
+import { geocodeAddress, buildAddress } from '@/lib/utils/geocoding';
 
 /**
  * Página para editar una propiedad existente
@@ -31,6 +33,7 @@ export default function EditPropertyPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   const [property, setProperty] = useState<Property | null>(null);
   const [formData, setFormData] = useState<CreatePropertyData | null>(null);
 
@@ -102,23 +105,71 @@ export default function EditPropertyPage() {
     }
   };
 
-  const addImage = () => {
-    if (!formData) return;
-    const url = prompt('Ingresa la URL de la imagen:');
-    if (url) {
-      setFormData(prev => prev ? ({
-        ...prev,
-        images: [...prev.images, url],
-      }) : null);
-    }
-  };
-
-  const removeImage = (index: number) => {
+  const handleImagesChange = (newImages: string[]) => {
     if (!formData) return;
     setFormData(prev => prev ? ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index),
+      images: newImages,
     }) : null);
+  };
+
+  const handleGetCoordinates = async () => {
+    if (!formData) return;
+    
+    // Validar que al menos ciudad y país estén completos
+    if (!formData.location.city || !formData.location.country) {
+      toast.error('Por favor, completa al menos la ciudad y el país antes de obtener coordenadas');
+      return;
+    }
+
+    // Construir dirección completa
+    const address = buildAddress(
+      formData.location.city,
+      formData.location.country,
+      formData.location.address,
+      formData.location.region
+    );
+
+    setIsGeocoding(true);
+    try {
+      const coordinates = await geocodeAddress(address);
+      
+      if (coordinates) {
+        setFormData(prev => prev ? ({
+          ...prev,
+          location: {
+            ...prev.location,
+            coordinates: {
+              lat: coordinates.lat,
+              lng: coordinates.lng,
+            },
+          },
+        }) : null);
+        toast.success(`Coordenadas obtenidas: ${coordinates.displayName || 'Ubicación encontrada'}`);
+      } else {
+        // Mensaje más útil con sugerencias
+        const suggestions = [];
+        if (!formData.location.address) {
+          suggestions.push('agregar una dirección específica');
+        }
+        if (!formData.location.region) {
+          suggestions.push('agregar la región o provincia');
+        }
+        
+        const suggestionText = suggestions.length > 0 
+          ? ` Sugerencias: ${suggestions.join(', ')}.`
+          : ' Intenta verificar que la ciudad y país estén escritos correctamente.';
+        
+        toast.error(`No se pudieron obtener las coordenadas para "${address}".${suggestionText}`, {
+          duration: 6000,
+        });
+      }
+    } catch (error) {
+      console.error('Error obteniendo coordenadas:', error);
+      toast.error('Error al obtener coordenadas. Intenta nuevamente.');
+    } finally {
+      setIsGeocoding(false);
+    }
   };
 
   const toggleAmenity = (amenity: string) => {
@@ -306,45 +357,75 @@ export default function EditPropertyPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="lat">Latitud</Label>
-                <Input
-                  id="lat"
-                  type="number"
-                  step="any"
-                  value={formData.location.coordinates.lat}
-                  onChange={(e) => setFormData(prev => prev ? ({
-                    ...prev,
-                    location: {
-                      ...prev.location,
-                      coordinates: {
-                        ...prev.location.coordinates,
-                        lat: parseFloat(e.target.value) || 0,
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="lat">Latitud</Label>
+                  <Input
+                    id="lat"
+                    type="number"
+                    step="any"
+                    value={formData.location.coordinates.lat}
+                    onChange={(e) => setFormData(prev => prev ? ({
+                      ...prev,
+                      location: {
+                        ...prev.location,
+                        coordinates: {
+                          ...prev.location.coordinates,
+                          lat: parseFloat(e.target.value) || 0,
+                        },
                       },
-                    },
-                  }) : null)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="lng">Longitud</Label>
-                <Input
-                  id="lng"
-                  type="number"
-                  step="any"
-                  value={formData.location.coordinates.lng}
-                  onChange={(e) => setFormData(prev => prev ? ({
-                    ...prev,
-                    location: {
-                      ...prev.location,
-                      coordinates: {
-                        ...prev.location.coordinates,
-                        lng: parseFloat(e.target.value) || 0,
+                    }) : null)}
+                    placeholder="Ej: 41.3851"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lng">Longitud</Label>
+                  <Input
+                    id="lng"
+                    type="number"
+                    step="any"
+                    value={formData.location.coordinates.lng}
+                    onChange={(e) => setFormData(prev => prev ? ({
+                      ...prev,
+                      location: {
+                        ...prev.location,
+                        coordinates: {
+                          ...prev.location.coordinates,
+                          lng: parseFloat(e.target.value) || 0,
+                        },
                       },
-                    },
-                  }) : null)}
-                />
+                    }) : null)}
+                    placeholder="Ej: 2.1734"
+                  />
+                </div>
               </div>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGetCoordinates}
+                disabled={isGeocoding || !formData.location.city || !formData.location.country}
+                className="w-full sm:w-auto"
+              >
+                {isGeocoding ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Obteniendo coordenadas...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Obtener Coordenadas Automáticamente
+                  </>
+                )}
+              </Button>
+              
+              {formData.location.coordinates.lat !== 0 && formData.location.coordinates.lng !== 0 && (
+                <p className="text-xs text-gray-500">
+                  ✅ Coordenadas: {formData.location.coordinates.lat.toFixed(6)}, {formData.location.coordinates.lng.toFixed(6)}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -572,38 +653,21 @@ export default function EditPropertyPage() {
         </Card>
 
         {/* Imágenes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Imágenes</CardTitle>
-            <CardDescription>Agrega imágenes de la propiedad</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button type="button" variant="outline" onClick={addImage}>
-              Agregar Imagen
-            </Button>
-
-            <div className="grid grid-cols-4 gap-4">
-              {formData.images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={image}
-                    alt={`Imagen ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => removeImage(index)}
-                  >
-                    Eliminar
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {formData && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Imágenes</CardTitle>
+              <CardDescription>Agrega imágenes de la propiedad (arrastra y suelta o haz clic para seleccionar)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ImageUpload
+                images={formData.images}
+                onImagesChange={handleImagesChange}
+                maxImages={10}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end gap-4">

@@ -45,7 +45,7 @@ import { AuthResponse } from '@/types/auth';
  * - Tokens expirados: Se manejan automáticamente
  * 
  * Autenticación:
- * - Los tokens se almacenan en localStorage con key 'airbnb_session'
+ * - Los tokens se almacenan en sessionStorage con key 'airbnb_session' (se limpia al cerrar el navegador)
  * - Se incluyen automáticamente en el header Authorization: Bearer <token>
  * - TODOS los endpoints del dashboard requieren JWT válido
  * - Si no hay token, el backend retornará 401 Unauthorized
@@ -66,12 +66,12 @@ async function apiRequest<T>(
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    // Obtener token del localStorage si existe
+    // Obtener token del sessionStorage si existe
     const session = typeof window !== 'undefined' 
-      ? localStorage.getItem('airbnb_session') 
+      ? sessionStorage.getItem('airbnb_session') 
       : null;
     
-    console.log('🔑 [DASHBOARD SERVICE] Sesión en localStorage:', session ? 'Encontrada' : 'No encontrada');
+    console.log('🔑 [DASHBOARD SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
     
     let token = null;
     if (session) {
