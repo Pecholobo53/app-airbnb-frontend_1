@@ -1,17 +1,19 @@
 // components/property/PriceCalculator.tsx
 'use client';
 
-import { useState } from 'react';
-import { Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { Property, PriceBreakdown } from '@/types/search';
 import { Button } from '@/components/ui/button';
 import { calculatePriceBreakdown, formatPrice, validateBookingDates } from '@/lib/pricing/calculate-price';
-import { addDays, format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { addDays } from 'date-fns';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
 import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
+import { PropertyService } from '@/lib/properties/property-service';
+import AvailabilityCalendar from './AvailabilityCalendar';
+import { getCachedAvailability, setCachedAvailability } from '@/lib/utils/availability-cache';
 
 interface PriceCalculatorProps {
   property: Property;
@@ -37,12 +39,95 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   const [guests, setGuests] = useState(1);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
   const hasValidDates = checkIn && checkOut && checkOut > checkIn;
   
   // Calcular precio si hay fechas válidas
   let priceBreakdown: PriceBreakdown | null = null;
   let validationError: string | null = null;
+
+  // Verificar disponibilidad cuando cambian las fechas (usando caché)
+  useEffect(() => {
+    if (!hasValidDates || !checkIn || !checkOut) {
+      setAvailabilityError(null);
+      return;
+    }
+
+    const checkAvailability = async () => {
+      setIsCheckingAvailability(true);
+      setAvailabilityError(null);
+
+      try {
+        const checkInStr = checkIn.toISOString().split('T')[0];
+        const checkOutStr = checkOut.toISOString().split('T')[0];
+        
+        // Primero intentar obtener del caché
+        const cached = getCachedAvailability(property.id);
+        
+        if (cached) {
+          // Verificar si las fechas seleccionadas están bloqueadas usando el caché
+          const isBlocked = cached.blockedDates?.some(blockedDate => {
+            const blocked = new Date(blockedDate);
+            const checkInDate = new Date(checkInStr);
+            const checkOutDate = new Date(checkOutStr);
+            
+            return blocked >= checkInDate && blocked < checkOutDate;
+          });
+
+          if (isBlocked) {
+            setAvailabilityError('Las fechas seleccionadas no están disponibles');
+          } else {
+            setAvailabilityError(null);
+          }
+          setIsCheckingAvailability(false);
+          return;
+        }
+
+        // Si no hay caché, llamar a la API
+        const response = await PropertyService.getPropertyAvailability(
+          property.id,
+          checkInStr,
+          checkOutStr
+        );
+
+        if (response.success && response.data) {
+          // Guardar en caché
+          setCachedAvailability(property.id, {
+            blockedDates: response.data.blockedDates || [],
+            availableDates: response.data.availableDates || [],
+            minNights: response.data.minNights || availability.minNights,
+            maxNights: response.data.maxNights || availability.maxNights,
+            instantBook: response.data.instantBook || false,
+          });
+
+          // Verificar si las fechas seleccionadas están bloqueadas
+          const isBlocked = response.data.blockedDates?.some(blockedDate => {
+            const blocked = new Date(blockedDate);
+            const checkInDate = new Date(checkInStr);
+            const checkOutDate = new Date(checkOutStr);
+            
+            return blocked >= checkInDate && blocked < checkOutDate;
+          });
+
+          if (isBlocked) {
+            setAvailabilityError('Las fechas seleccionadas no están disponibles');
+          } else {
+            setAvailabilityError(null);
+          }
+        } else {
+          console.warn('⚠️ [PRICE CALCULATOR] No se pudo verificar disponibilidad:', response.error);
+        }
+      } catch (error) {
+        console.error('❌ [PRICE CALCULATOR] Error verificando disponibilidad:', error);
+      } finally {
+        setIsCheckingAvailability(false);
+      }
+    };
+
+    checkAvailability();
+  }, [checkIn, checkOut, property.id, hasValidDates, availability.minNights, availability.maxNights]);
 
   if (hasValidDates && checkIn && checkOut) {
     const validation = validateBookingDates(
@@ -52,7 +137,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       availability.maxNights
     );
 
-    if (validation.valid) {
+    if (validation.valid && !availabilityError) {
       try {
         priceBreakdown = calculatePriceBreakdown(
           pricing,
@@ -65,7 +150,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
         validationError = 'Error calculando precio. Por favor, intenta de nuevo.';
       }
     } else {
-      validationError = validation.error || 'Fechas inválidas';
+      validationError = availabilityError || validation.error || 'Fechas inválidas';
     }
   }
 
@@ -136,59 +221,19 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
         )}
       </div>
 
-      {/* Selectores de Fechas */}
-      <div className="border border-gray-300 rounded-lg mb-3 overflow-hidden">
-        {/* Check-in */}
-        <button
-          onClick={() => {
-            if (!checkIn) {
-              const today = new Date();
-              const tomorrow = addDays(today, 1);
-              setCheckIn(tomorrow);
-              if (!checkOut) {
-                setCheckOut(addDays(tomorrow, availability.minNights));
-              }
-            } else {
-              setCheckIn(null);
-              setCheckOut(null);
-            }
+      {/* Calendario de Disponibilidad */}
+      <div className="mb-3">
+        <AvailabilityCalendar
+          propertyId={property.id}
+          checkIn={checkIn || undefined}
+          checkOut={checkOut || undefined}
+          minNights={availability.minNights}
+          maxNights={availability.maxNights}
+          onDateSelect={(newCheckIn, newCheckOut) => {
+            setCheckIn(newCheckIn);
+            setCheckOut(newCheckOut);
           }}
-          className="w-full flex items-center justify-between p-3 border-b border-gray-300 hover:bg-gray-50 transition-colors text-left"
-        >
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-gray-600" />
-            <div>
-              <div className="text-xs font-semibold text-gray-700 uppercase">Check-in</div>
-              <div className="text-sm text-gray-900">
-                {checkIn ? format(checkIn, 'dd/MM/yyyy', { locale: es }) : 'Agregar fecha'}
-              </div>
-            </div>
-          </div>
-        </button>
-
-        {/* Check-out */}
-        <button
-          onClick={() => {
-            if (!checkOut && checkIn) {
-              setCheckOut(addDays(checkIn, availability.minNights));
-            } else if (checkOut) {
-              setCheckOut(null);
-            } else {
-              toast.info('Primero selecciona fecha de entrada');
-            }
-          }}
-          className="w-full flex items-center justify-between p-3 hover:bg-gray-50 transition-colors text-left"
-        >
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-gray-600" />
-            <div>
-              <div className="text-xs font-semibold text-gray-700 uppercase">Check-out</div>
-              <div className="text-sm text-gray-900">
-                {checkOut ? format(checkOut, 'dd/MM/yyyy', { locale: es }) : 'Agregar fecha'}
-              </div>
-            </div>
-          </div>
-        </button>
+        />
       </div>
 
       {/* Selector de Huéspedes */}
@@ -242,10 +287,14 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       {hasValidDates ? (
         <Button
           onClick={handleReserve}
-          disabled={!!validationError}
+          disabled={!!validationError || isCheckingAvailability}
           className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {validationError ? 'Fechas inválidas' : 'Ir a checkout'}
+          {isCheckingAvailability 
+            ? 'Verificando disponibilidad...' 
+            : validationError 
+              ? 'Fechas inválidas' 
+              : 'Ir a checkout'}
         </Button>
       ) : (
         <Button

@@ -62,7 +62,7 @@ export default function OfferTopBar({
 
   return (
     <div 
-      className={`w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden transition-all duration-300 ${
+      className={`sticky top-16 z-40 w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden transition-all duration-300 ${
         isVisible ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0'
       }`}
     >
