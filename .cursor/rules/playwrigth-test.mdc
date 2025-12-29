@@ -43,9 +43,11 @@ Actúa como un QA tester profesional y revisa el flujo de usuario especificado u
   "email": "armando@yahoo.es"
   "password": "Pecholobo33,,"
 
+## IMPORTANTE siempre buscar documentacion##
 
- API BACKEND REST DOCUMENTACION:
- https://documenter.getpostman.com/view/49801848/2sB3dSP8Kg
+ siempre buscar en la documentacion:
+  docs\API_Rest_documentation.json
+  ASEGURATE DE BUSAR LA ESCTRUCTURA CORRECTA Y LOS ENDPOINTS DISPONIBLES
 
 ### PASO 5: Verificaciones Adicionales
 - Verificar que los datos se guardan en `{{STORAGE_TYPE}}` con clave `{{STORAGE_KEY}}`

@@ -27,31 +27,57 @@ export default function ImageGalleryModal({
   initialIndex = 0
 }: ImageGalleryModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const placeholderImage = '/placeholder-property.jpg';
 
   // Helper para determinar si es Base64
   const isBase64 = (src: string) => {
     return src.startsWith('data:image/') || src.startsWith('data:image%2F');
   };
 
+  const handleImageError = (index: number, isPlaceholder: boolean = false) => {
+    // Solo marcar error si NO es el placeholder (evitar bucles infinitos)
+    if (!isPlaceholder) {
+      setImageErrors(prev => {
+        // Solo agregar si no está ya en el set (evitar re-renders innecesarios)
+        if (prev.has(index)) {
+          return prev;
+        }
+        const newSet = new Set(prev);
+        newSet.add(index);
+        return newSet;
+      });
+      console.warn(`⚠️ [IMAGE GALLERY MODAL] Error cargando imagen ${index} de ${title}`);
+    }
+  };
+
   // Helper para renderizar imagen
-  const renderImage = (src: string, alt: string, className: string, useFill: boolean = true) => {
-    if (isBase64(src)) {
+  const renderImage = (src: string, alt: string, className: string, useFill: boolean = true, priority: boolean = false, index: number = 0) => {
+    const hasError = imageErrors.has(index);
+    const imageSrc = hasError ? placeholderImage : src;
+    const isPlaceholder = imageSrc === placeholderImage || hasError;
+    
+    if (isBase64(imageSrc)) {
       if (useFill) {
         return (
           <img
-            src={src}
+            src={imageSrc}
             alt={alt}
             className={className}
             style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+            loading={priority ? 'eager' : 'lazy'}
+            onError={() => handleImageError(index, isPlaceholder)}
           />
         );
       } else {
         return (
           <img
-            src={src}
+            src={imageSrc}
             alt={alt}
             className={className}
             style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+            loading="lazy"
+            onError={() => handleImageError(index, isPlaceholder)}
           />
         );
       }
@@ -59,22 +85,26 @@ export default function ImageGalleryModal({
     if (useFill) {
       return (
         <Image
-          src={src}
+          src={imageSrc}
           alt={alt}
           fill
           className={className}
           sizes="100vw"
-          priority
+          priority={priority}
+          loading={priority ? undefined : 'lazy'}
+          onError={() => handleImageError(index, isPlaceholder)}
         />
       );
     } else {
       return (
         <Image
-          src={src}
+          src={imageSrc}
           alt={alt}
           fill
           className={className}
           sizes="(max-width: 768px) 25vw, 10vw"
+          loading="lazy"
+          onError={() => handleImageError(index, isPlaceholder)}
         />
       );
     }
@@ -135,7 +165,10 @@ export default function ImageGalleryModal({
           {renderImage(
             images[currentIndex],
             `${title} - ${currentIndex + 1}`,
-            "object-contain"
+            "object-contain",
+            true,
+            true, // Priority para imagen principal visible
+            currentIndex
           )}
 
           {/* Botones de Navegación */}
@@ -178,7 +211,12 @@ export default function ImageGalleryModal({
                   img,
                   `Thumbnail ${idx + 1}`,
                   "object-cover",
-                  true
+                  false,
+                  false,
+                  idx
+                )}
+                  true,
+                  false // Lazy loading para thumbnails
                 )}
               </button>
             ))}

@@ -31,6 +31,7 @@ function SearchPageContent() {
     const adults = searchParams.get('adults');
     const propertyType = searchParams.get('propertyType');
     const amenities = searchParams.get('amenities');
+    const category = searchParams.get('category'); // Nueva categoría especial
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
 
@@ -53,14 +54,17 @@ function SearchPageContent() {
     
     // Mapear propertyType de URL a roomType
     if (propertyType) {
-      // Los filtros rápidos usan: house, apartment, villa, cabin
-      // Mapearlos a los tipos RoomType correctos
-      const roomTypeMap: Record<string, any> = {
+      // Mapear todos los valores válidos de RoomType según el backend
+      // Valores válidos: 'apartment' | 'house' | 'villa' | 'loft' | 'cabin' | 'hotel' | 'cottage' | 'castle'
+      const roomTypeMap: Record<string, 'apartment' | 'house' | 'villa' | 'loft' | 'cabin' | 'hotel' | 'cottage' | 'castle'> = {
         'house': 'house',
         'apartment': 'apartment',
         'villa': 'villa',
         'cabin': 'cabin',
-        'loft': 'loft'
+        'loft': 'loft',
+        'hotel': 'hotel',
+        'cottage': 'cottage',
+        'castle': 'castle'
       };
       
       if (roomTypeMap[propertyType]) {
@@ -81,6 +85,11 @@ function SearchPageContent() {
       // Si hay múltiples amenidades separadas por coma, parsearlas
       const amenitiesList = amenities.split(',').map(a => a.trim());
       newFilters.amenities = amenitiesList as any[];
+    }
+
+    // Filtro de categoría especial (para Montaña, Playa, etc.)
+    if (category) {
+      (newFilters as any).category = category;
     }
 
     // DEBUG: Log en consola (solo para desarrollo)

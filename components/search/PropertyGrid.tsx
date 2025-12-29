@@ -9,7 +9,30 @@ interface PropertyGridProps {
 }
 
 export default function PropertyGrid({ properties }: PropertyGridProps) {
-  if (properties.length === 0) {
+  // Eliminar duplicados por ID y por título+ubicación antes de renderizar (seguridad adicional)
+  const seenIds = new Set<string>();
+  const seenTitleLocation = new Set<string>(); // Para detectar duplicados por título y ubicación
+  
+  const uniqueProperties = properties.filter(property => {
+    // Verificar por ID primero
+    if (seenIds.has(property.id)) {
+      console.warn(`⚠️ [PROPERTY GRID] Propiedad duplicada por ID eliminada: ${property.id} - ${property.title}`);
+      return false;
+    }
+    
+    // Verificar por título+ubicación
+    const titleLocationKey = `${(property.title || '').toLowerCase().trim()}|${(property.location?.city || '').toLowerCase().trim()}|${(property.location?.country || '').toLowerCase().trim()}`;
+    if (seenTitleLocation.has(titleLocationKey)) {
+      console.warn(`⚠️ [PROPERTY GRID] Propiedad duplicada por título+ubicación eliminada: ${property.id} - ${property.title} (${property.location?.city})`);
+      return false;
+    }
+    
+    seenIds.add(property.id);
+    seenTitleLocation.add(titleLocationKey);
+    return true;
+  });
+
+  if (uniqueProperties.length === 0) {
     return (
       <div className="col-span-full text-center py-16">
         <p className="text-lg text-gray-500">No se encontraron propiedades</p>
@@ -22,7 +45,7 @@ export default function PropertyGrid({ properties }: PropertyGridProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {properties.map((property) => (
+      {uniqueProperties.map((property) => (
         <PropertyCard key={property.id} property={property} />
       ))}
     </div>

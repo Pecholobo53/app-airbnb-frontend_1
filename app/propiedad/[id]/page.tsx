@@ -197,10 +197,66 @@ export default function PropertyDetailPage() {
     return (
       <div className="min-h-screen bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse">
-            <div className="h-96 bg-gray-200 rounded-lg mb-8" />
-            <div className="h-8 bg-gray-200 rounded w-3/4 mb-4" />
-            <div className="h-4 bg-gray-200 rounded w-1/2" />
+          <div className="animate-pulse space-y-8">
+            {/* Gallery skeleton */}
+            <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[500px] rounded-xl">
+              <div className="col-span-2 row-span-2 bg-gray-200 rounded-lg" />
+              <div className="bg-gray-200 rounded-lg" />
+              <div className="bg-gray-200 rounded-lg" />
+              <div className="bg-gray-200 rounded-lg" />
+              <div className="bg-gray-200 rounded-lg" />
+            </div>
+            <div className="md:hidden h-64 bg-gray-200 rounded-lg" />
+            
+            {/* Header skeleton */}
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded w-3/4" />
+              <div className="flex items-center gap-4">
+                <div className="h-6 bg-gray-200 rounded w-24" />
+                <div className="h-6 bg-gray-200 rounded w-32" />
+                <div className="h-6 bg-gray-200 rounded w-20" />
+              </div>
+            </div>
+            
+            {/* Info skeleton */}
+            <div className="space-y-4 border-b border-gray-200 pb-8">
+              <div className="h-6 bg-gray-200 rounded w-1/2" />
+              <div className="flex gap-6">
+                <div className="h-5 bg-gray-200 rounded w-20" />
+                <div className="h-5 bg-gray-200 rounded w-24" />
+                <div className="h-5 bg-gray-200 rounded w-16" />
+                <div className="h-5 bg-gray-200 rounded w-20" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full" />
+                <div className="h-4 bg-gray-200 rounded w-5/6" />
+                <div className="h-4 bg-gray-200 rounded w-4/6" />
+              </div>
+            </div>
+            
+            {/* Amenities skeleton */}
+            <div className="space-y-4 border-b border-gray-200 pb-8">
+              <div className="h-6 bg-gray-200 rounded w-48" />
+              <div className="grid grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-gray-200 rounded" />
+                    <div className="h-4 bg-gray-200 rounded w-32" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Price calculator skeleton */}
+            <div className="lg:col-span-1">
+              <div className="border border-gray-200 rounded-xl p-6 space-y-4">
+                <div className="h-8 bg-gray-200 rounded w-1/2" />
+                <div className="h-12 bg-gray-200 rounded" />
+                <div className="h-12 bg-gray-200 rounded" />
+                <div className="h-12 bg-gray-200 rounded" />
+                <div className="h-12 bg-gray-200 rounded w-full" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -276,12 +332,12 @@ export default function PropertyDetailPage() {
 
             {/* Amenidades */}
             {property.amenities && (
-              <AmenitiesList amenities={property.amenities} />
+            <AmenitiesList amenities={property.amenities} />
             )}
 
             {/* Anfitrión */}
             {property.host && (
-              <HostSection host={property.host} />
+            <HostSection host={property.host} />
             )}
 
             {/* Reviews */}
@@ -293,7 +349,7 @@ export default function PropertyDetailPage() {
 
             {/* Mapa */}
             {property.location && (
-              <PropertyMap location={property.location} />
+            <PropertyMap location={property.location} />
             )}
 
             {/* Reglas */}

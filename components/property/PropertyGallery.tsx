@@ -31,26 +31,53 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
     return src.startsWith('data:image/') || src.startsWith('data:image%2F');
   };
 
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const placeholderImage = '/placeholder-property.jpg';
+
+  const handleImageError = (index: number, isPlaceholder: boolean = false) => {
+    // Solo marcar error si NO es el placeholder (evitar bucles infinitos)
+    if (!isPlaceholder) {
+      setImageErrors(prev => {
+        // Solo agregar si no está ya en el set (evitar re-renders innecesarios)
+        if (prev.has(index)) {
+          return prev;
+        }
+        const newSet = new Set(prev);
+        newSet.add(index);
+        return newSet;
+      });
+      console.warn(`⚠️ [PROPERTY GALLERY] Error cargando imagen ${index} de ${title}`);
+    }
+  };
+
   // Helper para renderizar imagen (Next.js Image para URLs, img para Base64)
-  const renderImage = (src: string, alt: string, className: string, sizes?: string, priority?: boolean) => {
-    if (isBase64(src)) {
+  const renderImage = (src: string, alt: string, className: string, sizes?: string, priority?: boolean, index: number = 0) => {
+    const hasError = imageErrors.has(index);
+    const imageSrc = hasError ? placeholderImage : src;
+    const isPlaceholder = imageSrc === placeholderImage || hasError;
+    
+    if (isBase64(imageSrc)) {
       return (
         <img
-          src={src}
+          src={imageSrc}
           alt={alt}
           className={className}
-          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+          style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+          loading={priority ? 'eager' : 'lazy'}
+          onError={() => handleImageError(index, isPlaceholder)}
         />
       );
     }
     return (
       <Image
-        src={src}
+        src={imageSrc}
         alt={alt}
         fill
         className={className}
         sizes={sizes}
         priority={priority}
+        loading={priority ? undefined : 'lazy'}
+        onError={() => handleImageError(index, isPlaceholder)}
       />
     );
   };
@@ -71,33 +98,36 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
   return (
     <>
       {/* Desktop Grid */}
-      <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[500px] rounded-xl overflow-hidden">
+      <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[500px] rounded-xl overflow-hidden bg-gray-100">
         {/* Imagen principal (2x2) */}
         <div
-          className="col-span-2 row-span-2 relative cursor-pointer group"
+          className="col-span-2 row-span-2 relative cursor-pointer group bg-white rounded-lg overflow-hidden"
           onClick={() => handleImageClick(0)}
         >
           {renderImage(
             displayImages[0],
             `${title} - 1`,
-            "object-cover group-hover:brightness-90 transition-all",
+            "object-contain group-hover:brightness-90 transition-all",
             "(max-width: 768px) 100vw, 50vw",
-            true
+            true,
+            0
           )}
         </div>
 
-        {/* Imágenes secundarias (1x1 cada una) */}
+        {/* Imágenes secundarias (1x1 cada una) - Lazy loading */}
         {displayImages.slice(1, 5).map((img, idx) => (
           <div
             key={idx}
-            className="relative cursor-pointer group"
+            className="relative cursor-pointer group bg-white rounded-lg overflow-hidden"
             onClick={() => handleImageClick(idx + 1)}
           >
             {renderImage(
               img,
               `${title} - ${idx + 2}`,
-              "object-cover group-hover:brightness-90 transition-all",
-              "(max-width: 768px) 100vw, 25vw"
+              "object-contain group-hover:brightness-90 transition-all",
+              "(max-width: 768px) 100vw, 25vw",
+              false, // Lazy loading para imágenes secundarias
+              idx + 1
             )}
             {/* Mostrar contador en última imagen */}
             {idx === 3 && remainingCount > 0 && (
@@ -125,14 +155,17 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
       </div>
 
       {/* Mobile Carousel - Simple first image with button */}
-      <div className="md:hidden relative h-64 rounded-lg overflow-hidden">
-        {renderImage(
-          displayImages[0],
-          title,
-          "object-cover",
-          "100vw",
-          true
-        )}
+      <div className="md:hidden relative h-64 rounded-lg overflow-hidden bg-gray-100">
+        <div className="w-full h-full bg-white rounded-lg overflow-hidden">
+          {renderImage(
+            displayImages[0],
+            title,
+            "object-contain",
+            "100vw",
+            true,
+            0
+          )}
+        </div>
         {/* Botón "Ver todas las fotos" - Centrado en mobile */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
           <Button

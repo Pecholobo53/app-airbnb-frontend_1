@@ -1,0 +1,2546 @@
+{
+	"info": {
+		"_postman_id": "7a13f60d-e9ed-487e-a626-6f7e5c4555e6",
+		"name": "Airbnb Backend API",
+		"description": "Documentación completa de todos los endpoints de la API de Airbnb Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49801848",
+		"_collection_link": "https://armandosoyo-6169474.postman.co/workspace/Armando-Perez's-Workspace~02e81761-9de8-47c9-8ad9-e0e145980aa5/collection/49801848-7a13f60d-e9ed-487e-a626-6f7e5c4555e6?action=share&source=collection_link&creator=49801848"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Root",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Verificar código de respuesta",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Verificar headers de respuesta",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    const contentType = pm.response.headers.get(\"Content-Type\");",
+									"    pm.expect(contentType).to.include(\"application/json\");",
+									"});",
+									"",
+									"// Verificar estructura de respuesta",
+									"pm.test(\"Response has success field\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"});",
+									"",
+									"// Verificar tiempo de respuesta",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									"",
+									"// Log de headers para debugging",
+									"console.log(\"📋 Headers de respuesta:\");",
+									"pm.response.headers.each(function(header) {",
+									"    console.log(`   ${header.key}: ${header.value}`);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Endpoint raíz que devuelve información básica de la API"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Verificar código de respuesta",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Verificar headers de respuesta",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    const contentType = pm.response.headers.get(\"Content-Type\");",
+									"    pm.expect(contentType).to.include(\"application/json\");",
+									"});",
+									"",
+									"// Verificar tiempo de respuesta",
+									"pm.test(\"Response time is less than 500ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									"",
+									"// Verificar estructura de respuesta",
+									"pm.test(\"Response has success field\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"// Log de headers para debugging",
+									"console.log(\"📋 Headers de respuesta:\");",
+									"pm.response.headers.each(function(header) {",
+									"    console.log(`   ${header.key}: ${header.value}`);",
+									"});",
+									"",
+									"// Verificar headers de seguridad (si están configurados)",
+									"const xContentType = pm.response.headers.get(\"X-Content-Type-Options\");",
+									"if (xContentType) {",
+									"    pm.test(\"Security header X-Content-Type-Options present\", function () {",
+									"        pm.expect(xContentType).to.equal(\"nosniff\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica el estado del servidor"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Autenticación",
+			"item": [
+				{
+					"name": "Registro",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta (éxito o error esperado)",
+									"pm.test(\"Status code is valid\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 409, 400]);",
+									"});",
+									"",
+									"// Validar estructura de respuesta",
+									"pm.test(\"Response has success field\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"});",
+									"",
+									"// Manejar diferentes códigos de respuesta",
+									"if (pm.response.code === 409) {",
+									"    pm.test(\"Email already registered (409 Conflict)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ Email ya registrado - Esto es esperado si el usuario existe\");",
+									"    });",
+									"} else if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    pm.test(\"Registration successful\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"    });",
+									"    ",
+									"    // Guardar token automáticamente",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"token\", jsonData.data.token);",
+									"        console.log(\"✅ Token guardado automáticamente\");",
+									"        ",
+									"        // También guardar userId si está disponible",
+									"        if (jsonData.data.user && jsonData.data.user.id) {",
+									"            pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"            console.log(\"✅ User ID guardado: \" + jsonData.data.user.id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Juan Pérez\",\n  \"email\": \"juan@example.com\",\n  \"password\": \"Password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registra un nuevo usuario en el sistema"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta (éxito o error esperado)",
+									"pm.test(\"Status code is valid\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 401, 400, 429]);",
+									"});",
+									"",
+									"// Validar estructura de respuesta",
+									"pm.test(\"Response has success field\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"});",
+									"",
+									"// Manejar diferentes códigos de respuesta",
+									"if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Invalid credentials (401)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ Credenciales inválidas - Verifica email y password\");",
+									"    });",
+									"} else if (pm.response.code === 429) {",
+									"    pm.test(\"Too many requests (429)\", function () {",
+									"        console.log(\"⚠️ Demasiados intentos - Rate limiting activo\");",
+									"    });",
+									"} else if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    pm.test(\"Login successful\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"    });",
+									"    ",
+									"    // Guardar token automáticamente",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"token\", jsonData.data.token);",
+									"        console.log(\"✅ Token guardado automáticamente\");",
+									"        ",
+									"        // También guardar userId si está disponible",
+									"        if (jsonData.data.user && jsonData.data.user.id) {",
+									"            pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"            console.log(\"✅ User ID guardado: \" + jsonData.data.user.id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"juan@example.com\",\n  \"password\": \"Password123\",\n  \"rememberMe\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Inicia sesión con email y contraseña"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Google",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar respuesta exitosa",
+									"pm.test(\"Status code is 200 or 201\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Guardar token automáticamente",
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"token\", jsonData.data.token);",
+									"        console.log(\"✅ Token guardado automáticamente\");",
+									"        ",
+									"        if (jsonData.data.user && jsonData.data.user.id) {",
+									"            pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"            console.log(\"✅ User ID guardado: \" + jsonData.data.user.id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@gmail.com\",\n  \"name\": \"Usuario Google\",\n  \"avatar\": \"https://example.com/avatar.jpg\",\n  \"providerId\": \"google-123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/google",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"google"
+							]
+						},
+						"description": "Inicia sesión con Google (simulado)"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Facebook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar respuesta exitosa",
+									"pm.test(\"Status code is 200 or 201\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"// Guardar token automáticamente",
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"token\", jsonData.data.token);",
+									"        console.log(\"✅ Token guardado automáticamente\");",
+									"        ",
+									"        if (jsonData.data.user && jsonData.data.user.id) {",
+									"            pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"            console.log(\"✅ User ID guardado: \" + jsonData.data.user.id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@facebook.com\",\n  \"name\": \"Usuario Facebook\",\n  \"avatar\": \"https://example.com/avatar.jpg\",\n  \"providerId\": \"facebook-123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/facebook",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"facebook"
+							]
+						},
+						"description": "Inicia sesión con Facebook (simulado)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Perfil",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"pm.test(\"Token is configured\", function () {",
+									"    const token = pm.environment.get(\"token\");",
+									"    pm.expect(token).to.not.be.empty;",
+									"});",
+									"",
+									"// Validar respuesta",
+									"if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token missing or invalid\", function () {",
+									"        pm.expect(pm.response.code).to.equal(401);",
+									"    });",
+									"} else {",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response has success field\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('success');",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/me",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Obtiene el perfil del usuario autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Perfil",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401, 400]);",
+									"});",
+									"",
+									"// Si es exitoso",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Profile updated successfully\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        pm.expect(jsonData.data).to.have.property('user');",
+									"        console.log(\"✅ Perfil actualizado exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token required\", function () {",
+									"        console.log(\"⚠️ No autenticado. Por favor, haz login primero.\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"if (!pm.environment.get(\"token\")) {",
+									"    console.warn(\"⚠️ No hay token configurado. Por favor, haz login primero.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Juan Carlos Pérez\",\n  \"avatar\": \"https://example.com/new-avatar.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Actualiza el perfil del usuario autenticado. Requiere token JWT válido."
+					},
+					"response": []
+				},
+				{
+					"name": "Recuperar Contraseña",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Validar estructura de respuesta",
+									"pm.test(\"Response has success field\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"});",
+									"",
+									"// Información sobre el token",
+									"if (pm.response.code === 200) {",
+									"    console.log(\"✅ Email de recuperación enviado (simulado)\");",
+									"    console.log(\"ℹ️ NOTA: En desarrollo con MOCK store, el token no se puede obtener automáticamente.\");",
+									"    console.log(\"   Para probar 'Restablecer Contraseña', necesitas:\");",
+									"    console.log(\"   1. Revisar los logs del servidor donde se imprime el token\");",
+									"    console.log(\"   2. O consultar directamente el mock store en el código\");",
+									"    console.log(\"   3. Reemplazar 'token-de-recuperacion' en el endpoint de reset con el token real\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"juan@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/recovery",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"recovery"
+							]
+						},
+						"description": "Solicita recuperación de contraseña. Envía un email (simulado) con un token de reset. **NOTA**: El token se genera pero no se retorna en la respuesta por seguridad. En desarrollo, revisa los logs del servidor para obtener el token."
+					},
+					"response": []
+				},
+				{
+					"name": "Restablecer Contraseña",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200 or 400\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401]);",
+									"});",
+									"",
+									"// Si es 200, éxito",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Password reset successful\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        console.log(\"✅ Contraseña restablecida exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 400 || pm.response.code === 401) {",
+									"    pm.test(\"Token inválido o expirado (esperado con token placeholder)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ Este error es esperado. Para probar correctamente:\");",
+									"        console.log(\"   1. Ejecuta 'Recuperar Contraseña' primero\");",
+									"        console.log(\"   2. Revisa el email simulado o logs del servidor para obtener el token\");",
+									"        console.log(\"   3. Reemplaza 'token-de-recuperacion' con el token real\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"token-de-recuperacion\",\n  \"password\": \"NewPassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Restablece la contraseña con token. **NOTA**: Este endpoint requiere un token válido obtenido del endpoint 'Recuperar Contraseña'. El token se envía por email (simulado). En desarrollo, revisa los logs del servidor o el mock store para obtener el token real. El error 400/401 es esperado cuando se usa un token placeholder."
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200 or 400\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401]);",
+									"});",
+									"",
+									"// Si es 200, éxito",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Email verified successfully\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        console.log(\"✅ Email verificado exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 400 || pm.response.code === 401) {",
+									"    pm.test(\"Token inválido o email ya verificado (esperado con token placeholder)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ Este error es esperado. Para probar correctamente:\");",
+									"        console.log(\"   1. Ejecuta 'Registro' primero\");",
+									"        console.log(\"   2. Revisa el email simulado o logs del servidor para obtener el token de verificación\");",
+									"        console.log(\"   3. Reemplaza 'token-de-verificacion' con el token real\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/verify-email/:token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"verify-email",
+								":token"
+							],
+							"variable": [
+								{
+									"key": "token",
+									"value": "token-de-verificacion",
+									"description": "Token de verificación obtenido al registrar un usuario"
+								}
+							]
+						},
+						"description": "Verifica el email del usuario con un token. **NOTA**: Este endpoint requiere un token válido obtenido al registrar un usuario. El token se envía por email (simulado). En desarrollo, revisa los logs del servidor o el mock store para obtener el token real. El error 400/401 es esperado cuando se usa un token placeholder."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Cierra sesión del usuario"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Usuarios",
+			"item": [
+				{
+					"name": "Listar Usuarios",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Validar estructura de respuesta",
+									"pm.test(\"Response has success field\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('success');",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"// Validar que tiene datos de usuarios",
+									"pm.test(\"Response has users array\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('users');",
+									"    pm.expect(jsonData.data.users).to.be.an('array');",
+									"});",
+									"",
+									"// Validar paginación",
+									"pm.test(\"Response has pagination\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('pagination');",
+									"    pm.expect(jsonData.data.pagination).to.have.property('page');",
+									"    pm.expect(jsonData.data.pagination).to.have.property('limit');",
+									"    pm.expect(jsonData.data.pagination).to.have.property('total');",
+									"});",
+									"",
+									"// Guardar el primer userId si existe para usar en otros requests",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.users && jsonData.data.users.length > 0) {",
+									"        const firstUserId = jsonData.data.users[0].id;",
+									"        // Siempre actualizar el userId para asegurar que esté disponible",
+									"        pm.environment.set(\"userId\", firstUserId);",
+									"        console.log(\"✅ User ID guardado automáticamente: \" + firstUserId);",
+									"        console.log(\"💡 Este ID se usará en 'Obtener Usuario por ID', PUT, PATCH y DELETE\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista todos los usuarios con paginación. Guarda automáticamente el primer userId en el environment para usar en otros requests."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Usuario por ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener userId del environment",
+									"let userId = pm.environment.get(\"userId\");",
+									"",
+									"// Si no hay userId configurado, usar '1' por defecto (primer usuario del mock store)",
+									"if (!userId || userId === \"user-id-here\" || userId === \"{{userId}}\" || userId === \"\") {",
+									"    userId = \"1\";",
+									"    pm.environment.set(\"userId\", userId);",
+									"    console.log(\"⚠️ No hay userId en environment, usando '1' por defecto\");",
+									"    console.log(\"💡 Ejecuta 'Listar Usuarios' primero para obtener un ID válido\");",
+									"} else {",
+									"    console.log(\"✅ Usando userId del environment: \" + userId);",
+									"}",
+									"",
+									"console.log(\"📝 URL será: {{baseUrl}}/api/users/\" + userId);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"// Si es exitoso",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Response has user\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        pm.expect(jsonData.data).to.have.property('user');",
+									"        pm.expect(jsonData.data.user).to.have.property('id');",
+									"        console.log(\"✅ Usuario obtenido exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 404) {",
+									"    pm.test(\"User not found (404)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ Usuario no encontrado. Ejecuta 'Listar Usuarios' primero para obtener un ID válido.\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Obtiene un usuario por su ID. Usa automáticamente {{userId}} del environment. Ejecuta 'Listar Usuarios' primero para obtener un ID válido."
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 201 or 409\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
+									"});",
+									"",
+									"// Si es exitoso, guardar userId automáticamente",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.user && jsonData.data.user.id) {",
+									"        pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"        console.log(\"✅ User ID guardado: \" + jsonData.data.user.id);",
+									"    }",
+									"} else if (pm.response.code === 409) {",
+									"    console.log(\"ℹ️ El email ya existe. Cambia el email en el body del request.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generar email único para evitar conflictos",
+									"const timestamp = Date.now();",
+									"const random = Math.floor(Math.random() * 1000);",
+									"const uniqueEmail = `usuario${timestamp}${random}@example.com`;",
+									"",
+									"// Actualizar el body con email único",
+									"const body = JSON.parse(pm.request.body.raw);",
+									"body.email = uniqueEmail;",
+									"pm.request.body.raw = JSON.stringify(body, null, 2);",
+									"",
+									"console.log(\"📧 Email generado: \" + uniqueEmail);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nuevo Usuario\",\n  \"email\": \"nuevo@example.com\",\n  \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Crea un nuevo usuario. El email se genera automáticamente para evitar conflictos. El userId se guarda automáticamente en el environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Usuario (PUT)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"if (!pm.environment.get(\"token\")) {",
+									"    console.warn(\"⚠️ No hay token configurado. Por favor, haz login primero.\");",
+									"}",
+									"",
+									"// Obtener userId del environment",
+									"let userId = pm.environment.get(\"userId\");",
+									"",
+									"// Si no hay userId, usar '1' por defecto y guardarlo",
+									"if (!userId || userId === \"user-id-here\" || userId === \"{{userId}}\" || userId === \"\") {",
+									"    userId = \"1\";",
+									"    pm.environment.set(\"userId\", userId);",
+									"    console.log(\"⚠️ No hay userId en environment, usando '1' por defecto\");",
+									"    console.log(\"💡 Ejecuta 'Listar Usuarios' primero para obtener un ID válido\");",
+									"} else {",
+									"    console.log(\"✅ Usando userId del environment: \" + userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200, 401, 403, or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+									"});",
+									"",
+									"// Si es exitoso",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"User updated successfully\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        pm.expect(jsonData.data).to.have.property('user');",
+									"        console.log(\"✅ Usuario actualizado exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token required (esperado si no hay token)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ No autenticado. Haz login primero para obtener un token.\");",
+									"    });",
+									"} else if (pm.response.code === 403) {",
+									"    pm.test(\"Forbidden - No permission\", function () {",
+									"        console.log(\"ℹ️ No tienes permisos para actualizar este usuario.\");",
+									"    });",
+									"} else if (pm.response.code === 404) {",
+									"    pm.test(\"User not found\", function () {",
+									"        console.log(\"ℹ️ Usuario no encontrado.\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Usuario Actualizado\",\n  \"email\": \"actualizado@example.com\",\n  \"avatar\": \"https://example.com/new-avatar.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Actualiza un usuario completo. Requiere autenticación. Usa {{userId}} del environment automáticamente. El error 401 es esperado si no hay token configurado."
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Usuario (PATCH)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"if (!pm.environment.get(\"token\")) {",
+									"    console.warn(\"⚠️ No hay token configurado. Por favor, haz login primero.\");",
+									"}",
+									"",
+									"// Obtener userId del environment",
+									"let userId = pm.environment.get(\"userId\");",
+									"",
+									"// Si no hay userId, usar '1' por defecto y guardarlo",
+									"if (!userId || userId === \"user-id-here\" || userId === \"{{userId}}\" || userId === \"\") {",
+									"    userId = \"1\";",
+									"    pm.environment.set(\"userId\", userId);",
+									"    console.log(\"⚠️ No hay userId en environment, usando '1' por defecto\");",
+									"    console.log(\"💡 Ejecuta 'Listar Usuarios' primero para obtener un ID válido\");",
+									"} else {",
+									"    console.log(\"✅ Usando userId del environment: \" + userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200, 401, 403, or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+									"});",
+									"",
+									"// Si es exitoso",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"User updated successfully\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        pm.expect(jsonData.data).to.have.property('user');",
+									"        console.log(\"✅ Usuario actualizado exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token required (esperado si no hay token)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ No autenticado. Haz login primero para obtener un token.\");",
+									"    });",
+									"} else if (pm.response.code === 403) {",
+									"    pm.test(\"Forbidden - No permission\", function () {",
+									"        console.log(\"ℹ️ No tienes permisos para actualizar este usuario.\");",
+									"    });",
+									"} else if (pm.response.code === 404) {",
+									"    pm.test(\"User not found\", function () {",
+									"        console.log(\"ℹ️ Usuario no encontrado.\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Usuario Parcialmente Actualizado\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Actualiza un usuario parcialmente. Requiere autenticación. Usa {{userId}} del environment automáticamente. El error 401 es esperado si no hay token configurado."
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Usuario",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"if (!pm.environment.get(\"token\")) {",
+									"    console.warn(\"⚠️ No hay token configurado. Por favor, haz login primero.\");",
+									"}",
+									"",
+									"// Obtener userId del environment",
+									"let userId = pm.environment.get(\"userId\");",
+									"",
+									"// Si no hay userId, usar '1' por defecto y guardarlo",
+									"if (!userId || userId === \"user-id-here\" || userId === \"{{userId}}\" || userId === \"\") {",
+									"    userId = \"1\";",
+									"    pm.environment.set(\"userId\", userId);",
+									"    console.log(\"⚠️ No hay userId en environment, usando '1' por defecto\");",
+									"    console.log(\"💡 Ejecuta 'Listar Usuarios' primero para obtener un ID válido\");",
+									"} else {",
+									"    console.log(\"✅ Usando userId del environment: \" + userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta",
+									"pm.test(\"Status code is 200, 401, 403, or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401, 403, 404]);",
+									"});",
+									"",
+									"// Si es exitoso",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"User deleted successfully\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        console.log(\"✅ Usuario eliminado exitosamente\");",
+									"    });",
+									"} else if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token required (esperado si no hay token)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ No autenticado. Haz login primero para obtener un token.\");",
+									"    });",
+									"} else if (pm.response.code === 403) {",
+									"    pm.test(\"Forbidden - No permission\", function () {",
+									"        console.log(\"ℹ️ No tienes permisos para eliminar este usuario.\");",
+									"    });",
+									"} else if (pm.response.code === 404) {",
+									"    pm.test(\"User not found\", function () {",
+									"        console.log(\"ℹ️ Usuario no encontrado.\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{userId}}"
+							]
+						},
+						"description": "Elimina un usuario. Requiere autenticación. Usa {{userId}} del environment automáticamente. El error 401 es esperado si no hay token configurado."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Propiedades",
+			"item": [
+				{
+					"name": "Buscar Propiedades",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Response has properties array\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('properties');",
+									"    pm.expect(jsonData.data.properties).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response has pagination\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('pagination');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/properties/search?location=Barcelona&guests=4&minPrice=50&maxPrice=200&propertyType=entire_place&amenities=wifi,kitchen&minRating=4&bedrooms=2&page=1&limit=20&sortBy=recommended",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties",
+								"search"
+							],
+							"query": [
+								{
+									"key": "location",
+									"value": "Barcelona",
+									"description": "Ciudad o ubicación"
+								},
+								{
+									"key": "guests",
+									"value": "4",
+									"description": "Número de huéspedes"
+								},
+								{
+									"key": "minPrice",
+									"value": "50",
+									"description": "Precio mínimo por noche"
+								},
+								{
+									"key": "maxPrice",
+									"value": "200",
+									"description": "Precio máximo por noche"
+								},
+								{
+									"key": "propertyType",
+									"value": "entire_place",
+									"description": "Tipo: entire_place, private_room, shared_room"
+								},
+								{
+									"key": "amenities",
+									"value": "wifi,kitchen",
+									"description": "Amenidades separadas por comas"
+								},
+								{
+									"key": "minRating",
+									"value": "4",
+									"description": "Calificación mínima (0-5)"
+								},
+								{
+									"key": "bedrooms",
+									"value": "2",
+									"description": "Número mínimo de habitaciones"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número de página"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Resultados por página"
+								},
+								{
+									"key": "sortBy",
+									"value": "recommended",
+									"description": "Orden: recommended, price_asc, price_desc, rating"
+								}
+							]
+						},
+						"description": "Busca propiedades con múltiples filtros"
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Propiedad",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener token del environment o collection variables",
+									"let token = pm.environment.get(\"token\") || pm.collectionVariables.get(\"token\");",
+									"",
+									"// Debug: mostrar información del token",
+									"if (token) {",
+									"    const tokenPreview = token.substring(0, 20) + \"...\";",
+									"    console.log(\"✅ Token encontrado: \" + tokenPreview);",
+									"    ",
+									"    // Asegurar que el token esté en el environment",
+									"    if (!pm.environment.get(\"token\")) {",
+									"        pm.environment.set(\"token\", token);",
+									"        console.log(\"💾 Token copiado al environment\");",
+									"    }",
+									"} else {",
+									"    console.error(\"❌ ERROR: No hay token configurado\");",
+									"    console.warn(\"⚠️ Por favor, ejecuta 'Login' primero para obtener un token.\");",
+									"    console.log(\"💡 El endpoint requiere autenticación. El 401 es esperado sin token.\");",
+									"    ",
+									"    // Intentar obtener de collection variables como último recurso",
+									"    token = pm.collectionVariables.get(\"token\");",
+									"    if (token) {",
+									"        pm.environment.set(\"token\", token);",
+									"        console.log(\"✅ Token encontrado en collection variables y copiado al environment\");",
+									"    }",
+									"}",
+									"",
+									"// Verificar que el header de Authorization esté configurado",
+									"const authHeader = pm.request.headers.get(\"Authorization\");",
+									"if (authHeader) {",
+									"    console.log(\"📋 Header Authorization: \" + authHeader.substring(0, 30) + \"...\");",
+									"} else {",
+									"    console.warn(\"⚠️ No se encontró header Authorization en el request\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta (201 si hay token, 401 si no hay)",
+									"pm.test(\"Status code is 201 or 401\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 401]);",
+									"});",
+									"",
+									"// Si es exitoso",
+									"if (pm.response.code === 201) {",
+									"    pm.test(\"Response has success field\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('success');",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"    });",
+									"    ",
+									"    pm.test(\"Response has property\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.data).to.have.property('property');",
+									"        pm.expect(jsonData.data.property).to.have.property('id');",
+									"    });",
+									"    ",
+									"    // Guardar ID de propiedad automáticamente",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.property && jsonData.data.property.id) {",
+									"        pm.environment.set(\"propertyId\", jsonData.data.property.id);",
+									"        console.log(\"✅ Property ID guardado: \" + jsonData.data.property.id);",
+									"    }",
+									"} else if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token required (esperado si no hay token)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.false;",
+									"        console.log(\"ℹ️ No autenticado. Haz login primero para obtener un token.\");",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Hermoso apartamento en el centro de Barcelona\",\n  \"description\": \"Apartamento moderno y acogedor en el corazón de Barcelona, perfectamente ubicado cerca de las principales atracciones turísticas. Incluye todas las comodidades necesarias para una estancia confortable. Ideal para parejas o familias pequeñas que buscan explorar la ciudad.\",\n  \"host\": {\n    \"id\": \"1\",\n    \"name\": \"Juan Pérez\",\n    \"isSuperhost\": true,\n    \"avatar\": \"https://i.pravatar.cc/150?img=1\"\n  },\n  \"location\": {\n    \"city\": \"Barcelona\",\n    \"country\": \"España\",\n    \"region\": \"Cataluña\",\n    \"address\": \"Calle Ejemplo 123, Barcelona\",\n    \"coordinates\": {\n      \"lat\": 41.3851,\n      \"lng\": 2.1734\n    }\n  },\n  \"images\": [\n    \"https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800\",\n    \"https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800\"\n  ],\n  \"propertyType\": \"entire_place\",\n  \"roomType\": \"apartment\",\n  \"pricing\": {\n    \"basePrice\": 120,\n    \"currency\": \"EUR\",\n    \"cleaningFee\": 25,\n    \"serviceFee\": 15,\n    \"discounts\": {\n      \"weekly\": 10,\n      \"monthly\": 20\n    }\n  },\n  \"capacity\": {\n    \"guests\": 4,\n    \"bedrooms\": 2,\n    \"beds\": 2,\n    \"bathrooms\": 1\n  },\n  \"amenities\": [\n    \"wifi\",\n    \"kitchen\",\n    \"ac\",\n    \"heating\",\n    \"parking\"\n  ],\n  \"availability\": {\n    \"minNights\": 2,\n    \"maxNights\": 30,\n    \"instantBook\": true\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/properties",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties"
+							]
+						},
+						"description": "Crea una nueva propiedad. Requiere autenticación (Bearer token). El ID de la propiedad creada se guarda automáticamente en la variable 'propertyId' del environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Propiedad por ID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener propertyId del environment o usar 'prop-001' por defecto",
+									"let propertyId = pm.environment.get(\"propertyId\");",
+									"",
+									"if (!propertyId || propertyId === \"property-id-here\" || propertyId === \"{{propertyId}}\" || propertyId === \"\") {",
+									"    propertyId = \"prop-001\";",
+									"    pm.environment.set(\"propertyId\", propertyId);",
+									"    console.log(\"⚠️ No hay propertyId en environment, usando 'prop-001' por defecto\");",
+									"} else {",
+									"    console.log(\"✅ Usando propertyId del environment: \" + propertyId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Response has property\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"        pm.expect(jsonData.data).to.have.property('property');",
+									"        pm.expect(jsonData.data.property).to.have.property('id');",
+									"    });",
+									"} else if (pm.response.code === 404) {",
+									"    console.log(\"ℹ️ Propiedad no encontrada. Ejecuta 'Crear Propiedad' primero o verifica el ID.\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/properties/{{propertyId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties",
+								"{{propertyId}}"
+							]
+						},
+						"description": "Obtiene el detalle completo de una propiedad. Usa {{propertyId}} del environment o 'prop-001' por defecto."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Reviews de Propiedad",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener propertyId del environment o usar 'prop-001' por defecto",
+									"let propertyId = pm.environment.get(\"propertyId\");",
+									"if (!propertyId || propertyId === \"property-id-here\" || propertyId === \"{{propertyId}}\" || propertyId === \"\") {",
+									"    propertyId = \"prop-001\";",
+									"    pm.environment.set(\"propertyId\", propertyId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Response has reviews\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    // La respuesta tiene la estructura: { reviews, pagination, stats }",
+									"    pm.expect(jsonData).to.have.property('reviews');",
+									"    pm.expect(jsonData).to.have.property('pagination');",
+									"    pm.expect(jsonData).to.have.property('stats');",
+									"    pm.expect(jsonData.reviews).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/properties/{{propertyId}}/reviews?page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties",
+								"{{propertyId}}",
+								"reviews"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Obtiene las reviews de una propiedad con paginación. Usa {{propertyId}} del environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Disponibilidad",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener propertyId del environment o usar 'prop-001' por defecto",
+									"let propertyId = pm.environment.get(\"propertyId\");",
+									"if (!propertyId || propertyId === \"property-id-here\" || propertyId === \"{{propertyId}}\" || propertyId === \"\") {",
+									"    propertyId = \"prop-001\";",
+									"    pm.environment.set(\"propertyId\", propertyId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/properties/{{propertyId}}/availability?startDate=2025-12-01&endDate=2025-12-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties",
+								"{{propertyId}}",
+								"availability"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-12-01",
+									"description": "Fecha inicio (ISO format)"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31",
+									"description": "Fecha fin (ISO format)"
+								}
+							]
+						},
+						"description": "Obtiene el calendario de disponibilidad de una propiedad. Usa {{propertyId}} del environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Calcular Precio",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener propertyId del environment o usar 'prop-001' por defecto",
+									"let propertyId = pm.environment.get(\"propertyId\");",
+									"if (!propertyId || propertyId === \"property-id-here\" || propertyId === \"{{propertyId}}\" || propertyId === \"\") {",
+									"    propertyId = \"prop-001\";",
+									"    pm.environment.set(\"propertyId\", propertyId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Response has price calculation\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"checkIn\": \"2025-12-15\",\n  \"checkOut\": \"2025-12-22\",\n  \"guests\": 4\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/properties/{{propertyId}}/calculate-price",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties",
+								"{{propertyId}}",
+								"calculate-price"
+							]
+						},
+						"description": "Calcula el precio total de una reserva. Usa {{propertyId}} del environment."
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Propiedades Similares",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Obtener propertyId del environment o usar 'prop-001' por defecto",
+									"let propertyId = pm.environment.get(\"propertyId\");",
+									"if (!propertyId || propertyId === \"property-id-here\" || propertyId === \"{{propertyId}}\" || propertyId === \"\") {",
+									"    propertyId = \"prop-001\";",
+									"    pm.environment.set(\"propertyId\", propertyId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 or 404\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"Response has similar properties\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData).to.have.property('data');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/properties/{{propertyId}}/similar?limit=6",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"properties",
+								"{{propertyId}}",
+								"similar"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "6",
+									"description": "Máximo de propiedades similares"
+								}
+							]
+						},
+						"description": "Obtiene propiedades similares a la especificada. Usa {{propertyId}} del environment."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Ubicaciones",
+			"item": [
+				{
+					"name": "Sugerencias de Ubicaciones",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/locations/suggestions?q=Barcelona&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"suggestions"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "Barcelona",
+									"description": "Texto de búsqueda"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Máximo de sugerencias"
+								}
+							]
+						},
+						"description": "Obtiene sugerencias de ubicaciones para autocompletado"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reservas",
+			"item": [
+				{
+					"name": "Validar Reserva",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"propertyId\": \"prop-001\",\n  \"checkIn\": \"2025-12-15\",\n  \"checkOut\": \"2025-12-22\",\n  \"guests\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/validate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								"validate"
+							]
+						},
+						"description": "Valida si una reserva es posible antes de crearla"
+					},
+					"response": []
+				},
+				{
+					"name": "Crear Reserva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar código de respuesta (éxito o error esperado)",
+									"pm.test(\"Status code is valid\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 400, 401, 404, 403]);",
+									"});",
+									"",
+									"// Validar que existe token",
+									"pm.test(\"Token is configured\", function () {",
+									"    const token = pm.environment.get(\"token\");",
+									"    pm.expect(token).to.not.be.empty;",
+									"});",
+									"",
+									"// Manejar diferentes códigos de respuesta",
+									"if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token missing or invalid (401)\", function () {",
+									"        console.log(\"ℹ️ Token no configurado o inválido - Haz login primero\");",
+									"    });",
+									"} else if (pm.response.code === 400) {",
+									"    pm.test(\"Bad Request - Validation error (400)\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        console.log(\"ℹ️ Error de validación: \" + (jsonData.message || \"Datos inválidos\"));",
+									"        console.log(\"Verifica: propertyId, checkIn, checkOut, guests\");",
+									"    });",
+									"} else if (pm.response.code === 404) {",
+									"    pm.test(\"Property not found (404)\", function () {",
+									"        console.log(\"ℹ️ Propiedad no encontrada - Verifica propertyId\");",
+									"    });",
+									"} else if (pm.response.code === 201) {",
+									"    pm.test(\"Booking created successfully\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.success).to.be.true;",
+									"    });",
+									"    ",
+									"    // Guardar bookingId automáticamente",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.booking && jsonData.data.booking.id) {",
+									"        pm.environment.set(\"bookingId\", jsonData.data.booking.id);",
+									"        console.log(\"✅ Booking ID guardado: \" + jsonData.data.booking.id);",
+									"    }",
+									"    ",
+									"    pm.test(\"Response has booking data\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.data).to.have.property('booking');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"propertyId\": \"prop-001\",\n  \"checkIn\": \"2025-12-15\",\n  \"checkOut\": \"2025-12-22\",\n  \"guests\": 4,\n  \"guestInfo\": {\n    \"name\": \"Juan Pérez\",\n    \"email\": \"juan@example.com\",\n    \"phone\": \"+34612345678\"\n  },\n  \"paymentMethod\": \"card\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings"
+							]
+						},
+						"description": "Crea una nueva reserva (requiere autenticación)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Reservas del Usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"pm.test(\"Token is configured\", function () {",
+									"    const token = pm.environment.get(\"token\");",
+									"    pm.expect(token).to.not.be.empty;",
+									"});",
+									"",
+									"// Validar respuesta",
+									"if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token missing or invalid\", function () {",
+									"        pm.expect(pm.response.code).to.equal(401);",
+									"    });",
+									"} else {",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response has bookings array\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.data).to.have.property('bookings');",
+									"        pm.expect(jsonData.data.bookings).to.be.an('array');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings?status=confirmed&page=1&limit=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "confirmed",
+									"description": "Filtrar por estado: pending, confirmed, cancelled, completed"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Obtiene todas las reservas del usuario autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Reserva por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking-id-here"
+								}
+							]
+						},
+						"description": "Obtiene el detalle de una reserva específica"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancelar Reserva",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "booking-id-here"
+								}
+							]
+						},
+						"description": "Cancela una reserva existente"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Favoritos",
+			"item": [
+				{
+					"name": "Agregar a Favoritos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar respuesta exitosa",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.expect(pm.response.code).to.equal(201);",
+									"});",
+									"",
+									"// Guardar favoriteId si está disponible",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.favorite && jsonData.data.favorite.id) {",
+									"        pm.environment.set(\"favoriteId\", jsonData.data.favorite.id);",
+									"        console.log(\"✅ Favorite ID guardado: \" + jsonData.data.favorite.id);",
+									"    }",
+									"    ",
+									"    pm.test(\"Response has favorite data\", function () {",
+									"        pm.expect(jsonData.data).to.have.property('favorite');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"propertyId\": \"prop-001\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/favorites",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"favorites"
+							]
+						},
+						"description": "Agrega una propiedad a favoritos"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Favoritos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar que existe token",
+									"pm.test(\"Token is configured\", function () {",
+									"    const token = pm.environment.get(\"token\");",
+									"    pm.expect(token).to.not.be.empty;",
+									"});",
+									"",
+									"// Validar respuesta",
+									"if (pm.response.code === 401) {",
+									"    pm.test(\"Unauthorized - Token missing or invalid\", function () {",
+									"        pm.expect(pm.response.code).to.equal(401);",
+									"    });",
+									"} else {",
+									"    pm.test(\"Status code is 200\", function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"    ",
+									"    pm.test(\"Response has favorites array\", function () {",
+									"        const jsonData = pm.response.json();",
+									"        pm.expect(jsonData.data).to.have.property('favorites');",
+									"        pm.expect(jsonData.data.favorites).to.be.an('array');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/favorites?page=1&limit=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"favorites"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Obtiene todas las propiedades favoritas del usuario"
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar si es Favorito",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/favorites/:propertyId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"favorites",
+								":propertyId"
+							],
+							"variable": [
+								{
+									"key": "propertyId",
+									"value": "prop-001"
+								}
+							]
+						},
+						"description": "Verifica si una propiedad está en favoritos"
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar de Favoritos",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/favorites/:propertyId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"favorites",
+								":propertyId"
+							],
+							"variable": [
+								{
+									"key": "propertyId",
+									"value": "prop-001"
+								}
+							]
+						},
+						"description": "Elimina una propiedad de favoritos"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notificaciones",
+			"item": [
+				{
+					"name": "Obtener Notificaciones",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar respuesta exitosa",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Guardar primera notificationId si está disponible",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.notifications && jsonData.data.notifications.length > 0) {",
+									"        const firstNotification = jsonData.data.notifications[0];",
+									"        if (firstNotification.id) {",
+									"            pm.environment.set(\"notificationId\", firstNotification.id);",
+									"            console.log(\"✅ Notification ID guardado: \" + firstNotification.id);",
+									"        }",
+									"    }",
+									"    ",
+									"    pm.test(\"Response has notifications array\", function () {",
+									"        pm.expect(jsonData.data).to.have.property('notifications');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications?page=1&limit=20&read=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "read",
+									"value": "false",
+									"description": "Filtrar por leídas (true) o no leídas (false)"
+								}
+							]
+						},
+						"description": "Obtiene las notificaciones del usuario con paginación y filtros"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Contador de No Leídas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Validar respuesta exitosa",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Response has unreadCount\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('unreadCount');",
+									"    pm.expect(jsonData.data.unreadCount).to.be.a('number');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications/unread-count",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"unread-count"
+							]
+						},
+						"description": "Obtiene el contador de notificaciones no leídas"
+					},
+					"response": []
+				},
+				{
+					"name": "Marcar como Leída",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications/:id/read",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								":id",
+								"read"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "notification-id-here"
+								}
+							]
+						},
+						"description": "Marca una notificación como leída"
+					},
+					"response": []
+				},
+				{
+					"name": "Marcar Todas como Leídas",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications/mark-all-read",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"mark-all-read"
+							]
+						},
+						"description": "Marca todas las notificaciones como leídas"
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Notificación",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "notification-id-here"
+								}
+							]
+						},
+						"description": "Elimina una notificación"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

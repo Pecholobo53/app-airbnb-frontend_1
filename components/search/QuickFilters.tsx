@@ -32,7 +32,7 @@ const QUICK_FILTERS = [
   { 
     icon: Mountain, 
     label: 'Montaña', 
-    href: '/buscar?amenities=mountain_view',
+    href: '/buscar?category=mountain',
     description: 'Vistas espectaculares y naturaleza pura'
   },
   { 

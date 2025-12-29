@@ -578,6 +578,15 @@ export class PropertyService {
       if (params.filters?.propertyTypes && params.filters.propertyTypes.length > 0) {
         queryParams.append('propertyTypes', params.filters.propertyTypes.join(','));
       }
+      // Filtro por roomType (house, apartment, villa, cabin, loft)
+      if (params.filters?.roomType) {
+        // Si es un array, unir con comas; si es string, usar directamente
+        if (Array.isArray(params.filters.roomType)) {
+          queryParams.append('roomType', params.filters.roomType.join(','));
+        } else {
+          queryParams.append('roomType', params.filters.roomType);
+        }
+      }
       if (params.filters?.amenities && params.filters.amenities.length > 0) {
         queryParams.append('amenities', params.filters.amenities.map(a => a.id).join(','));
       }

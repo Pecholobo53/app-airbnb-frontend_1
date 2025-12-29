@@ -7,9 +7,19 @@ import { Users, Shield, Activity, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { UserStats } from '@/components/admin/UserStats';
+import { useEffect } from 'react';
+import { requestCache } from '@/lib/utils/request-cache';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
+
+  // Limpiar caché al desmontar para forzar recarga en próxima visita
+  useEffect(() => {
+    return () => {
+      // No limpiar automáticamente, solo al desmontar si es necesario
+      // El caché se mantiene para evitar múltiples peticiones
+    };
+  }, []);
 
   const stats = [
     {

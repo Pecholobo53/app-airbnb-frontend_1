@@ -14,6 +14,31 @@ import { PropertyService } from '@/lib/properties/property-service';
 export default function PromotionsSection() {
   const [featuredProperties, setFeaturedProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  
+  // Helper para determinar si es Base64
+  const isBase64 = (src: string) => {
+    return src.startsWith('data:image/') || src.startsWith('data:image%2F');
+  };
+  
+  // Placeholder image
+  const placeholderImage = '/placeholder-property.jpg';
+  
+  const handleImageError = (propertyId: string, isPlaceholder: boolean = false) => {
+    // Solo marcar error si NO es el placeholder (evitar bucles infinitos)
+    if (!isPlaceholder) {
+      setImageErrors(prev => {
+        // Solo agregar si no está ya en el set (evitar re-renders innecesarios)
+        if (prev.has(propertyId)) {
+          return prev;
+        }
+        const newSet = new Set(prev);
+        newSet.add(propertyId);
+        return newSet;
+      });
+      console.warn(`⚠️ [PROMOTIONS SECTION] Error cargando imagen de propiedad ${propertyId}`);
+    }
+  };
 
   useEffect(() => {
     async function loadFeatured() {
@@ -45,22 +70,16 @@ export default function PromotionsSection() {
     loadFeatured();
   }, []);
 
-  // Calcular descuento (simulado - 30-40% para propiedades destacadas)
-  // Usa el ID de la propiedad para generar un descuento determinístico
+  // Calcular descuento fijo de 30% para todas las propiedades en ofertas exclusivas
   const calculateDiscount = (property: Property) => {
-    if (!property.featured) {
-      return { discount: 0, originalPrice: property.pricing.basePrice, discountPrice: property.pricing.basePrice };
-    }
-    
-    // Generar descuento determinístico basado en el ID
-    const hash = property.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const discount = 30 + (hash % 11); // 30-40%
-    const originalPrice = Math.round(property.pricing.basePrice / (1 - discount / 100));
+    const discount = 30; // 30% fijo para todas las ofertas exclusivas
+    const discountPrice = Math.round(property.pricing.basePrice * (1 - discount / 100)); // Precio con descuento
+    const originalPrice = property.pricing.basePrice; // Precio original (sin descuento)
     
     return {
       discount,
       originalPrice,
-      discountPrice: property.pricing.basePrice
+      discountPrice
     };
   };
 
@@ -128,13 +147,34 @@ export default function PromotionsSection() {
               >
                 {/* Image */}
                 <div className="relative overflow-hidden flex-shrink-0">
-                  <Image
-                    src={property.images[0]}
-                    alt={property.title}
-                    width={600}
-                    height={256}
-                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  {(() => {
+                    const hasError = imageErrors.has(property.id);
+                    const imageSrc = hasError || !property.images[0] 
+                      ? placeholderImage 
+                      : property.images[0];
+                    const isPlaceholder = imageSrc === placeholderImage || hasError;
+                    
+                    if (isBase64(imageSrc)) {
+                      return (
+                        <img
+                          src={imageSrc}
+                          alt={property.title}
+                          className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500 bg-gray-100"
+                          onError={() => handleImageError(property.id, isPlaceholder)}
+                        />
+                      );
+                    }
+                    return (
+                      <Image
+                        src={imageSrc}
+                        alt={property.title}
+                        width={600}
+                        height={256}
+                        className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500 bg-gray-100"
+                        onError={() => handleImageError(property.id, isPlaceholder)}
+                      />
+                    );
+                  })()}
                   
                   {/* Discount Badge */}
                   <div className="absolute top-4 left-4 bg-acento-200 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center">

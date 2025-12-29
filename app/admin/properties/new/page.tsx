@@ -547,10 +547,10 @@ export default function NewPropertyPage() {
   };
 
   const handleImagesChange = (newImages: string[]) => {
-    setFormData(prev => ({
-      ...prev,
+      setFormData(prev => ({
+        ...prev,
       images: newImages,
-    }));
+      }));
   };
 
   const handleGetCoordinates = async () => {
@@ -573,8 +573,8 @@ export default function NewPropertyPage() {
       const coordinates = await geocodeAddress(address);
       
       if (coordinates) {
-        setFormData(prev => ({
-          ...prev,
+    setFormData(prev => ({
+      ...prev,
           location: {
             ...prev.location,
             coordinates: {
@@ -778,47 +778,47 @@ export default function NewPropertyPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="lat">Latitud</Label>
-                  <Input
-                    id="lat"
-                    type="number"
-                    step="any"
-                    value={formData.location.coordinates.lat}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      location: {
-                        ...prev.location,
-                        coordinates: {
-                          ...prev.location.coordinates,
-                          lat: parseFloat(e.target.value) || 0,
-                        },
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="lat">Latitud</Label>
+                <Input
+                  id="lat"
+                  type="number"
+                  step="any"
+                  value={formData.location.coordinates.lat}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    location: {
+                      ...prev.location,
+                      coordinates: {
+                        ...prev.location.coordinates,
+                        lat: parseFloat(e.target.value) || 0,
                       },
-                    }))}
+                    },
+                  }))}
                     placeholder="Ej: 41.3851"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lng">Longitud</Label>
-                  <Input
-                    id="lng"
-                    type="number"
-                    step="any"
-                    value={formData.location.coordinates.lng}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      location: {
-                        ...prev.location,
-                        coordinates: {
-                          ...prev.location.coordinates,
-                          lng: parseFloat(e.target.value) || 0,
-                        },
+                />
+              </div>
+              <div>
+                <Label htmlFor="lng">Longitud</Label>
+                <Input
+                  id="lng"
+                  type="number"
+                  step="any"
+                  value={formData.location.coordinates.lng}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    location: {
+                      ...prev.location,
+                      coordinates: {
+                        ...prev.location.coordinates,
+                        lng: parseFloat(e.target.value) || 0,
                       },
-                    }))}
+                    },
+                  }))}
                     placeholder="Ej: 2.1734"
-                  />
-                </div>
+                />
+              </div>
               </div>
               
               <Button

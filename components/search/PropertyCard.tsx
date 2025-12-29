@@ -15,6 +15,15 @@ interface PropertyCardProps {
 
 export default function PropertyCard({ property }: PropertyCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
+  // Helper para determinar si es Base64
+  const isBase64 = (src: string) => {
+    return src.startsWith('data:image/') || src.startsWith('data:image%2F');
+  };
+
+  // Placeholder image
+  const placeholderImage = '/placeholder-property.jpg';
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -30,18 +39,50 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     );
   };
 
+  const handleImageError = (isPlaceholder: boolean = false) => {
+    // Solo marcar error si NO es el placeholder (evitar bucles infinitos)
+    if (!isPlaceholder) {
+      setImageErrors(prev => {
+        // Solo agregar si no está ya en el set (evitar re-renders innecesarios)
+        if (prev.has(currentImageIndex)) {
+          return prev;
+        }
+        const newSet = new Set(prev);
+        newSet.add(currentImageIndex);
+        return newSet;
+      });
+      console.warn(`⚠️ [PROPERTY CARD] Error cargando imagen ${currentImageIndex} de propiedad ${property.id}`);
+    }
+  };
+
+  // Obtener imagen actual o fallback
+  const currentImage = property.images[currentImageIndex] || placeholderImage;
+  const hasError = imageErrors.has(currentImageIndex);
+  const imageSrc = hasError ? placeholderImage : currentImage;
+  const isPlaceholder = imageSrc === placeholderImage || hasError;
+
   return (
     <Link href={`/propiedad/${property.id}`} className="group block">
       <div className="rounded-xl overflow-hidden transition-all hover:shadow-lg">
         {/* Image Carousel */}
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100">
-          <Image
-            src={property.images[currentImageIndex]}
-            alt={property.title}
-            fill
-            className="object-cover transition-transform group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-gray-100 flex items-center justify-center">
+          {isBase64(imageSrc) ? (
+            <img
+              src={imageSrc}
+              alt={property.title}
+              className="max-w-full max-h-full object-contain transition-transform group-hover:scale-105"
+              onError={() => handleImageError(isPlaceholder)}
+            />
+          ) : (
+            <Image
+              src={imageSrc}
+              alt={property.title}
+              fill
+              className="object-contain transition-transform group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              onError={() => handleImageError(isPlaceholder)}
+            />
+          )}
           
           {/* Favorite Button */}
           <div className="absolute top-3 right-3 z-10">
