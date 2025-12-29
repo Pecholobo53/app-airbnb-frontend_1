@@ -25,6 +25,12 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   
+  // Validaciones robustas con valores por defecto
+  const pricing = property?.pricing || { basePrice: 0, currency: 'EUR', cleaningFee: 0, serviceFee: 0 };
+  const availability = property?.availability || { minNights: 1, maxNights: 365, instantBook: false, checkInTime: '15:00', checkOutTime: '11:00' };
+  const capacity = property?.capacity || { guests: 1, bedrooms: 1, beds: 1, bathrooms: 1 };
+  const rating = property?.rating || { overall: 0, reviewCount: 0 };
+  
   // Fechas por defecto: hoy + 7 días
   const [checkIn, setCheckIn] = useState<Date | null>(null);
   const [checkOut, setCheckOut] = useState<Date | null>(null);
@@ -38,24 +44,25 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   let priceBreakdown: PriceBreakdown | null = null;
   let validationError: string | null = null;
 
-  if (hasValidDates) {
+  if (hasValidDates && checkIn && checkOut) {
     const validation = validateBookingDates(
       checkIn,
       checkOut,
-      property.availability.minNights,
-      property.availability.maxNights
+      availability.minNights,
+      availability.maxNights
     );
 
     if (validation.valid) {
       try {
         priceBreakdown = calculatePriceBreakdown(
-          property.pricing,
+          pricing,
           checkIn,
           checkOut,
           guests
         );
       } catch (error) {
-        validationError = 'Error calculando precio';
+        console.error('Error calculando precio:', error);
+        validationError = 'Error calculando precio. Por favor, intenta de nuevo.';
       }
     } else {
       validationError = validation.error || 'Fechas inválidas';
@@ -80,8 +87,8 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       return;
     }
 
-    if (guests > property.capacity.guests) {
-      toast.error(`Esta propiedad acepta máximo ${property.capacity.guests} huéspedes`);
+    if (guests > capacity.guests) {
+      toast.error(`Esta propiedad acepta máximo ${capacity.guests} ${capacity.guests === 1 ? 'huésped' : 'huéspedes'}`);
       return;
     }
 
@@ -113,16 +120,20 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       <div className="mb-6">
         <div className="flex items-baseline gap-1">
           <span className="text-2xl font-bold text-gray-900">
-            {formatPrice(property.pricing.basePrice, property.pricing.currency)}
+            {formatPrice(pricing.basePrice, pricing.currency)}
           </span>
           <span className="text-gray-600">/ noche</span>
         </div>
-        <div className="flex items-center gap-2 mt-1 text-sm">
-          <span>⭐ {property.rating.overall}</span>
-          <span className="text-gray-500">
-            ({property.rating.reviewCount} reviews)
-          </span>
-        </div>
+        {rating.overall > 0 && (
+          <div className="flex items-center gap-2 mt-1 text-sm">
+            <span>⭐ {rating.overall.toFixed(1)}</span>
+            {rating.reviewCount > 0 && (
+              <span className="text-gray-500">
+                ({rating.reviewCount} {rating.reviewCount === 1 ? 'review' : 'reviews'})
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Selectores de Fechas */}
@@ -135,7 +146,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
               const tomorrow = addDays(today, 1);
               setCheckIn(tomorrow);
               if (!checkOut) {
-                setCheckOut(addDays(tomorrow, property.availability.minNights));
+                setCheckOut(addDays(tomorrow, availability.minNights));
               }
             } else {
               setCheckIn(null);
@@ -159,7 +170,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
         <button
           onClick={() => {
             if (!checkOut && checkIn) {
-              setCheckOut(addDays(checkIn, property.availability.minNights));
+              setCheckOut(addDays(checkIn, availability.minNights));
             } else if (checkOut) {
               setCheckOut(null);
             } else {
@@ -213,7 +224,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
                 <span className="w-8 text-center font-medium">{guests}</span>
                 <button
                   onClick={incrementGuests}
-                  disabled={guests >= property.capacity.guests}
+                  disabled={guests >= capacity.guests}
                   className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   +
@@ -221,7 +232,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Máximo {property.capacity.guests} huéspedes
+              Máximo {capacity.guests} {capacity.guests === 1 ? 'huésped' : 'huéspedes'}
             </p>
           </div>
         )}
@@ -242,10 +253,10 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
             // Establecer fechas de ejemplo
             const today = new Date();
             const tomorrow = addDays(today, 1);
-            const checkoutDate = addDays(tomorrow, property.availability.minNights);
+            const checkoutDate = addDays(tomorrow, availability.minNights);
             setCheckIn(tomorrow);
             setCheckOut(checkoutDate);
-            toast.success(`Fechas establecidas (${property.availability.minNights} noches mínimo)`);
+            toast.success(`Fechas establecidas (${availability.minNights} ${availability.minNights === 1 ? 'noche' : 'noches'} mínimo)`);
           }}
           className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3"
         >
@@ -327,7 +338,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       </p>
 
       {/* Instant Book */}
-      {property.availability.instantBook && (
+      {availability.instantBook && (
         <div className="mt-4 flex items-center justify-center gap-2 text-sm text-green-600">
           <span>⚡</span>
           <span className="font-medium">Reserva instantánea</span>

@@ -1,7 +1,7 @@
 // lib/dashboard/mock-bookings-db.ts
 
 import { Booking, GuestStats, HostStats, MonthlyData, PropertyStats } from '@/types/dashboard';
-import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db';
+// import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db'; // ELIMINADO - Usar PropertyService en su lugar
 import { MOCK_USERS } from '@/lib/auth/mock-users-db-stub';
 
 /**
@@ -98,7 +98,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-001',
     propertyId: 'prop-001',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-001')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-001')!, // ELIMINADO
     guestId: 'user-001', // demo@airbnb.com
     guest: MOCK_USERS[0],
     hostId: 'host-001',
@@ -130,7 +130,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-002',
     propertyId: 'prop-003',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-003')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-003')!, // ELIMINADO
     guestId: 'user-001',
     guest: MOCK_USERS[0],
     hostId: 'host-003',
@@ -162,7 +162,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-003',
     propertyId: 'prop-006',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-006')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-006')!, // ELIMINADO
     guestId: 'user-001',
     guest: MOCK_USERS[0],
     hostId: 'host-006',
@@ -226,7 +226,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-005',
     propertyId: 'prop-002',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-002')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-002')!, // ELIMINADO
     guestId: 'guest-carlos',
     guest: {
       id: 'guest-carlos',
@@ -287,7 +287,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-007',
     propertyId: 'prop-002',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-002')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-002')!, // ELIMINADO
     guestId: 'guest-pablo',
     guest: {
       id: 'guest-pablo',
@@ -326,7 +326,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-008',
     propertyId: 'prop-005',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-005')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-005')!, // ELIMINADO
     guestId: 'user-002',
     guest: MOCK_USERS[1],
     hostId: 'host-005',
@@ -356,7 +356,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-009',
     propertyId: 'prop-004',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-004')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-004')!, // ELIMINADO
     guestId: 'user-002',
     guest: MOCK_USERS[1],
     hostId: 'host-004',
@@ -388,7 +388,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-010',
     propertyId: 'prop-010',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-010')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-010')!, // ELIMINADO
     guestId: 'user-002',
     guest: MOCK_USERS[1],
     hostId: 'host-010',
@@ -422,7 +422,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-011',
     propertyId: 'prop-012',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-012')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-012')!, // ELIMINADO
     guestId: 'user-004',
     guest: MOCK_USERS[3],
     hostId: 'host-012',
@@ -452,7 +452,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-012',
     propertyId: 'prop-008',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-008')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-008')!, // ELIMINADO
     guestId: 'user-004',
     guest: MOCK_USERS[3],
     hostId: 'host-008',
@@ -484,7 +484,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-013',
     propertyId: 'prop-015',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-015')!,
+    property: null as any, // MOCK_PROPERTIES.find(p => p.id === 'prop-015')!, // ELIMINADO
     guestId: 'user-004',
     guest: MOCK_USERS[3],
     hostId: 'host-015',

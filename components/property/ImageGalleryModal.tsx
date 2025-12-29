@@ -28,6 +28,58 @@ export default function ImageGalleryModal({
 }: ImageGalleryModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
+  // Helper para determinar si es Base64
+  const isBase64 = (src: string) => {
+    return src.startsWith('data:image/') || src.startsWith('data:image%2F');
+  };
+
+  // Helper para renderizar imagen
+  const renderImage = (src: string, alt: string, className: string, useFill: boolean = true) => {
+    if (isBase64(src)) {
+      if (useFill) {
+        return (
+          <img
+            src={src}
+            alt={alt}
+            className={className}
+            style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+          />
+        );
+      } else {
+        return (
+          <img
+            src={src}
+            alt={alt}
+            className={className}
+            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+          />
+        );
+      }
+    }
+    if (useFill) {
+      return (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className={className}
+          sizes="100vw"
+          priority
+        />
+      );
+    } else {
+      return (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className={className}
+          sizes="(max-width: 768px) 25vw, 10vw"
+        />
+      );
+    }
+  };
+
   // Actualizar índice cuando cambia el inicial
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -80,14 +132,11 @@ export default function ImageGalleryModal({
 
         {/* Imagen Principal */}
         <div className="relative w-full h-full flex items-center justify-center">
-          <Image
-            src={images[currentIndex]}
-            alt={`${title} - ${currentIndex + 1}`}
-            fill
-            className="object-contain"
-            sizes="100vw"
-            priority
-          />
+          {renderImage(
+            images[currentIndex],
+            `${title} - ${currentIndex + 1}`,
+            "object-contain"
+          )}
 
           {/* Botones de Navegación */}
           {images.length > 1 && (
@@ -125,13 +174,12 @@ export default function ImageGalleryModal({
                     : 'opacity-50 hover:opacity-75'
                 }`}
               >
-                <Image
-                  src={img}
-                  alt={`Thumbnail ${idx + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
+                {renderImage(
+                  img,
+                  `Thumbnail ${idx + 1}`,
+                  "object-cover",
+                  true
+                )}
               </button>
             ))}
           </div>

@@ -95,8 +95,7 @@ async function apiRequest<T>(
         console.error('❌ [PROPERTY SERVICE] Sesión raw:', session);
       }
     } else {
-      console.error('❌ [PROPERTY SERVICE] NO HAY SESIÓN EN localStorage');
-      console.error('❌ [PROPERTY SERVICE] localStorage completo:', JSON.stringify(localStorage, null, 2));
+      console.warn('⚠️ [PROPERTY SERVICE] NO HAY SESIÓN EN sessionStorage (esto es normal para endpoints públicos)');
     }
 
     const headers: HeadersInit = {
@@ -384,9 +383,33 @@ async function apiRequest<T>(
     }
 
     // Respuesta exitosa
+    // La API puede retornar diferentes estructuras:
+    // 1. { data: { property: {...} } } - Estructura anidada
+    // 2. { data: {...} } - Estructura directa
+    // 3. { property: {...} } - Sin wrapper data
+    let responseData = data.data || data;
+    
+    // Si la respuesta tiene estructura anidada { data: { property: {...} } }
+    if (responseData && typeof responseData === 'object' && responseData.property) {
+      responseData = responseData.property;
+      console.log('📦 [PROPERTY SERVICE] Estructura anidada detectada, extrayendo property');
+    }
+    
+    // Log para debugging
+    console.log('✅ [PROPERTY SERVICE] Respuesta exitosa:', {
+      hasData: !!responseData,
+      dataType: typeof responseData,
+      isArray: Array.isArray(responseData),
+      dataKeys: responseData && typeof responseData === 'object' ? Object.keys(responseData) : [],
+      hasId: responseData?.id ? true : false,
+      hasTitle: responseData?.title ? true : false,
+      hasImages: Array.isArray(responseData?.images),
+      imagesCount: Array.isArray(responseData?.images) ? responseData.images.length : 0,
+    });
+    
     return {
       success: true,
-      data: data.data || data,
+      data: responseData,
     };
   } catch (error) {
     console.error('❌ [PROPERTY SERVICE] Error de red:', error);
@@ -585,11 +608,14 @@ export class PropertyService {
       });
     } catch (error) {
       console.error('❌ [PROPERTY SERVICE] Error en searchProperties:', error);
+      const errorMessage = error instanceof Error 
+        ? `Error al buscar propiedades: ${error.message}`
+        : 'Error inesperado al buscar propiedades. Por favor, verifica tu conexión e intenta de nuevo.';
       return {
         success: false,
         error: {
           code: 'SEARCH_ERROR',
-          message: 'Error al buscar propiedades.',
+          message: errorMessage,
         },
       };
     }

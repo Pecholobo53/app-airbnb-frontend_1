@@ -16,12 +16,32 @@ interface HostSectionProps {
  * Información del host con stats
  */
 export default function HostSection({ host }: HostSectionProps) {
-  const joinedYear = format(host.joinedDate, 'yyyy');
+  // Validaciones robustas con valores por defecto
+  const hostName = host?.name || 'Anfitrión';
+  const hostAvatar = host?.avatar || '/placeholder-avatar.png';
+  const isSuperhost = host?.isSuperhost ?? false;
+  const responseRate = host?.responseRate;
+  const responseTime = host?.responseTime;
+  
+  // Manejar joinedDate de forma segura
+  let joinedYear = 'N/A';
+  try {
+    if (host?.joinedDate) {
+      const date = host.joinedDate instanceof Date 
+        ? host.joinedDate 
+        : new Date(host.joinedDate);
+      if (!isNaN(date.getTime())) {
+        joinedYear = format(date, 'yyyy');
+      }
+    }
+  } catch (error) {
+    console.warn('Error formateando fecha de unión:', error);
+  }
 
   return (
     <div className="py-8 border-b border-gray-200">
       <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-6">
-        Tu anfitrión: {host.name}
+        Tu anfitrión: {hostName}
       </h2>
 
       <div className="flex flex-col sm:flex-row gap-6">
@@ -29,13 +49,17 @@ export default function HostSection({ host }: HostSectionProps) {
         <div className="flex-shrink-0">
           <div className="relative">
             <Image
-              src={host.avatar}
-              alt={host.name}
+              src={hostAvatar}
+              alt={hostName}
               width={96}
               height={96}
               className="rounded-full"
+              onError={(e) => {
+                // Fallback a imagen placeholder si falla
+                e.currentTarget.src = '/placeholder-avatar.png';
+              }}
             />
-            {host.isSuperhost && (
+            {isSuperhost && (
               <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md">
                 <Shield className="w-6 h-6 text-[#FF385C]" />
               </div>
@@ -46,8 +70,8 @@ export default function HostSection({ host }: HostSectionProps) {
         {/* Información */}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-4">
-            <h3 className="text-2xl font-bold text-gray-900">{host.name}</h3>
-            {host.isSuperhost && (
+            <h3 className="text-2xl font-bold text-gray-900">{hostName}</h3>
+            {isSuperhost && (
               <span className="px-3 py-1 bg-gray-100 text-sm font-medium rounded-full">
                 ⭐ Superanfitrión
               </span>
@@ -56,27 +80,29 @@ export default function HostSection({ host }: HostSectionProps) {
 
           {/* Stats */}
           <div className="space-y-2 text-sm text-gray-700">
-            {host.responseRate && (
+            {responseRate !== undefined && responseRate !== null && (
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4" />
-                <span>Tasa de respuesta: {host.responseRate}%</span>
+                <span>Tasa de respuesta: {responseRate}%</span>
               </div>
             )}
             
-            {host.responseTime && (
+            {responseTime && (
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>Responde en: {host.responseTime}</span>
+                <span>Responde en: {responseTime}</span>
               </div>
             )}
 
-            <div className="pt-2 text-gray-600">
-              <p>Se unió en {joinedYear}</p>
-            </div>
+            {joinedYear !== 'N/A' && (
+              <div className="pt-2 text-gray-600">
+                <p>Se unió en {joinedYear}</p>
+              </div>
+            )}
           </div>
 
           {/* Descripción Superhost */}
-          {host.isSuperhost && (
+          {isSuperhost && (
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-700">
                 Los Superanfitriones son anfitriones con experiencia y valoraciones altas

@@ -16,14 +16,22 @@ interface PropertyHeaderProps {
  * Título, ubicación, rating y botones de acción
  */
 export default function PropertyHeader({ property }: PropertyHeaderProps) {
+  // Validaciones robustas con valores por defecto
+  const title = property?.title || 'Propiedad sin título';
+  const rating = property?.rating?.overall ?? 0;
+  const reviewCount = property?.rating?.reviewCount ?? 0;
+  const city = property?.location?.city || 'Ciudad no especificada';
+  const country = property?.location?.country || 'País no especificado';
+  const isSuperhost = property?.host?.isSuperhost ?? false;
+
   const handleShare = async () => {
     const url = window.location.href;
     
     try {
       if (navigator.share) {
         await navigator.share({
-          title: property.title,
-          text: `Mira esta propiedad increíble en ${property.location.city}`,
+          title: title,
+          text: `Mira esta propiedad increíble en ${city}`,
           url: url
         });
       } else {
@@ -40,7 +48,7 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
     <div className="mb-6">
       {/* Título */}
       <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-        {property.title}
+        {title}
       </h1>
 
       {/* Info bar */}
@@ -48,26 +56,31 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
         {/* Left: Ubicación y Rating */}
         <div className="flex flex-wrap items-center gap-3 text-sm">
           {/* Rating */}
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-current text-gray-900" />
-            <span className="font-semibold">{property.rating.overall}</span>
-            <span className="text-gray-600">
-              ({property.rating.reviewCount} reviews)
-            </span>
-          </div>
-
-          <span className="text-gray-400">•</span>
+          {rating > 0 && (
+            <>
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-current text-gray-900" />
+                <span className="font-semibold">{rating.toFixed(1)}</span>
+                {reviewCount > 0 && (
+                  <span className="text-gray-600">
+                    ({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})
+                  </span>
+                )}
+              </div>
+              <span className="text-gray-400">•</span>
+            </>
+          )}
 
           {/* Ubicación */}
           <div className="flex items-center gap-1 text-gray-700">
             <MapPin className="w-4 h-4" />
             <span className="underline cursor-pointer hover:text-gray-900">
-              {property.location.city}, {property.location.country}
+              {city}, {country}
             </span>
           </div>
 
           {/* Superhost badge */}
-          {property.host.isSuperhost && (
+          {isSuperhost && (
             <>
               <span className="text-gray-400">•</span>
               <span className="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
@@ -89,10 +102,12 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
             <span className="hidden sm:inline">Compartir</span>
           </Button>
 
-          <div className="flex items-center gap-2">
-            <FavoriteButton propertyId={property.id} size="sm" />
-            <span className="hidden sm:inline text-sm">Guardar</span>
-          </div>
+          {property?.id && (
+            <div className="flex items-center gap-2">
+              <FavoriteButton propertyId={property.id} size="sm" />
+              <span className="hidden sm:inline text-sm">Guardar</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

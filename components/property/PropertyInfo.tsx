@@ -16,11 +16,18 @@ interface PropertyInfoProps {
 export default function PropertyInfo({ property }: PropertyInfoProps) {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const descriptionLimit = 200;
-  const shouldTruncate = property.description.length > descriptionLimit;
-
+  
+  // Validaciones robustas con valores por defecto
+  const description = property?.description || 'Sin descripción disponible.';
+  const roomType = property?.roomType || 'apartment';
+  const propertyType = property?.propertyType || 'entire_place';
+  const hostName = property?.host?.name || 'Anfitrión';
+  const capacity = property?.capacity || { guests: 1, bedrooms: 1, beds: 1, bathrooms: 1 };
+  
+  const shouldTruncate = description.length > descriptionLimit;
   const displayDescription = shouldTruncate && !showFullDescription
-    ? property.description.substring(0, descriptionLimit) + '...'
-    : property.description;
+    ? description.substring(0, descriptionLimit) + '...'
+    : description;
 
   const getPropertyTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -50,10 +57,10 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2">
-          {getRoomTypeLabel(property.roomType)} - {getPropertyTypeLabel(property.propertyType)}
+          {getRoomTypeLabel(roomType)} - {getPropertyTypeLabel(propertyType)}
         </h2>
         <p className="text-gray-600">
-          Anfitrión: {property.host.name}
+          Anfitrión: {hostName}
         </p>
       </div>
 
@@ -61,19 +68,19 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex items-center gap-2 text-gray-700">
           <Users className="w-5 h-5" />
-          <span>{property.capacity.guests} huéspedes</span>
+          <span>{capacity.guests} {capacity.guests === 1 ? 'huésped' : 'huéspedes'}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
           <Home className="w-5 h-5" />
-          <span>{property.capacity.bedrooms} habitaciones</span>
+          <span>{capacity.bedrooms} {capacity.bedrooms === 1 ? 'habitación' : 'habitaciones'}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
           <Bed className="w-5 h-5" />
-          <span>{property.capacity.beds} camas</span>
+          <span>{capacity.beds} {capacity.beds === 1 ? 'cama' : 'camas'}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
           <Bath className="w-5 h-5" />
-          <span>{property.capacity.bathrooms} baños</span>
+          <span>{capacity.bathrooms} {capacity.bathrooms === 1 ? 'baño' : 'baños'}</span>
         </div>
       </div>
 

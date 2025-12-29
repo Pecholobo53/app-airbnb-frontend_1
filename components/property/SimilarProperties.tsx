@@ -29,7 +29,20 @@ export default function SimilarProperties({ currentProperty }: SimilarProperties
         const response = await PropertyService.getSimilarProperties(currentProperty.id, 6);
 
         if (response.success && response.data) {
-          setSimilarProperties(response.data.properties);
+          // La API puede retornar { properties: [...] } o directamente un array
+          const properties = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data.properties || []);
+          
+          // Validar que sea un array válido
+          if (Array.isArray(properties)) {
+            setSimilarProperties(properties);
+          } else {
+            console.warn('⚠️ [SIMILAR PROPERTIES] Respuesta no tiene formato esperado:', response.data);
+            setSimilarProperties([]);
+          }
+        } else {
+          setSimilarProperties([]);
         }
       } catch (error) {
         console.error('Error cargando propiedades similares:', error);

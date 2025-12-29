@@ -28,10 +28,13 @@ interface AmenitiesListProps {
 export default function AmenitiesList({ amenities }: AmenitiesListProps) {
   const [showAll, setShowAll] = useState(false);
   const displayLimit = 8;
-  const hasMore = amenities.length > displayLimit;
+  
+  // Validación robusta: asegurar que amenities sea un array válido
+  const validAmenities = Array.isArray(amenities) ? amenities : [];
+  const hasMore = validAmenities.length > displayLimit;
   const displayedAmenities = hasMore && !showAll 
-    ? amenities.slice(0, displayLimit)
-    : amenities;
+    ? validAmenities.slice(0, displayLimit)
+    : validAmenities;
 
   const getAmenityIcon = (amenity: Amenity) => {
     const icons: Record<Amenity, any> = {
@@ -85,6 +88,11 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
     return labels[amenity] || amenity;
   };
 
+  // Si no hay amenidades, no mostrar la sección
+  if (validAmenities.length === 0) {
+    return null;
+  }
+
   return (
     <div className="py-8 border-b border-gray-200">
       <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-6">
@@ -111,7 +119,7 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
           onClick={() => setShowAll(true)}
           className="w-full sm:w-auto"
         >
-          Mostrar las {amenities.length} amenidades
+          Mostrar las {validAmenities.length} amenidades
         </Button>
       )}
 
@@ -123,7 +131,7 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
           </DialogHeader>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            {amenities.map((amenity) => {
+            {validAmenities.map((amenity) => {
               const Icon = getAmenityIcon(amenity);
               return (
                 <div key={amenity} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">

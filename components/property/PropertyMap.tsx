@@ -13,19 +13,41 @@ interface PropertyMapProps {
  * Muestra ubicación aproximada con Google Maps
  */
 export default function PropertyMap({ location }: PropertyMapProps) {
-  const { lat, lng } = location.coordinates;
-  const address = location.address || `${location.city}, ${location.country}`;
-  const fullAddress = `${location.city}, ${location.region}, ${location.country}`;
+  // Validaciones robustas con valores por defecto
+  const city = location?.city || 'Ciudad no especificada';
+  const country = location?.country || 'País no especificado';
+  const region = location?.region || '';
+  const address = location?.address || `${city}, ${country}`;
+  const coordinates = location?.coordinates || { lat: 0, lng: 0 };
+  const { lat, lng } = coordinates;
+  
+  // Si no hay coordenadas válidas, no mostrar el mapa
+  if (!lat || !lng || lat === 0 || lng === 0) {
+    return (
+      <div className="py-8 border-b border-gray-200">
+        <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-6">
+          ¿Dónde estarás?
+        </h2>
+        <div className="flex items-start gap-3">
+          <MapPin className="w-5 h-5 text-gray-700 mt-0.5" />
+          <div>
+            <p className="font-medium text-gray-900">{address}</p>
+            <p className="text-sm text-gray-600">
+              {city}{region ? `, ${region}` : ''}, {country}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Ubicación aproximada (coordenadas no disponibles)
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  const fullAddress = `${city}${region ? `, ${region}` : ''}, ${country}`;
   
   // URL de Google Maps (modo lugar - abre en nueva pestaña)
   const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-  
-  // URL para iframe de Google Maps (embed básico - NO requiere API key)
-  // Usa el formato de búsqueda que funciona sin API key
-  const embedUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3000!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${Math.floor(lat)}!5e0!3m2!1ses!2ses!4v1!5m2!1ses!2ses`;
-  
-  // Alternativa: OpenStreetMap (gratuito, sin API key)
-  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`;
 
   return (
     <div className="py-8 border-b border-gray-200">
@@ -39,7 +61,7 @@ export default function PropertyMap({ location }: PropertyMapProps) {
         <div>
           <p className="font-medium text-gray-900">{address}</p>
           <p className="text-sm text-gray-600">
-            {location.city}, {location.region}, {location.country}
+            {city}{region ? `, ${region}` : ''}, {country}
           </p>
         </div>
       </div>

@@ -10,7 +10,8 @@ import {
   addFavorite as addFavoriteDB,
   removeFavorite as removeFavoriteDB,
 } from './mock-favorites-db';
-import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db';
+// import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db'; // ELIMINADO - Usar PropertyService en su lugar
+import { PropertyService } from '@/lib/properties/property-service';
 import { findUserById } from '@/lib/auth/mock-users-db-stub';
 
 /**
@@ -139,7 +140,9 @@ export class MockFavoritesService {
       const favoriteProperties: FavoriteProperty[] = [];
 
       for (const favorite of favorites) {
-        const property = MOCK_PROPERTIES.find(p => p.id === favorite.propertyId);
+        // const property = MOCK_PROPERTIES.find(p => p.id === favorite.propertyId); // ELIMINADO - Usar PropertyService.getPropertyById() en su lugar
+        const propertyResponse = await PropertyService.getPropertyById(favorite.propertyId);
+        const property = propertyResponse.success && propertyResponse.data ? propertyResponse.data : null;
         if (property) {
           favoriteProperties.push({
             ...property,
@@ -192,7 +195,9 @@ export class MockFavoritesService {
       }
 
       // Verificar que la propiedad existe
-      const property = MOCK_PROPERTIES.find(p => p.id === propertyId);
+      // const property = MOCK_PROPERTIES.find(p => p.id === propertyId); // ELIMINADO - Usar PropertyService.getPropertyById() en su lugar
+      const propertyResponse = await PropertyService.getPropertyById(propertyId);
+      const property = propertyResponse.success && propertyResponse.data ? propertyResponse.data : null;
       if (!property) {
         console.log('❌ [FAVORITES] Propiedad no encontrada:', propertyId);
         return {
