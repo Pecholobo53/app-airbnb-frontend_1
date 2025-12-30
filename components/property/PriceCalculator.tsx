@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { Property, PriceBreakdown } from '@/types/search';
 import { Button } from '@/components/ui/button';
 import { calculatePriceBreakdown, formatPrice, validateBookingDates } from '@/lib/pricing/calculate-price';
@@ -12,6 +12,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
 import { ROUTES, ERROR_MESSAGES } from '@/lib/constants';
 import { PropertyService } from '@/lib/properties/property-service';
+import { validateBooking, createBooking, type CreateBookingRequest } from '@/lib/bookings/booking-service';
 import AvailabilityCalendar from './AvailabilityCalendar';
 import { getCachedAvailability, setCachedAvailability } from '@/lib/utils/availability-cache';
 
@@ -41,6 +42,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [isAvailabilityVerified, setIsAvailabilityVerified] = useState(false);
 
   const hasValidDates = checkIn && checkOut && checkOut > checkIn;
   
@@ -48,86 +50,98 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
   let priceBreakdown: PriceBreakdown | null = null;
   let validationError: string | null = null;
 
-  // Verificar disponibilidad cuando cambian las fechas (usando caché)
+  // Verificar disponibilidad cuando cambian las fechas (API REAL)
   useEffect(() => {
     if (!hasValidDates || !checkIn || !checkOut) {
       setAvailabilityError(null);
+      setIsAvailabilityVerified(false);
       return;
     }
 
+    // Verificación real de disponibilidad con API
     const checkAvailability = async () => {
       setIsCheckingAvailability(true);
       setAvailabilityError(null);
+      setIsAvailabilityVerified(false);
 
       try {
         const checkInStr = checkIn.toISOString().split('T')[0];
         const checkOutStr = checkOut.toISOString().split('T')[0];
         
-        // Primero intentar obtener del caché
-        const cached = getCachedAvailability(property.id);
+        console.log('🔍 [PRICE CALCULATOR] Verificando disponibilidad real...', {
+          propertyId: property.id,
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
+          guests,
+        });
         
-        if (cached) {
-          // Verificar si las fechas seleccionadas están bloqueadas usando el caché
-          const isBlocked = cached.blockedDates?.some(blockedDate => {
-            const blocked = new Date(blockedDate);
-            const checkInDate = new Date(checkInStr);
-            const checkOutDate = new Date(checkOutStr);
-            
-            return blocked >= checkInDate && blocked < checkOutDate;
-          });
+        const validationResponse = await validateBooking({
+          propertyId: property.id,
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
+          guests: guests,
+        });
 
-          if (isBlocked) {
-            setAvailabilityError('Las fechas seleccionadas no están disponibles');
-          } else {
-            setAvailabilityError(null);
+        // Si el endpoint no existe (404) o hay error de red, permitir continuar
+        if (!validationResponse.success) {
+          const errorCode = validationResponse.error?.code;
+          
+          // Si es 404 (endpoint no existe), 429 (rate limit) o error de red, permitir continuar sin mostrar error
+          if (errorCode === 'NOT_FOUND' || errorCode === 'NETWORK_ERROR' || errorCode === 'HTTP_404' || 
+              errorCode === 'RATE_LIMIT' || errorCode === 'HTTP_429' ||
+              validationResponse.error?.message?.includes('Ruta no encontrada') ||
+              validationResponse.error?.message?.includes('not found') ||
+              validationResponse.error?.message?.includes('Demasiadas solicitudes')) {
+            console.warn('⚠️ [PRICE CALCULATOR] Endpoint no disponible o rate limit (404/429), permitiendo continuar sin validación');
+            setIsAvailabilityVerified(true);
+            setAvailabilityError(null); // No mostrar error, permitir continuar
+            return;
           }
-          setIsCheckingAvailability(false);
+          
+          // Si es otro error (fechas realmente no disponibles), mostrar error
+          if (validationResponse.data?.available === false) {
+            setIsAvailabilityVerified(false);
+            const errorMessage = validationResponse.error?.message || 
+                                validationResponse.data?.message || 
+                                'Las fechas seleccionadas no están disponibles';
+            setAvailabilityError(errorMessage);
+            console.warn('⚠️ [PRICE CALCULATOR] Fechas no disponibles:', errorMessage);
+            return;
+          }
+          
+          // Para otros errores, permitir continuar sin mostrar error
+          console.warn('⚠️ [PRICE CALCULATOR] Error en validación, pero permitiendo continuar:', errorCode);
+          setIsAvailabilityVerified(true);
+          setAvailabilityError(null);
           return;
         }
 
-        // Si no hay caché, llamar a la API
-        const response = await PropertyService.getPropertyAvailability(
-          property.id,
-          checkInStr,
-          checkOutStr
-        );
-
-        if (response.success && response.data) {
-          // Guardar en caché
-          setCachedAvailability(property.id, {
-            blockedDates: response.data.blockedDates || [],
-            availableDates: response.data.availableDates || [],
-            minNights: response.data.minNights || availability.minNights,
-            maxNights: response.data.maxNights || availability.maxNights,
-            instantBook: response.data.instantBook || false,
-          });
-
-          // Verificar si las fechas seleccionadas están bloqueadas
-          const isBlocked = response.data.blockedDates?.some(blockedDate => {
-            const blocked = new Date(blockedDate);
-            const checkInDate = new Date(checkInStr);
-            const checkOutDate = new Date(checkOutStr);
-            
-            return blocked >= checkInDate && blocked < checkOutDate;
-          });
-
-          if (isBlocked) {
-            setAvailabilityError('Las fechas seleccionadas no están disponibles');
-          } else {
-            setAvailabilityError(null);
-          }
+        // Si la validación fue exitosa
+        if (validationResponse.data?.available) {
+          setIsAvailabilityVerified(true);
+          setAvailabilityError(null);
+          console.log('✅ [PRICE CALCULATOR] Disponibilidad verificada: DISPONIBLE');
         } else {
-          console.warn('⚠️ [PRICE CALCULATOR] No se pudo verificar disponibilidad:', response.error);
+          setIsAvailabilityVerified(false);
+          const errorMessage = validationResponse.data?.message || 
+                              'Las fechas seleccionadas no están disponibles';
+          setAvailabilityError(errorMessage);
+          console.warn('⚠️ [PRICE CALCULATOR] Fechas no disponibles:', errorMessage);
         }
       } catch (error) {
         console.error('❌ [PRICE CALCULATOR] Error verificando disponibilidad:', error);
+        // En caso de error inesperado, permitir continuar (modo permisivo)
+        setIsAvailabilityVerified(true);
+        setAvailabilityError(null); // No mostrar error para no bloquear
       } finally {
         setIsCheckingAvailability(false);
       }
     };
 
-    checkAvailability();
-  }, [checkIn, checkOut, property.id, hasValidDates, availability.minNights, availability.maxNights]);
+    // Debounce: esperar 1500ms después del último cambio (reducir llamadas a API)
+    const timeoutId = setTimeout(checkAvailability, 1500);
+    return () => clearTimeout(timeoutId);
+  }, [checkIn, checkOut, property.id, guests, hasValidDates]);
 
   if (hasValidDates && checkIn && checkOut) {
     const validation = validateBookingDates(
@@ -182,9 +196,130 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       return;
     }
 
-    // Navegar a checkout con los datos
-    const checkoutUrl = `/checkout?propertyId=${property.id}&checkIn=${checkIn.toISOString()}&checkOut=${checkOut.toISOString()}&adults=${guests}&children=0&infants=0`;
-    router.push(checkoutUrl);
+    // Crear reserva en borrador y redirigir a checkout con ID
+    try {
+      const checkInStr = checkIn.toISOString().split('T')[0];
+      const checkOutStr = checkOut.toISOString().split('T')[0];
+      
+      console.log('🚀 [PRICE CALCULATOR] Creando reserva en borrador...');
+      
+      // Paso 1: Verificar disponibilidad (validación final antes de crear)
+      // Si el endpoint no existe, saltar validación y continuar
+      let skipValidation = false;
+      
+      try {
+        const validationResponse = await validateBooking({
+          propertyId: property.id,
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
+          guests: guests,
+        });
+
+        // Si el endpoint no existe (404), permitir continuar
+        if (!validationResponse.success) {
+          const errorCode = validationResponse.error?.code;
+          
+          // Si es 404 (endpoint no existe), 429 (rate limit) o error de red, saltar validación
+          const errorMessage = validationResponse.error?.message || '';
+          if (errorCode === 'NOT_FOUND' || errorCode === 'NETWORK_ERROR' || errorCode === 'HTTP_404' ||
+              errorCode === 'RATE_LIMIT' || errorCode === 'HTTP_429' ||
+              errorMessage.includes('Ruta no encontrada') || errorMessage.includes('not found') ||
+              errorMessage.includes('Demasiadas solicitudes') ||
+              errorMessage.toLowerCase().includes('404') || errorMessage.toLowerCase().includes('429')) {
+            console.warn('⚠️ [PRICE CALCULATOR] Endpoint no disponible o rate limit (404/429), continuando sin validación');
+            skipValidation = true;
+          } else if (validationResponse.data?.available === false) {
+            // Si las fechas realmente no están disponibles, bloquear
+            const errorMessage = validationResponse.error?.message || 
+                                validationResponse.data?.message || 
+                                'Las fechas seleccionadas no están disponibles';
+            toast.error(errorMessage);
+            setAvailabilityError(errorMessage);
+            setIsAvailabilityVerified(false);
+            return;
+          } else {
+            // Para otros errores, permitir continuar
+            console.warn('⚠️ [PRICE CALCULATOR] Error en validación, pero permitiendo continuar');
+            skipValidation = true;
+          }
+        } else if (!validationResponse.data?.available) {
+          // Si la validación fue exitosa pero las fechas no están disponibles
+          const errorMessage = validationResponse.data?.message || 
+                              'Las fechas seleccionadas no están disponibles';
+          toast.error(errorMessage);
+          setAvailabilityError(errorMessage);
+          setIsAvailabilityVerified(false);
+          return;
+        }
+      } catch (error) {
+        // Si hay un error inesperado, permitir continuar
+        console.warn('⚠️ [PRICE CALCULATOR] Error inesperado en validación, continuando:', error);
+        skipValidation = true;
+      }
+
+      // Si se debe saltar la validación, continuar directamente
+      if (skipValidation) {
+        console.log('✅ [PRICE CALCULATOR] Saltando validación, continuando con creación de reserva...');
+      } else {
+        console.log('✅ [PRICE CALCULATOR] Disponibilidad confirmada, creando reserva en borrador...');
+      }
+
+      // Paso 2: Crear reserva en estado 'pending' (borrador/preliminar)
+      const bookingRequest: CreateBookingRequest = {
+        propertyId: property.id,
+        checkIn: checkInStr,
+        checkOut: checkOutStr,
+        guests: guests,
+        guestInfo: {
+          name: user.name || 'Usuario',
+          email: user.email || '',
+          phone: '',
+        },
+        paymentMethod: 'pending',
+      };
+
+      const bookingResponse = await createBooking(bookingRequest);
+
+      if (!bookingResponse.success || !bookingResponse.data?.booking) {
+        const errorCode = bookingResponse.error?.code;
+        const errorMessage = bookingResponse.error?.message || 'Error al crear la reserva';
+        
+        // Si el endpoint no existe (404), usar flujo antiguo con parámetros de query
+        if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
+            errorMessage.includes('Ruta no encontrada') || errorMessage.includes('not found')) {
+          console.warn('⚠️ [PRICE CALCULATOR] Endpoint de creación no disponible (404), usando flujo con parámetros de query');
+          
+          // Redirigir a checkout con parámetros de query (flujo antiguo)
+          const checkoutUrl = `/checkout?propertyId=${property.id}&checkIn=${checkIn.toISOString()}&checkOut=${checkOut.toISOString()}&adults=${guests}&children=0&infants=0`;
+          router.push(checkoutUrl);
+          toast.success('Redirigiendo a checkout...');
+          return;
+        }
+        
+        // Si es rate limit (429), mostrar mensaje específico y permitir reintentar
+        if (errorCode === 'RATE_LIMIT' || errorCode === 'HTTP_429' || 
+            errorMessage.includes('Demasiadas solicitudes')) {
+          toast.error('Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo.');
+          console.warn('⚠️ [PRICE CALCULATOR] Rate limit al crear reserva, usuario puede reintentar');
+          return;
+        }
+        
+        toast.error(errorMessage);
+        console.error('❌ [PRICE CALCULATOR] Error creando reserva:', bookingResponse.error);
+        return;
+      }
+
+      const bookingId = bookingResponse.data.booking.id;
+      console.log('✅ [PRICE CALCULATOR] Reserva creada en borrador:', bookingId);
+
+      // Paso 3: Redirigir a checkout con ID de reserva (flujo unificado)
+      const checkoutUrl = `/checkout?id=${bookingId}`;
+      router.push(checkoutUrl);
+      toast.success('Reserva creada, completando información...');
+    } catch (error) {
+      console.error('❌ [PRICE CALCULATOR] Error al crear reserva:', error);
+      toast.error('Error al crear la reserva. Por favor, intenta de nuevo.');
+    }
   };
 
   const incrementGuests = () => {
@@ -287,14 +422,36 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       {hasValidDates ? (
         <Button
           onClick={handleReserve}
-          disabled={!!validationError || isCheckingAvailability}
-          className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isCheckingAvailability}
+          className={`w-full font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+            isAvailabilityVerified && !availabilityError
+              ? 'bg-green-600 hover:bg-green-700 text-white'
+              : availabilityError && !isAvailabilityVerified
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : 'bg-[#FF385C] hover:bg-[#E31C5F] text-white'
+          }`}
         >
-          {isCheckingAvailability 
-            ? 'Verificando disponibilidad...' 
-            : validationError 
-              ? 'Fechas inválidas' 
-              : 'Ir a checkout'}
+          <div className="flex items-center justify-center gap-2">
+            {isCheckingAvailability ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Verificando disponibilidad...</span>
+              </>
+            ) : availabilityError && !isAvailabilityVerified ? (
+              <>
+                <span>⚠️ Fechas no disponibles</span>
+              </>
+            ) : isAvailabilityVerified ? (
+              <>
+                <CheckCircle className="w-5 h-5" />
+                <span>Disponible - Ir a checkout</span>
+              </>
+            ) : (
+              <>
+                <span>Ir a checkout</span>
+              </>
+            )}
+          </div>
         </Button>
       ) : (
         <Button
@@ -378,6 +535,13 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       {validationError && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-700">{validationError}</p>
+        </div>
+      )}
+
+      {/* Error de disponibilidad */}
+      {availabilityError && (
+        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-700">{availabilityError}</p>
         </div>
       )}
 

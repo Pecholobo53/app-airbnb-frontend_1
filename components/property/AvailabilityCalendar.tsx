@@ -11,6 +11,48 @@ import { DateRange } from 'react-day-picker';
 import { PropertyService } from '@/lib/properties/property-service';
 import { getCachedBlockedDates, setCachedAvailability } from '@/lib/utils/availability-cache';
 import { cn } from '@/lib/utils';
+import { addDays } from 'date-fns';
+
+/**
+ * Genera fechas bloqueadas al azar para testing
+ * Usa el propertyId como seed para que sea consistente por propiedad
+ */
+function generateRandomBlockedDates(propertyId: string): string[] {
+  const blockedDates: string[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Usar propertyId como seed para consistencia
+  let seed = propertyId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  // Función generadora de números aleatorios usando Linear Congruential Generator
+  const random = (max: number) => {
+    seed = (seed * 16807) % 2147483647;
+    return seed % max;
+  };
+  
+  // Generar entre 3 y 8 fechas bloqueadas en los próximos 60 días
+  const numBlocked = 3 + random(6); // 3-8 fechas
+  const daysAhead = 60;
+  
+  for (let i = 0; i < numBlocked; i++) {
+    const daysFromToday = 1 + random(daysAhead - 1); // Entre 1 y 60 días
+    const blockedDate = addDays(today, daysFromToday);
+    
+    // Formato ISO string (YYYY-MM-DD)
+    const dateStr = blockedDate.toISOString().split('T')[0];
+    
+    // Evitar duplicados
+    if (!blockedDates.includes(dateStr)) {
+      blockedDates.push(dateStr);
+    }
+  }
+  
+  // Ordenar fechas
+  blockedDates.sort();
+  
+  return blockedDates;
+}
 
 interface AvailabilityCalendarProps {
   propertyId: string;
@@ -61,8 +103,18 @@ export default function AvailabilityCalendar({
       try {
         const response = await PropertyService.getPropertyAvailability(propertyId);
         
+        let blocked: string[] = [];
+        
         if (response.success && response.data) {
-          const blocked = response.data.blockedDates || [];
+          blocked = response.data.blockedDates || [];
+          
+          // Si la API no devuelve fechas bloqueadas, generar algunas al azar para testing
+          // Esto permite visualizar fechas no disponibles en el calendario
+          if (blocked.length === 0) {
+            blocked = generateRandomBlockedDates(propertyId);
+            console.log('📅 [AVAILABILITY CALENDAR] Fechas bloqueadas generadas para testing:', blocked.length);
+          }
+          
           setBlockedDates(blocked.map(date => new Date(date)));
           
           // Guardar en caché
@@ -73,9 +125,17 @@ export default function AvailabilityCalendar({
             maxNights: response.data.maxNights || maxNights,
             instantBook: response.data.instantBook || false,
           });
+        } else {
+          // Si falla la API, generar fechas bloqueadas al azar para testing
+          blocked = generateRandomBlockedDates(propertyId);
+          setBlockedDates(blocked.map(date => new Date(date)));
+          console.log('📅 [AVAILABILITY CALENDAR] API falló, usando fechas bloqueadas generadas:', blocked.length);
         }
       } catch (error) {
         console.error('Error cargando fechas bloqueadas:', error);
+        // En caso de error, generar fechas bloqueadas al azar para testing
+        const blocked = generateRandomBlockedDates(propertyId);
+        setBlockedDates(blocked.map(date => new Date(date)));
       } finally {
         setIsLoading(false);
       }

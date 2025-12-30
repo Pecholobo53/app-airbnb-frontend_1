@@ -89,7 +89,7 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
 
   if (validImages.length === 0) {
     return (
-      <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+      <div className="w-full h-96 bg-white rounded-lg flex items-center justify-center">
         <p className="text-gray-500">Sin imágenes disponibles</p>
       </div>
     );
@@ -98,7 +98,7 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
   return (
     <>
       {/* Desktop Grid */}
-      <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[500px] rounded-xl overflow-hidden bg-gray-100">
+      <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[500px] rounded-xl overflow-hidden bg-white">
         {/* Imagen principal (2x2) */}
         <div
           className="col-span-2 row-span-2 relative cursor-pointer group bg-white rounded-lg overflow-hidden"
@@ -155,7 +155,7 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
       </div>
 
       {/* Mobile Carousel - Simple first image with button */}
-      <div className="md:hidden relative h-64 rounded-lg overflow-hidden bg-gray-100">
+      <div className="md:hidden relative h-64 rounded-lg overflow-hidden bg-white">
         <div className="w-full h-full bg-white rounded-lg overflow-hidden">
           {renderImage(
             displayImages[0],
