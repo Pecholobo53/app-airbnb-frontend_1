@@ -10,7 +10,9 @@ import { es } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
 import { PropertyService } from '@/lib/properties/property-service';
 import { getCachedBlockedDates, setCachedAvailability } from '@/lib/utils/availability-cache';
+import { validateBooking } from '@/lib/bookings/booking-service';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 /**
  * NOTA: Esta función fue eliminada porque generaba fechas bloqueadas aleatorias
@@ -46,6 +48,7 @@ export default function AvailabilityCalendar({
   const [isOpen, setIsOpen] = useState(false);
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(
     checkIn && checkOut
       ? { from: checkIn, to: checkOut }
@@ -126,13 +129,69 @@ export default function AvailabilityCalendar({
     }
   }, [checkIn, checkOut]);
 
-  const handleSelect = (range: DateRange | undefined) => {
+  const handleSelect = async (range: DateRange | undefined) => {
     setDateRange(range);
     
     if (range?.from && range?.to) {
-      // Rango completo seleccionado
-      onDateSelect(range.from, range.to);
-      setIsOpen(false);
+      // Rango completo seleccionado - Validar disponibilidad en tiempo real
+      console.log('🔍 [AVAILABILITY CALENDAR] Rango completo seleccionado, validando disponibilidad...');
+      setIsValidating(true);
+      
+      try {
+        const checkInStr = range.from.toISOString().split('T')[0];
+        const checkOutStr = range.to.toISOString().split('T')[0];
+        
+        const validationResponse = await validateBooking({
+          propertyId: propertyId,
+          checkIn: checkInStr,
+          checkOut: checkOutStr,
+          guests: 1, // Usar valor por defecto, se ajustará en PriceCalculator
+        });
+
+        console.log('🔍 [AVAILABILITY CALENDAR] Respuesta de validación:', {
+          success: validationResponse.success,
+          available: validationResponse.data?.available,
+          message: validationResponse.data?.message,
+        });
+
+        // Si el endpoint no existe (404), permitir continuar
+        if (!validationResponse.success) {
+          const errorCode = validationResponse.error?.code;
+          if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
+              validationResponse.error?.message?.includes('Ruta no encontrada')) {
+            console.warn('⚠️ [AVAILABILITY CALENDAR] Endpoint de validación no disponible, permitiendo selección');
+            onDateSelect(range.from, range.to);
+            setIsOpen(false);
+            return;
+          }
+        }
+
+        // Si las fechas no están disponibles, mostrar error y NO permitir selección
+        if (!validationResponse.data?.available) {
+          const errorMessage = validationResponse.data?.message || 
+                              validationResponse.data?.reason ||
+                              'El rango de fechas seleccionado no está disponible';
+          console.error('❌ [AVAILABILITY CALENDAR] Fechas no disponibles:', errorMessage);
+          toast.error(errorMessage);
+          // Resetear selección
+          setDateRange(range.from ? { from: range.from } : undefined);
+          onDateSelect(range.from, null);
+          return;
+        }
+
+        // Si están disponibles, permitir selección
+        console.log('✅ [AVAILABILITY CALENDAR] Fechas validadas como disponibles');
+        onDateSelect(range.from, range.to);
+        setIsOpen(false);
+      } catch (error) {
+        console.error('❌ [AVAILABILITY CALENDAR] Error validando fechas:', error);
+        // En caso de error, permitir continuar (modo permisivo)
+        // El PriceCalculator validará de nuevo antes de reservar
+        onDateSelect(range.from, range.to);
+        setIsOpen(false);
+      } finally {
+        setIsValidating(false);
+      }
     } else if (range?.from) {
       // Solo check-in seleccionado
       onDateSelect(range.from, null);
@@ -220,9 +279,9 @@ export default function AvailabilityCalendar({
             day_range_end: "bg-[#FF385C] text-white",
           }}
         />
-        {isLoading && (
+        {(isLoading || isValidating) && (
           <div className="p-3 border-t border-gray-200 bg-gray-50 text-center text-sm text-gray-500">
-            Cargando disponibilidad...
+            {isLoading ? 'Cargando disponibilidad...' : 'Validando fechas seleccionadas...'}
           </div>
         )}
         {blockedDates.length > 0 && (

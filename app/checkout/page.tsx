@@ -92,15 +92,21 @@ export default function CheckoutPage() {
       isLoadingRef: isLoadingRef.current,
     });
 
-    // Redirigir a login si no está autenticado
-    if (!authLoading && !isAuthenticated) {
-      console.log('🚫 [CHECKOUT] No autenticado, redirigiendo a login');
+    // Verificar si hay parámetros completos en la URL para usar fallback
+    const hasCompleteParams = urlParams.propertyId && urlParams.checkIn && urlParams.checkOut && urlParams.adults;
+    
+    // Si hay parámetros completos, permitir cargar sin autenticación (usando fallback)
+    // Solo redirigir a login si NO hay parámetros completos y no está autenticado
+    if (!authLoading && !isAuthenticated && !hasCompleteParams) {
+      console.log('🚫 [CHECKOUT] No autenticado y sin parámetros completos, redirigiendo a login');
       toast.error(ERROR_MESSAGES.LOGIN_REQUIRED);
       router.push(ROUTES.LOGIN);
       return;
     }
 
-    // Cargar datos de checkout si está autenticado
+    // Cargar datos de checkout si:
+    // 1. Está autenticado Y tiene usuario, O
+    // 2. Tiene parámetros completos en la URL (fallback)
     // Usar una clave única basada en los parámetros de la URL para evitar recargas innecesarias
     const loadKey = urlParams.bookingId || `${urlParams.propertyId}-${urlParams.checkIn}-${urlParams.checkOut}` || 'default';
     
@@ -108,14 +114,20 @@ export default function CheckoutPage() {
     console.log('🔍 [CHECKOUT] Verificando condiciones:', {
       isAuthenticated,
       hasUser: !!user,
+      hasCompleteParams,
       hasLoadedRef: hasLoadedRef.current,
       loadKey,
       keysMatch: hasLoadedRef.current === loadKey,
       isLoadingRef: isLoadingRef.current,
     });
     
-    // Solo cargar si no se ha cargado para esta clave específica y no está cargando actualmente
-    if (isAuthenticated && user && hasLoadedRef.current !== loadKey && !isLoadingRef.current) {
+    // Cargar si:
+    // - (Está autenticado Y tiene usuario) O tiene parámetros completos
+    // - Y no se ha cargado para esta clave específica
+    // - Y no está cargando actualmente
+    const shouldLoad = (isAuthenticated && user) || hasCompleteParams;
+    
+    if (shouldLoad && hasLoadedRef.current !== loadKey && !isLoadingRef.current) {
       console.log('✅ [CHECKOUT] Condiciones cumplidas, iniciando carga...');
       isLoadingRef.current = true;
       hasLoadedRef.current = loadKey;
@@ -146,41 +158,74 @@ export default function CheckoutPage() {
       console.log('⏭️ [CHECKOUT] Condiciones NO cumplidas, saltando carga:', {
         isAuthenticated,
         hasUser: !!user,
+        hasCompleteParams,
         keysMatch: hasLoadedRef.current === loadKey,
         isLoadingRef: isLoadingRef.current,
       });
     }
-  }, [isAuthenticated, user, authLoading, router, urlParamsKey, urlParams.bookingId, urlParams.propertyId, urlParams.checkIn, urlParams.checkOut]);
+  }, [isAuthenticated, user, authLoading, router, urlParamsKey, urlParams.bookingId, urlParams.propertyId, urlParams.checkIn, urlParams.checkOut, urlParams.adults]);
 
   // No cambiar automáticamente el paso - el usuario controla la navegación
 
   const loadCheckoutData = async (): Promise<void> => {
-    if (!user) {
+    console.log('🚀 [CHECKOUT] loadCheckoutData INICIADO');
+    
+    // Verificar si hay parámetros completos en la URL para usar fallback sin autenticación
+    const hasCompleteParams = urlParams.propertyId && urlParams.checkIn && urlParams.checkOut && urlParams.adults;
+    
+    console.log('🔍 [CHECKOUT] loadCheckoutData - Verificando condiciones iniciales:', {
+      hasCompleteParams: !!hasCompleteParams,
+      hasUser: !!user,
+      propertyId: urlParams.propertyId,
+      checkIn: urlParams.checkIn,
+      checkOut: urlParams.checkOut,
+      adults: urlParams.adults,
+    });
+    
+    // Si no hay parámetros completos y no hay usuario, no cargar
+    if (!hasCompleteParams && !user) {
+      console.log('❌ [CHECKOUT] loadCheckoutData - Sin parámetros completos ni usuario, abortando');
       isLoadingRef.current = false;
       return;
     }
     
-    // Evitar múltiples llamadas simultáneas
-    if (isLoadingRef.current) {
-      console.log('⚠️ [CHECKOUT] Ya se está cargando, ignorando llamada duplicada');
-      return;
-    }
-
-    isLoadingRef.current = true;
+    // NOTA: isLoadingRef.current ya se establece en true en el useEffect antes de llamar a esta función
+    // No necesitamos verificarlo aquí porque el useEffect ya previene llamadas duplicadas
+    
+    console.log('✅ [CHECKOUT] Pasando verificación inicial, estableciendo flags de UI...');
     setIsLoading(true);
     setError(null);
 
+    console.log('🚀 [CHECKOUT] Iniciando try/catch de loadCheckoutData...');
     try {
       // Verificar si hay un ID de reserva en la URL
       const bookingIdParam = urlParams.bookingId;
+      
+      console.log('🔍 [CHECKOUT] loadCheckoutData - Verificando parámetros:', {
+        bookingIdParam,
+        propertyId: urlParams.propertyId,
+        checkIn: urlParams.checkIn,
+        checkOut: urlParams.checkOut,
+        adults: urlParams.adults,
+        hasCompleteParams,
+      });
 
       if (bookingIdParam) {
+        console.log('🔍 [CHECKOUT] Hay bookingId en URL, verificando si usar fallback...');
         // Verificar primero si hay parámetros en la URL para usar como fallback
         // Esto evita intentar cargar la reserva si sabemos que puede fallar
         const propertyIdFromUrl = urlParams.propertyId;
         const checkInParam = urlParams.checkIn;
         const checkOutParam = urlParams.checkOut;
         const guestsParam = urlParams.adults;
+        
+        console.log('🔍 [CHECKOUT] Parámetros para fallback:', {
+          propertyIdFromUrl,
+          checkInParam,
+          checkOutParam,
+          guestsParam,
+          hasAllParams: !!(propertyIdFromUrl && checkInParam && checkOutParam && guestsParam),
+        });
         
         // Si hay parámetros completos en la URL, usarlos directamente como fallback
         // Esto es más rápido y evita peticiones innecesarias que causan 429
@@ -354,9 +399,16 @@ export default function CheckoutPage() {
         }
       } else {
         // Flujo de parámetros de query: crear reserva en borrador y redirigir a flujo unificado
-        console.log('📋 [CHECKOUT] Cargando desde parámetros de query');
+        console.log('📋 [CHECKOUT] NO hay bookingId, usando flujo de parámetros de query');
+        console.log('📋 [CHECKOUT] URL params:', {
+          propertyId: urlParams.propertyId,
+          checkIn: urlParams.checkIn,
+          checkOut: urlParams.checkOut,
+          adults: urlParams.adults,
+        });
         
         const params = parseCheckoutParams(new URLSearchParams(searchParams.toString()));
+        console.log('📋 [CHECKOUT] Parámetros parseados:', params);
 
         if (!params.propertyId || !params.checkIn || !params.checkOut || !params.guests) {
           setError('Datos de checkout incompletos. Por favor, vuelve a la propiedad y selecciona fechas.');
@@ -374,85 +426,102 @@ export default function CheckoutPage() {
 
         const loadedProperty = propertyResponse.data;
 
-        // Intentar crear reserva en borrador para unificar flujo (opcional)
-        // Si falla (404), continuar con flujo antiguo sin reserva en borrador
-        try {
-          const checkInStr = params.checkIn.toISOString().split('T')[0];
-          const checkOutStr = params.checkOut.toISOString().split('T')[0];
-          
-          console.log('📝 [CHECKOUT] Intentando crear reserva en borrador desde parámetros...');
-          
-          // Validar disponibilidad antes de crear (opcional, si el endpoint existe)
-          const validationResponse = await validateBooking({
-            propertyId: params.propertyId,
-            checkIn: checkInStr,
-            checkOut: checkOutStr,
-            guests: params.guests.adults + (params.guests.children || 0),
-          });
-
-          // Si el endpoint de validación no existe (404), saltar validación
-          const skipValidation = !validationResponse.success && 
-                               (validationResponse.error?.code === 'NOT_FOUND' || 
-                                validationResponse.error?.code === 'HTTP_404' ||
-                                validationResponse.error?.message?.includes('Ruta no encontrada'));
-
-          if (!skipValidation && (!validationResponse.success || !validationResponse.data?.available)) {
-            const errorMessage = validationResponse.error?.message || 
-                                validationResponse.data?.message || 
-                                'Las fechas seleccionadas no están disponibles';
-            setError(errorMessage);
-            setIsLoading(false);
-            return;
-          }
-
-          // Crear reserva en borrador (opcional, si el endpoint existe)
-          const bookingRequest: CreateBookingRequest = {
-            propertyId: params.propertyId,
-            checkIn: checkInStr,
-            checkOut: checkOutStr,
-            guests: params.guests.adults + (params.guests.children || 0),
-            guestInfo: {
-              name: user.name || 'Usuario',
-              email: user.email || '',
-              phone: '',
-            },
-            paymentMethod: 'pending',
-          };
-
-          const bookingResponse = await createBooking(bookingRequest);
-
-          // Si el endpoint no existe (404), continuar con flujo antiguo
-          if (!bookingResponse.success) {
-            const errorCode = bookingResponse.error?.code;
-            const errorMessage = bookingResponse.error?.message || '';
+        // Si hay usuario autenticado, intentar crear reserva en borrador para unificar flujo (opcional)
+        // Si no hay usuario o falla, continuar con flujo antiguo sin reserva en borrador
+        if (user) {
+          try {
+            const checkInStr = params.checkIn.toISOString().split('T')[0];
+            const checkOutStr = params.checkOut.toISOString().split('T')[0];
             
-            if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
-                errorMessage.includes('Ruta no encontrada') || errorMessage.includes('not found')) {
-              console.warn('⚠️ [CHECKOUT] Endpoint de creación no disponible (404), continuando con flujo antiguo');
-              // Continuar con flujo antiguo (sin reserva en borrador)
-            } else {
-              // Otro error, mostrar y continuar con flujo antiguo
-              console.warn('⚠️ [CHECKOUT] Error creando reserva, continuando con flujo antiguo:', errorMessage);
+            console.log('📝 [CHECKOUT] Usuario autenticado, intentando crear reserva en borrador desde parámetros...');
+            
+            // Validar disponibilidad antes de crear (opcional, si el endpoint existe)
+            const validationResponse = await validateBooking({
+              propertyId: params.propertyId,
+              checkIn: checkInStr,
+              checkOut: checkOutStr,
+              guests: params.guests.adults + (params.guests.children || 0),
+            });
+
+            console.log('🔍 [CHECKOUT] Validación al cargar checkout:', {
+              success: validationResponse.success,
+              available: validationResponse.data?.available,
+              message: validationResponse.data?.message,
+              reason: validationResponse.data?.reason,
+              error: validationResponse.error,
+            });
+
+            // Si el endpoint de validación no existe (404), saltar validación
+            const skipValidation = !validationResponse.success && 
+                                 (validationResponse.error?.code === 'NOT_FOUND' || 
+                                  validationResponse.error?.code === 'HTTP_404' ||
+                                  validationResponse.error?.message?.includes('Ruta no encontrada'));
+
+            if (!skipValidation && (!validationResponse.success || !validationResponse.data?.available)) {
+              const errorMessage = validationResponse.error?.message || 
+                                  validationResponse.data?.message || 
+                                  validationResponse.data?.reason ||
+                                  'El rango de fechas seleccionado no está disponible. Por favor, selecciona otras fechas desde la página de la propiedad.';
+              console.error('❌ [CHECKOUT] Fechas no disponibles al cargar:', errorMessage);
+              setError(errorMessage);
+              setIsLoading(false);
+              isLoadingRef.current = false;
+              return;
             }
-          } else if (bookingResponse.data?.booking) {
-            // Si se creó exitosamente, redirigir a flujo unificado
-            const newBookingId = bookingResponse.data.booking.id;
-            console.log('✅ [CHECKOUT] Reserva creada en borrador:', newBookingId);
-            // Limpiar TODAS las referencias para permitir carga limpia con nuevo ID
-            hasLoadedRef.current = null;
-            isLoadingRef.current = false;
-            setIsLoading(false);
-            // Usar window.location para forzar recarga completa y evitar bucles
-            window.location.href = `/checkout?id=${newBookingId}`;
-            return; // No continuar, la redirección cargará los datos
+
+            // Crear reserva en borrador (opcional, si el endpoint existe)
+            const bookingRequest: CreateBookingRequest = {
+              propertyId: params.propertyId,
+              checkIn: checkInStr,
+              checkOut: checkOutStr,
+              guests: params.guests.adults + (params.guests.children || 0),
+              guestInfo: {
+                name: user.name || 'Usuario',
+                email: user.email || '',
+                phone: '',
+              },
+              paymentMethod: 'pending',
+            };
+
+            const bookingResponse = await createBooking(bookingRequest);
+
+            // Si el endpoint no existe (404), continuar con flujo antiguo
+            if (!bookingResponse.success) {
+              const errorCode = bookingResponse.error?.code;
+              const errorMessage = bookingResponse.error?.message || '';
+              
+              if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
+                  errorMessage.includes('Ruta no encontrada') || errorMessage.includes('not found')) {
+                console.warn('⚠️ [CHECKOUT] Endpoint de creación no disponible (404), continuando con flujo antiguo');
+                // Continuar con flujo antiguo (sin reserva en borrador)
+              } else {
+                // Otro error, mostrar y continuar con flujo antiguo
+                console.warn('⚠️ [CHECKOUT] Error creando reserva, continuando con flujo antiguo:', errorMessage);
+              }
+            } else if (bookingResponse.data?.booking) {
+              // Si se creó exitosamente, redirigir a flujo unificado
+              const newBookingId = bookingResponse.data.booking.id;
+              console.log('✅ [CHECKOUT] Reserva creada en borrador:', newBookingId);
+              // Limpiar TODAS las referencias para permitir carga limpia con nuevo ID
+              hasLoadedRef.current = null;
+              isLoadingRef.current = false;
+              setIsLoading(false);
+              // Usar window.location para forzar recarga completa y evitar bucles
+              window.location.href = `/checkout?id=${newBookingId}`;
+              return; // No continuar, la redirección cargará los datos
+            }
+          } catch (err) {
+            console.error('❌ [CHECKOUT] Error creando reserva desde parámetros:', err);
+            // Si falla crear reserva, continuar con flujo antiguo (compatibilidad)
+            console.warn('⚠️ [CHECKOUT] Continuando con flujo antiguo sin reserva en borrador');
           }
-        } catch (err) {
-          console.error('❌ [CHECKOUT] Error creando reserva desde parámetros:', err);
-          // Si falla crear reserva, continuar con flujo antiguo (compatibilidad)
-          console.warn('⚠️ [CHECKOUT] Continuando con flujo antiguo sin reserva en borrador');
+        } else {
+          console.log('ℹ️ [CHECKOUT] No hay usuario autenticado, usando flujo directo sin crear reserva');
         }
 
-        // Flujo antiguo (fallback si falla crear reserva)
+        // Flujo antiguo (fallback si no hay usuario, falla crear reserva, o endpoint no existe)
+        console.log('🔄 [CHECKOUT] Ejecutando flujo antiguo (directo desde parámetros)...');
+        
         const pricing = calculatePriceBreakdown(
           loadedProperty.pricing,
           params.checkIn,
@@ -472,11 +541,19 @@ export default function CheckoutPage() {
           pricing,
         };
 
+        console.log('📦 [CHECKOUT] Datos de checkout preparados:', {
+          propertyId: checkoutData.propertyId,
+          checkIn: checkoutData.checkIn,
+          checkOut: checkoutData.checkOut,
+          nights: checkoutData.nights,
+          guests: checkoutData.guests,
+        });
+
         setProperty(loadedProperty);
         setCheckoutData(checkoutData);
         setIsLoading(false);
         isLoadingRef.current = false;
-        console.log('✅ [CHECKOUT] Checkout cargado desde parámetros de query');
+        console.log('✅ [CHECKOUT] Checkout cargado desde parámetros de query - COMPLETADO');
       }
     } catch (err) {
       console.error('Error cargando checkout:', err);
@@ -635,6 +712,14 @@ export default function CheckoutPage() {
           guests: checkoutData.guests.adults + (checkoutData.guests.children || 0),
         });
 
+        console.log('🔍 [CHECKOUT] Respuesta de validación completa:', {
+          success: validationResponse.success,
+          available: validationResponse.data?.available,
+          message: validationResponse.data?.message,
+          reason: validationResponse.data?.reason,
+          error: validationResponse.error,
+        });
+
         // Si el endpoint no existe (404), saltar validación
         if (!validationResponse.success) {
           const errorCode = validationResponse.error?.code;
@@ -647,11 +732,11 @@ export default function CheckoutPage() {
           } else if (validationResponse.data?.available === false) {
             // Si las fechas realmente no están disponibles, bloquear
             console.error('❌ [API REAL] Reserva no válida:', validationResponse.error);
-            toast.error(
-              validationResponse.error?.message || 
-              validationResponse.data?.message || 
-              'Las fechas seleccionadas no están disponibles'
-            );
+            const errorMsg = validationResponse.error?.message || 
+                            validationResponse.data?.message || 
+                            'Las fechas seleccionadas no están disponibles';
+            toast.error(errorMsg);
+            setError(errorMsg);
             setIsProcessing(false);
             return;
           } else {
@@ -661,11 +746,20 @@ export default function CheckoutPage() {
           }
         } else if (!validationResponse.data?.available) {
           // Si la validación fue exitosa pero las fechas no están disponibles
-          console.error('❌ [API REAL] Reserva no válida: fechas no disponibles');
-          toast.error(
-            validationResponse.data?.message || 
-            'Las fechas seleccionadas no están disponibles'
-          );
+          console.error('❌ [API REAL] Reserva no válida: fechas no disponibles', {
+            propertyId: checkoutData.propertyId,
+            checkIn: checkInStr,
+            checkOut: checkOutStr,
+            guests: checkoutData.guests.adults + (checkoutData.guests.children || 0),
+            response: validationResponse.data,
+          });
+          
+          const errorMsg = validationResponse.data?.message || 
+                          validationResponse.data?.reason ||
+                          'El rango de fechas seleccionado no está disponible. Por favor, selecciona otras fechas.';
+          
+          toast.error(errorMsg);
+          setError(errorMsg);
           setIsProcessing(false);
           return;
         } else {
@@ -785,28 +879,49 @@ export default function CheckoutPage() {
     );
   }
 
-  // No mostrar nada si no está autenticado (se redirige)
-  if (!isAuthenticated) {
+  // Verificar si hay parámetros completos para permitir renderizado sin autenticación
+  const hasCompleteParams = urlParams.propertyId && urlParams.checkIn && urlParams.checkOut && urlParams.adults;
+  
+  // No mostrar nada si no está autenticado Y no hay parámetros completos (se redirige)
+  // Si hay parámetros completos, permitir renderizar aunque no esté autenticado (fallback)
+  if (!isAuthenticated && !hasCompleteParams) {
     return null;
   }
 
   // Error state
   if (error || !property || !checkoutData) {
+    const isDateError = error?.toLowerCase().includes('fecha') || error?.toLowerCase().includes('disponible');
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {error || 'Error al cargar checkout'}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            {error || 'No se pudieron cargar los datos de checkout'}
-          </p>
-          <button
-            onClick={() => router.push(ROUTES.BUSCAR)}
-            className="px-6 py-3 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold rounded-lg transition-colors"
-          >
-            Buscar propiedades
-          </button>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-4">
+            <h2 className="text-2xl font-bold text-red-900 mb-4">
+              {isDateError ? 'Fechas no disponibles' : (error || 'Error al cargar checkout')}
+            </h2>
+            <p className="text-red-700 mb-6">
+              {isDateError 
+                ? 'Las fechas que seleccionaste ya no están disponibles. Esto puede ocurrir si otra persona las reservó mientras completabas el formulario. Por favor, vuelve a la propiedad y selecciona otras fechas disponibles.'
+                : (error || 'No se pudieron cargar los datos de checkout')
+              }
+            </p>
+          </div>
+          <div className="flex gap-4 justify-center">
+            {isDateError && property && (
+              <button
+                onClick={() => router.push(`/propiedad/${property.id}`)}
+                className="px-6 py-3 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold rounded-lg transition-colors"
+              >
+                Volver a la propiedad
+              </button>
+            )}
+            <button
+              onClick={() => router.push(ROUTES.BUSCAR)}
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+            >
+              Buscar propiedades
+            </button>
+          </div>
         </div>
       </div>
     );

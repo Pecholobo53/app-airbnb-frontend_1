@@ -115,6 +115,16 @@ async function apiRequest<T>(
     });
 
     const data = await response.json();
+    
+    // Log detallado de la respuesta para debugging
+    if (endpoint.includes('/validate')) {
+      console.log('📋 [BOOKING SERVICE] Respuesta de validación:', {
+        status: response.status,
+        ok: response.ok,
+        data: data,
+        endpoint: endpoint,
+      });
+    }
 
     if (!response.ok) {
       // Manejo específico de errores según código HTTP
