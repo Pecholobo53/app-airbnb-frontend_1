@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Notification, GetNotificationsOptions } from '@/types/notifications';
-import { MockNotificationsService } from '@/lib/notifications/mock-notifications-service';
+import { NotificationsService } from '@/lib/notifications/notifications-service';
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -42,7 +42,12 @@ export function useNotifications(
     setError(null);
 
     try {
-      const response = await MockNotificationsService.getNotifications(userId, options);
+      // Convertir GetNotificationsOptions a formato de API
+      const apiOptions: { page?: number; limit?: number; read?: boolean } = {};
+      if (options.limit) apiOptions.limit = options.limit;
+      if (options.unreadOnly !== undefined) apiOptions.read = !options.unreadOnly;
+      
+      const response = await NotificationsService.getNotifications(apiOptions);
       
       if (response.success && response.data) {
         setNotifications(response.data.notifications);
@@ -64,7 +69,7 @@ export function useNotifications(
 
   const markAsRead = useCallback(async (id: string) => {
     try {
-      const response = await MockNotificationsService.markAsRead(id);
+      const response = await NotificationsService.markAsRead(id);
       if (response.success) {
         // Actualizar estado local
         setNotifications(prev =>
@@ -81,7 +86,7 @@ export function useNotifications(
     if (!userId) return;
 
     try {
-      const response = await MockNotificationsService.markAllAsRead(userId);
+      const response = await NotificationsService.markAllAsRead();
       if (response.success) {
         // Actualizar estado local
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));

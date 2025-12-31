@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import NotificationIcon from './NotificationIcon';
 import { useRouter } from 'next/navigation';
-import { MockNotificationsService } from '@/lib/notifications/mock-notifications-service';
+import { NotificationsService } from '@/lib/notifications/notifications-service';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -25,7 +25,7 @@ export default function NotificationItem({ notification, onRead }: NotificationI
   const handleClick = async () => {
     // Marcar como leída si no lo está
     if (!notification.read) {
-      await MockNotificationsService.markAsRead(notification.id);
+      await NotificationsService.markAsRead(notification.id);
       onRead?.();
     }
 

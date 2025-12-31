@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { MockFavoritesService } from '@/lib/favorites/mock-favorites-service';
+import { FavoritesService } from '@/lib/favorites/favorites-service';
 import { toast } from 'sonner';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants';
 
@@ -17,7 +17,7 @@ interface FavoriteButtonProps {
 /**
  * Botón de Favorito Reutilizable
  * 
- * Maneja el estado de favorito de una propiedad usando el servicio MOCK.
+ * Maneja el estado de favorito de una propiedad usando el servicio API REST real.
  * Muestra animación y feedback visual al usuario.
  */
 export default function FavoriteButton({ 
@@ -39,7 +39,7 @@ export default function FavoriteButton({
 
     const checkFavorite = async () => {
       try {
-        const response = await MockFavoritesService.isFavorited(user.id, propertyId);
+        const response = await FavoritesService.isFavorited(propertyId);
         if (response.success && response.data !== undefined) {
           setIsFavorite(response.data);
         }
@@ -70,23 +70,39 @@ export default function FavoriteButton({
     try {
       if (wasFavorite) {
         // Eliminar favorito
-        const response = await MockFavoritesService.removeFavorite(user.id, propertyId);
+        const response = await FavoritesService.removeFavorite(propertyId);
         if (response.success) {
           setIsFavorite(false);
           toast.success(SUCCESS_MESSAGES.FAVORITE_REMOVED);
         } else {
-          toast.error(response.error?.message || 'Error al eliminar favorito');
+          // Manejar errores específicos
+          if (response.error?.code === 'UNAUTHORIZED') {
+            toast.error('Tu sesión expiró. Por favor, inicia sesión de nuevo.');
+          } else {
+            toast.error(response.error?.message || 'Error al eliminar favorito');
+          }
           setIsFavorite(wasFavorite); // Revertir
         }
       } else {
         // Añadir favorito
-        const response = await MockFavoritesService.addFavorite(user.id, propertyId);
+        const response = await FavoritesService.addFavorite(propertyId);
         if (response.success) {
           setIsFavorite(true);
           toast.success(SUCCESS_MESSAGES.FAVORITE_ADDED);
         } else {
-          toast.error(response.error?.message || 'Error al añadir favorito');
-          setIsFavorite(wasFavorite); // Revertir
+          // Manejar errores específicos
+          if (response.error?.code === 'UNAUTHORIZED') {
+            toast.error('Tu sesión expiró. Por favor, inicia sesión de nuevo.');
+          } else if (response.error?.code === 'CONFLICT') {
+            toast.error('La propiedad ya está en favoritos.');
+            setIsFavorite(true); // Actualizar estado si ya está en favoritos
+          } else if (response.error?.code === 'NOT_FOUND') {
+            toast.error('El servicio de favoritos no está disponible. Por favor, intenta más tarde.');
+            console.error('❌ [FAVORITE BUTTON] Endpoint no encontrado:', response.error);
+          } else {
+            toast.error(response.error?.message || 'Error al añadir favorito');
+          }
+          setIsFavorite(wasFavorite); // Revertir si no es CONFLICT
         }
       }
     } catch (error) {

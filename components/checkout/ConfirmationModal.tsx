@@ -10,6 +10,7 @@ interface ConfirmationModalProps {
   isOpen: boolean;
   bookingId: string;
   onClose?: () => void;
+  onViewBooking?: () => void;
 }
 
 /**
@@ -21,6 +22,7 @@ export default function ConfirmationModal({
   isOpen,
   bookingId,
   onClose,
+  onViewBooking,
 }: ConfirmationModalProps) {
   const router = useRouter();
 
@@ -31,6 +33,16 @@ export default function ConfirmationModal({
 
   const handleGoHome = () => {
     router.push(ROUTES.HOME);
+    onClose?.();
+  };
+
+  const handleViewBooking = () => {
+    if (onViewBooking) {
+      onViewBooking();
+    } else {
+      // Redirigir a mis reservas por defecto
+      router.push(ROUTES.MIS_RESERVAS || '/dashboard/reservas');
+    }
     onClose?.();
   };
 
@@ -65,21 +77,30 @@ export default function ConfirmationModal({
           </p>
 
           {/* Botones */}
-          <div className="flex gap-3">
+          <div className="space-y-3">
             <button
-              onClick={handleSearchMore}
-              className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              onClick={handleViewBooking}
+              className="w-full px-4 py-3 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              <Search className="w-4 h-4" />
-              Buscar más propiedades
+              <CheckCircle className="w-4 h-4" />
+              Ver mi reserva
             </button>
-            <button
-              onClick={handleGoHome}
-              className="flex-1 px-4 py-3 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              <Home className="w-4 h-4" />
-              Volver al inicio
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSearchMore}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                Buscar más
+              </button>
+              <button
+                onClick={handleGoHome}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Home className="w-4 h-4" />
+                Inicio
+              </button>
+            </div>
           </div>
 
           {/* Botón de cerrar */}

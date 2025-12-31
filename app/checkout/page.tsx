@@ -1,7 +1,7 @@
 // app/checkout/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { validateBooking, createBooking, getBookingById, updateBooking, cleanupOldDrafts, type CreateBookingRequest, type Booking, type UpdateBookingRequest } from '@/lib/bookings/booking-service';
@@ -49,6 +49,10 @@ export default function CheckoutPage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingId, setBookingId] = useState<string>('');
   const [bookingData, setBookingData] = useState<Booking | null>(null);
+  
+  // Referencia para evitar múltiples llamadas a loadCheckoutData
+  const hasLoadedRef = useRef<string | null>(null);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
     // Limpiar borradores antiguos al iniciar (solo una vez)
@@ -59,19 +63,64 @@ export default function CheckoutPage() {
     }
   }, [isAuthenticated, user]);
 
+  // No redirigir automáticamente - el usuario decide desde el modal
+  // El modal tiene botones para "Ver mi reserva", "Buscar más propiedades", etc.
+
+  // Extraer valores primitivos de los parámetros para evitar recargas innecesarias
+  // Crear una clave estable basada en los valores de los parámetros
+  const urlParamsKey = useMemo(() => {
+    return searchParams.toString();
+  }, [searchParams.toString()]);
+
+  const urlParams = useMemo(() => ({
+    bookingId: searchParams.get('id'),
+    propertyId: searchParams.get('propertyId'),
+    checkIn: searchParams.get('checkIn'),
+    checkOut: searchParams.get('checkOut'),
+    adults: searchParams.get('adults'),
+    children: searchParams.get('children'),
+    infants: searchParams.get('infants'),
+  }), [urlParamsKey]); // Depender de la clave estable en lugar del objeto searchParams
+
   useEffect(() => {
+    console.log('🔄 [CHECKOUT] useEffect ejecutado', {
+      authLoading,
+      isAuthenticated,
+      hasUser: !!user,
+      urlParamsKey,
+      hasLoadedRef: hasLoadedRef.current,
+      isLoadingRef: isLoadingRef.current,
+    });
+
     // Redirigir a login si no está autenticado
     if (!authLoading && !isAuthenticated) {
+      console.log('🚫 [CHECKOUT] No autenticado, redirigiendo a login');
       toast.error(ERROR_MESSAGES.LOGIN_REQUIRED);
       router.push(ROUTES.LOGIN);
       return;
     }
 
     // Cargar datos de checkout si está autenticado
-    if (isAuthenticated && user) {
-      loadCheckoutData();
+    // Usar una clave única basada en los parámetros de la URL para evitar recargas innecesarias
+    const loadKey = urlParams.bookingId || `${urlParams.propertyId}-${urlParams.checkIn}-${urlParams.checkOut}` || 'default';
+    
+    console.log('🔑 [CHECKOUT] Load key calculada:', loadKey);
+    console.log('🔍 [CHECKOUT] Verificando condiciones:', {
+      isAuthenticated,
+      hasUser: !!user,
+      hasLoadedRef: hasLoadedRef.current,
+      loadKey,
+      keysMatch: hasLoadedRef.current === loadKey,
+      isLoadingRef: isLoadingRef.current,
+    });
+    
+    // Solo cargar si no se ha cargado para esta clave específica y no está cargando actualmente
+    if (isAuthenticated && user && hasLoadedRef.current !== loadKey && !isLoadingRef.current) {
+      console.log('✅ [CHECKOUT] Condiciones cumplidas, iniciando carga...');
+      isLoadingRef.current = true;
+      hasLoadedRef.current = loadKey;
       
-      // Recuperar datos persistentes
+      // Recuperar datos persistentes primero (solo una vez)
       const persisted = getCheckoutData();
       if (persisted) {
         console.log('📦 [CHECKOUT] Datos persistentes recuperados:', persisted);
@@ -79,100 +128,230 @@ export default function CheckoutPage() {
         if (persisted.guestInfo) setGuestInfo(persisted.guestInfo);
         if (persisted.paymentInfo) setPaymentInfo(persisted.paymentInfo);
         if (persisted.billingAddress) setBillingAddress(persisted.billingAddress);
-        if (persisted.bookingId && persisted.bookingId !== bookingId) {
-          setBookingId(persisted.bookingId);
-        }
+        // NO actualizar bookingId aquí para evitar bucles - se actualizará en loadCheckoutData si es necesario
       }
+      
+      loadCheckoutData()
+        .then(() => {
+          console.log('✅ [CHECKOUT] loadCheckoutData completado exitosamente');
+        })
+        .catch((error) => {
+          console.error('❌ [CHECKOUT] Error en loadCheckoutData:', error);
+        })
+        .finally(() => {
+          console.log('🏁 [CHECKOUT] loadCheckoutData finally - reseteando isLoadingRef');
+          isLoadingRef.current = false;
+        });
+    } else {
+      console.log('⏭️ [CHECKOUT] Condiciones NO cumplidas, saltando carga:', {
+        isAuthenticated,
+        hasUser: !!user,
+        keysMatch: hasLoadedRef.current === loadKey,
+        isLoadingRef: isLoadingRef.current,
+      });
     }
-  }, [isAuthenticated, user, authLoading, router, searchParams]);
+  }, [isAuthenticated, user, authLoading, router, urlParamsKey, urlParams.bookingId, urlParams.propertyId, urlParams.checkIn, urlParams.checkOut]);
 
   // No cambiar automáticamente el paso - el usuario controla la navegación
 
-  const loadCheckoutData = async () => {
-    if (!user) return;
+  const loadCheckoutData = async (): Promise<void> => {
+    if (!user) {
+      isLoadingRef.current = false;
+      return;
+    }
+    
+    // Evitar múltiples llamadas simultáneas
+    if (isLoadingRef.current) {
+      console.log('⚠️ [CHECKOUT] Ya se está cargando, ignorando llamada duplicada');
+      return;
+    }
 
+    isLoadingRef.current = true;
     setIsLoading(true);
     setError(null);
 
     try {
       // Verificar si hay un ID de reserva en la URL
-      const bookingIdParam = searchParams.get('id');
+      const bookingIdParam = urlParams.bookingId;
 
       if (bookingIdParam) {
-        // Flujo nuevo: cargar reserva existente desde la API
-        console.log('📋 [CHECKOUT] Cargando reserva existente:', bookingIdParam);
+        // Verificar primero si hay parámetros en la URL para usar como fallback
+        // Esto evita intentar cargar la reserva si sabemos que puede fallar
+        const propertyIdFromUrl = urlParams.propertyId;
+        const checkInParam = urlParams.checkIn;
+        const checkOutParam = urlParams.checkOut;
+        const guestsParam = urlParams.adults;
         
-        const bookingResponse = await getBookingById(bookingIdParam);
-        
-        if (!bookingResponse.success || !bookingResponse.data?.booking) {
-          setError(bookingResponse.error?.message || 'Reserva no encontrada');
-          setIsLoading(false);
-          return;
+        // Si hay parámetros completos en la URL, usarlos directamente como fallback
+        // Esto es más rápido y evita peticiones innecesarias que causan 429
+        if (propertyIdFromUrl && checkInParam && checkOutParam && guestsParam) {
+          console.log('✅ [CHECKOUT] Parámetros encontrados en URL, usando fallback directo (más rápido)...');
+          
+          // Cargar propiedad directamente
+          const propertyResponse = await PropertyService.getPropertyById(propertyIdFromUrl);
+          if (propertyResponse.success && propertyResponse.data) {
+            const loadedProperty = propertyResponse.data;
+            setProperty(loadedProperty);
+            setBookingId(bookingIdParam);
+            
+            // Crear checkoutData desde parámetros
+            const checkIn = new Date(checkInParam);
+            const checkOut = new Date(checkOutParam);
+            const guests = parseInt(guestsParam, 10);
+            
+            const pricing = calculatePriceBreakdown(
+              loadedProperty.pricing,
+              checkIn,
+              checkOut,
+              guests
+            );
+            
+            const nights = differenceInDays(checkOut, checkIn);
+            
+            const checkoutData: Omit<CheckoutData, 'createdAt' | 'expiresAt'> = {
+              propertyId: loadedProperty.id,
+              property: loadedProperty,
+              checkIn,
+              checkOut,
+              nights,
+              guests: {
+                adults: guests,
+                children: parseInt(urlParams.children || '0', 10),
+                infants: parseInt(urlParams.infants || '0', 10),
+              },
+              pricing,
+            };
+            
+            setCheckoutData(checkoutData);
+            setIsLoading(false);
+            isLoadingRef.current = false;
+            console.log('✅ [CHECKOUT] Checkout cargado desde parámetros de URL (fallback)');
+            return;
+          }
         }
-
-        const booking = bookingResponse.data.booking;
-        setBookingId(booking.id);
-        setBookingData(booking); // Guardar datos completos de la reserva para el resumen
         
-        // Guardar ID de reserva en persistencia
-        saveBookingId(booking.id);
-
-        console.log('📋 [CHECKOUT] Reserva cargada:', {
-          id: booking.id,
-          status: booking.status,
-          checkIn: booking.checkIn,
-          checkOut: booking.checkOut,
-          guests: booking.guests,
-          createdAt: booking.createdAt,
-        });
-
-        // Cargar propiedad usando el ID de la reserva
-        const propertyResponse = await PropertyService.getPropertyById(booking.propertyId);
-        if (!propertyResponse.success || !propertyResponse.data) {
-          setError(propertyResponse.error?.message || 'Propiedad no encontrada');
-          setIsLoading(false);
-          return;
-        }
-
-        const loadedProperty = propertyResponse.data;
-
-        // Calcular precios
-        const pricing = calculatePriceBreakdown(
-          loadedProperty.pricing,
-          new Date(booking.checkIn),
-          new Date(booking.checkOut),
-          booking.guests
-        );
-
-        const nights = differenceInDays(new Date(booking.checkOut), new Date(booking.checkIn));
-
-        // Crear datos de checkout desde la reserva
-        const checkoutData: Omit<CheckoutData, 'createdAt' | 'expiresAt'> = {
-          propertyId: loadedProperty.id,
-          property: loadedProperty,
-          checkIn: new Date(booking.checkIn),
-          checkOut: new Date(booking.checkOut),
-          nights,
-          guests: {
-            adults: booking.guests,
-            children: 0,
-            infants: 0,
-          },
-          pricing,
-        };
-
-        // Si la reserva tiene información del huésped, prellenar el formulario
-        if (booking.guestInfo) {
-          setGuestInfo({
-            fullName: booking.guestInfo.name,
-            email: booking.guestInfo.email,
-            phone: booking.guestInfo.phone,
+        // Si no hay parámetros en la URL, intentar cargar desde la API
+        // Pero con timeout para evitar que se quede colgado
+        console.log('📋 [CHECKOUT] Intentando cargar reserva desde API:', bookingIdParam);
+        
+        try {
+          // Timeout de 5 segundos para evitar que se quede colgado
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: La petición tardó demasiado')), 5000);
           });
+          
+          const bookingResponse = await Promise.race([
+            getBookingById(bookingIdParam),
+            timeoutPromise
+          ]);
+          
+          if (!bookingResponse.success) {
+            const errorCode = bookingResponse.error?.code;
+            const errorMessage = bookingResponse.error?.message || 'Error al cargar la reserva';
+            
+            // Si es 403 o timeout, mostrar error
+            if (errorCode === 'FORBIDDEN' || errorCode === 'HTTP_403' || errorMessage.includes('Timeout')) {
+              console.warn('⚠️ [CHECKOUT] Error 403 o timeout al cargar reserva.');
+              setError('No se pudo cargar la reserva. Si acabas de crearla, espera unos segundos y recarga la página, o contacta con soporte.');
+              setIsLoading(false);
+              isLoadingRef.current = false;
+              return;
+            }
+            
+            // Para otros errores, mostrar mensaje estándar
+            setError(errorMessage);
+            setIsLoading(false);
+            isLoadingRef.current = false;
+            return;
+          }
+          
+          if (!bookingResponse.data?.booking) {
+            setError('Reserva no encontrada');
+            setIsLoading(false);
+            isLoadingRef.current = false;
+            return;
+          }
+          
+          // Continuar con el flujo normal de carga de reserva
+          const booking = bookingResponse.data.booking;
+          setBookingId(booking.id);
+          setBookingData(booking);
+          saveBookingId(booking.id);
+          
+          console.log('📋 [CHECKOUT] Reserva cargada:', {
+            id: booking.id,
+            status: booking.status,
+            checkIn: booking.checkIn,
+            checkOut: booking.checkOut,
+            guests: booking.guests,
+            createdAt: booking.createdAt,
+          });
+          
+          // Cargar propiedad usando el ID de la reserva
+          const propertyResponse = await PropertyService.getPropertyById(booking.propertyId);
+          if (!propertyResponse.success || !propertyResponse.data) {
+            setError(propertyResponse.error?.message || 'Propiedad no encontrada');
+            setIsLoading(false);
+            isLoadingRef.current = false;
+            return;
+          }
+          
+          const loadedProperty = propertyResponse.data;
+          
+          // Calcular precios
+          const pricing = calculatePriceBreakdown(
+            loadedProperty.pricing,
+            new Date(booking.checkIn),
+            new Date(booking.checkOut),
+            booking.guests
+          );
+          
+          const nights = differenceInDays(new Date(booking.checkOut), new Date(booking.checkIn));
+          
+          // Crear datos de checkout desde la reserva
+          const checkoutData: Omit<CheckoutData, 'createdAt' | 'expiresAt'> = {
+            propertyId: loadedProperty.id,
+            property: loadedProperty,
+            checkIn: new Date(booking.checkIn),
+            checkOut: new Date(booking.checkOut),
+            nights,
+            guests: {
+              adults: booking.guests,
+              children: 0,
+              infants: 0,
+            },
+            pricing,
+          };
+          
+          // Si la reserva tiene información del huésped, prellenar el formulario
+          if (booking.guestInfo) {
+            setGuestInfo({
+              fullName: booking.guestInfo.name,
+              email: booking.guestInfo.email,
+              phone: booking.guestInfo.phone,
+            });
+          }
+          
+          // Guardar datos directamente
+          setProperty(loadedProperty);
+          setCheckoutData(checkoutData);
+          setIsLoading(false);
+          isLoadingRef.current = false;
+          console.log('✅ [CHECKOUT] Checkout cargado desde reserva existente - COMPLETADO');
+        } catch (apiError) {
+          // Si falla la petición a la API (timeout, red, etc.)
+          console.error('❌ [CHECKOUT] Error en petición a API:', apiError);
+          const errorMessage = apiError instanceof Error ? apiError.message : 'Error al cargar la reserva';
+          
+          if (errorMessage.includes('Timeout')) {
+            setError('La conexión está tardando demasiado. Por favor, recarga la página.');
+          } else {
+            setError('Error al cargar la reserva. Por favor, intenta más tarde.');
+          }
+          setIsLoading(false);
+          isLoadingRef.current = false;
+          return;
         }
-
-        // Guardar datos directamente (sin sesión mock)
-        setProperty(loadedProperty);
-        setCheckoutData(checkoutData);
       } else {
         // Flujo de parámetros de query: crear reserva en borrador y redirigir a flujo unificado
         console.log('📋 [CHECKOUT] Cargando desde parámetros de query');
@@ -257,9 +436,14 @@ export default function CheckoutPage() {
             }
           } else if (bookingResponse.data?.booking) {
             // Si se creó exitosamente, redirigir a flujo unificado
-            const bookingId = bookingResponse.data.booking.id;
-            console.log('✅ [CHECKOUT] Reserva creada en borrador:', bookingId);
-            router.replace(`/checkout?id=${bookingId}`);
+            const newBookingId = bookingResponse.data.booking.id;
+            console.log('✅ [CHECKOUT] Reserva creada en borrador:', newBookingId);
+            // Limpiar TODAS las referencias para permitir carga limpia con nuevo ID
+            hasLoadedRef.current = null;
+            isLoadingRef.current = false;
+            setIsLoading(false);
+            // Usar window.location para forzar recarga completa y evitar bucles
+            window.location.href = `/checkout?id=${newBookingId}`;
             return; // No continuar, la redirección cargará los datos
           }
         } catch (err) {
@@ -290,12 +474,23 @@ export default function CheckoutPage() {
 
         setProperty(loadedProperty);
         setCheckoutData(checkoutData);
+        setIsLoading(false);
+        isLoadingRef.current = false;
+        console.log('✅ [CHECKOUT] Checkout cargado desde parámetros de query');
       }
     } catch (err) {
       console.error('Error cargando checkout:', err);
-      setError('Error al cargar datos de checkout');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar datos de checkout';
+      
+      // Si es timeout o error de red, mostrar mensaje específico
+      if (errorMessage.includes('Timeout') || errorMessage.includes('fetch')) {
+        setError('La conexión está tardando demasiado. Por favor, recarga la página o intenta más tarde.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -776,7 +971,9 @@ export default function CheckoutPage() {
         bookingId={bookingId}
         onClose={() => {
           setShowConfirmation(false);
-          router.push(ROUTES.MIS_RESERVAS);
+        }}
+        onViewBooking={() => {
+          router.push(ROUTES.MIS_RESERVAS || '/dashboard/reservas');
         }}
       />
     </div>

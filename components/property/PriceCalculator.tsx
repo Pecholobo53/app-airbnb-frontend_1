@@ -312,8 +312,10 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       const bookingId = bookingResponse.data.booking.id;
       console.log('✅ [PRICE CALCULATOR] Reserva creada en borrador:', bookingId);
 
-      // Paso 3: Redirigir a checkout con ID de reserva (flujo unificado)
-      const checkoutUrl = `/checkout?id=${bookingId}`;
+      // Paso 3: Redirigir a checkout con ID de reserva y parámetros como fallback
+      // Esto permite que si falla cargar la reserva (403), podamos usar los parámetros
+      // checkInStr y checkOutStr ya están definidos arriba (líneas 201-202), no necesitamos redefinirlos
+      const checkoutUrl = `/checkout?id=${bookingId}&propertyId=${property.id}&checkIn=${checkInStr}&checkOut=${checkOutStr}&adults=${guests}&children=0&infants=0`;
       router.push(checkoutUrl);
       toast.success('Reserva creada, completando información...');
     } catch (error) {

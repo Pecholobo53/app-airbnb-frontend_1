@@ -11,49 +11,102 @@ import {
 import { AuthResponse } from '@/types/auth';
 
 /**
- * DASHBOARD SERVICE - API REST REAL
+ * DASHBOARD SERVICE - API REST REAL CON FALLBACKS
  * 
  * Contexto:
  * Servicio de dashboard que realiza llamadas HTTP reales a la API REST.
- * Integración completa con backend sin fallback a mocks.
+ * Usa endpoints documentados y calcula estadísticas en el frontend cuando
+ * los endpoints específicos no están disponibles.
  * 
- * Mejoras implementadas:
- * - Parsing seguro de JSON (maneja respuestas HTML/404)
- * - Manejo robusto de errores con códigos específicos
- * - Conversión automática de fechas
+ * SOLUCIÓN A PUNTOS CRÍTICOS:
+ * - Endpoints no documentados (guestId/hostId): Usa GET /api/bookings y filtra en frontend
+ * - Endpoints inexistentes (dashboard/guest, dashboard/host): Calcula desde reservas
+ * - Endpoints inexistentes (dashboard/monthly): Calcula desde reservas
  * 
  * Base URL:
  * - Desarrollo: http://localhost:3000
  * - Producción: Configurado via NEXT_PUBLIC_API_URL
  * 
- * Endpoints según documentación Postman:
- * - GET /api/dashboard/guest?userId={userId} - Estadísticas de huésped
- * - GET /api/dashboard/host?userId={userId} - Estadísticas de anfitrión
- * - GET /api/bookings?guestId={guestId}&status=upcoming - Próximos viajes
- * - GET /api/bookings?guestId={guestId}&status=past - Historial de viajes
- * - GET /api/bookings?hostId={hostId}&status=pending - Solicitudes pendientes
- * - GET /api/bookings?hostId={hostId} - Todas las reservas del anfitrión
- * - GET /api/bookings/{bookingId} - Obtener reserva por ID
+ * Endpoints USADOS (según documentación API_Rest_documentation.json):
+ * - GET /api/bookings?status={status}&page={page}&limit={limit} ✅ DOCUMENTADO
+ * - GET /api/bookings/{bookingId} ✅ DOCUMENTADO
  * - POST /api/bookings/{bookingId}/accept - Aceptar reserva
  * - POST /api/bookings/{bookingId}/reject - Rechazar reserva
  * - POST /api/bookings/{bookingId}/cancel - Cancelar reserva
- * - GET /api/dashboard/monthly?userId={userId}&mode={guest|host} - Datos mensuales
+ * 
+ * Endpoints NO USADOS (no existen o no están documentados):
+ * - GET /api/dashboard/guest?userId={userId} ❌ → Calcula desde reservas
+ * - GET /api/dashboard/host?userId={userId} ❌ → Calcula desde reservas
+ * - GET /api/bookings?guestId={id}&status={status} ❌ → Usa GET /api/bookings y filtra
+ * - GET /api/bookings?hostId={id}&status={status} ❌ → Usa GET /api/bookings y filtra
+ * - GET /api/dashboard/monthly?userId={id}&mode={mode} ❌ → Calcula desde reservas
  * 
  * Manejo de Errores:
  * - Errores de red: Se capturan y se retornan con código NETWORK_ERROR
  * - Errores HTTP: Se parsean del response del servidor
  * - Tokens expirados: Se manejan automáticamente
+ * - Endpoints 404: Se calculan datos desde reservas disponibles
  * 
  * Autenticación:
- * - Los tokens se almacenan en sessionStorage con key 'airbnb_session' (se limpia al cerrar el navegador)
+ * - Los tokens se almacenan en sessionStorage con key 'airbnb_session'
  * - Se incluyen automáticamente en el header Authorization: Bearer <token>
  * - TODOS los endpoints del dashboard requieren JWT válido
  * - Si no hay token, el backend retornará 401 Unauthorized
  * - El token se busca en los campos 'token' o 'accessToken' de la sesión
- * - Logging detallado para debugging de autenticación
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+/**
+ * Helper para obtener el userId del usuario autenticado desde sessionStorage
+ */
+function getCurrentUserId(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const session = sessionStorage.getItem('airbnb_session');
+    if (session) {
+      const parsed = JSON.parse(session);
+      if (parsed.user?.id) {
+        return parsed.user.id;
+      }
+    }
+  } catch (error) {
+    console.error('❌ [DASHBOARD SERVICE] Error obteniendo userId:', error);
+  }
+  
+  return null;
+}
+
+/**
+ * Helper para obtener todas las reservas del usuario autenticado
+ * Usa el endpoint documentado GET /api/bookings?status=...&page=...&limit=...
+ */
+async function getAllUserBookings(): Promise<Booking[]> {
+  try {
+    // Obtener todas las reservas sin filtrar por status
+    // Usamos un límite alto para obtener todas las reservas
+    const response = await apiRequest<Booking[] | { bookings: Booking[] }>(
+      `/api/bookings?page=1&limit=1000`,
+      { method: 'GET' }
+    );
+
+    if (!response.success || !response.data) {
+      console.warn('⚠️ [DASHBOARD SERVICE] No se pudieron obtener reservas');
+      return [];
+    }
+
+    // El backend puede retornar { bookings: [...] } o directamente [...]
+    const bookings = Array.isArray(response.data) 
+      ? response.data 
+      : (response.data as any).bookings || [];
+
+    return bookings;
+  } catch (error) {
+    console.error('❌ [DASHBOARD SERVICE] Error obteniendo todas las reservas:', error);
+    return [];
+  }
+}
 
 /**
  * Helper para realizar requests HTTP
@@ -273,135 +326,538 @@ export class DashboardService {
   /**
    * OBTENER ESTADÍSTICAS DE HUÉSPED
    * 
-   * Endpoint: GET /api/dashboard/guest?userId={userId}
+   * SOLUCIÓN: El endpoint GET /api/dashboard/guest no existe.
+   * Calculamos las estadísticas desde las reservas del usuario.
+   * 
+   * Endpoint usado: GET /api/bookings (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getGuestStats(guestId: string): Promise<DashboardResponse<GuestStats>> {
-    console.log('📊 [DASHBOARD SERVICE] Obteniendo stats de huésped:', guestId);
-    console.log('📊 [DASHBOARD SERVICE] Endpoint:', `/api/dashboard/guest?userId=${guestId}`);
+    console.log('📊 [DASHBOARD SERVICE] Calculando stats de huésped desde reservas:', guestId);
     
-    const response = await apiRequest<GuestStats>(`/api/dashboard/guest?userId=${guestId}`, {
-      method: 'GET',
-    });
-    
-    if (!response.success) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo stats de huésped:', {
-        code: response.error?.code,
-        message: response.error?.message,
-        status: response.error?.status,
-        endpoint: `/api/dashboard/guest?userId=${guestId}`
+    try {
+      // Intentar primero el endpoint (por si el backend lo implementa en el futuro)
+      const endpointResponse = await apiRequest<GuestStats>(`/api/dashboard/guest?userId=${guestId}`, {
+        method: 'GET',
       });
+      
+      if (endpointResponse.success && endpointResponse.data) {
+        console.log('✅ [DASHBOARD SERVICE] Stats obtenidas del endpoint');
+        return endpointResponse;
+      }
+      
+      // Si el endpoint no existe (404) o falla, calcular desde reservas
+      console.log('💡 [DASHBOARD SERVICE] Endpoint no disponible, calculando desde reservas');
+      
+      const allBookings = await getAllUserBookings();
+      const guestBookings = allBookings.filter(b => b.guestId === guestId);
+      
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      
+      // Filtrar reservas del año actual
+      const thisYearBookings = guestBookings.filter(b => {
+        const checkIn = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        return checkIn.getFullYear() === currentYear;
+      });
+      
+      // Calcular estadísticas
+      const upcomingTrips = guestBookings.filter(b => {
+        const checkIn = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        return checkIn > now && (b.status === 'confirmed' || b.status === 'pending');
+      }).length;
+      
+      const activeBookings = guestBookings.filter(b => {
+        const checkIn = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        const checkOut = b.checkOut instanceof Date ? b.checkOut : new Date(b.checkOut);
+        return checkIn <= now && checkOut > now && b.status === 'confirmed';
+      }).length;
+      
+      const completedTrips = thisYearBookings.filter(b => {
+        const checkOut = b.checkOut instanceof Date ? b.checkOut : new Date(b.checkOut);
+        return checkOut < now && b.status === 'completed';
+      }).length;
+      
+      const totalSpentThisYear = thisYearBookings
+        .filter(b => b.status === 'completed' || b.status === 'confirmed')
+        .reduce((sum, b) => sum + (b.pricing?.total || 0), 0);
+      
+      const averageTripCost = completedTrips > 0 
+        ? totalSpentThisYear / completedTrips 
+        : 0;
+      
+      const reviewsGiven = guestBookings.filter(b => b.guestReviewGiven).length;
+      const averageRatingGiven = guestBookings
+        .filter(b => b.guestRating)
+        .reduce((sum, b) => sum + (b.guestRating || 0), 0) / 
+        (guestBookings.filter(b => b.guestRating).length || 1);
+      
+      const stats: GuestStats = {
+        guestId,
+        currentYear,
+        upcomingTrips,
+        activeBookings,
+        favoritesCount: 0, // No disponible desde reservas, se puede obtener de otro endpoint
+        completedTrips,
+        totalSpentThisYear,
+        averageTripCost,
+        reviewsGiven,
+        averageRatingGiven,
+      };
+      
+      return {
+        success: true,
+        data: stats,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error calculando stats de huésped:', error);
+      return {
+        success: false,
+        error: {
+          code: 'CALCULATION_ERROR',
+          message: 'Error al calcular estadísticas de huésped',
+        },
+      };
     }
-    
-    return response;
   }
 
   /**
    * OBTENER ESTADÍSTICAS DE ANFITRIÓN
    * 
-   * Endpoint: GET /api/dashboard/host?userId={userId}
+   * SOLUCIÓN: El endpoint GET /api/dashboard/host no existe.
+   * Calculamos las estadísticas desde las reservas del usuario.
+   * 
+   * Endpoint usado: GET /api/bookings (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getHostStats(hostId: string): Promise<DashboardResponse<HostStats>> {
-    console.log('🏡 [DASHBOARD SERVICE] Obteniendo stats de anfitrión:', hostId);
+    console.log('🏡 [DASHBOARD SERVICE] Calculando stats de anfitrión desde reservas:', hostId);
     
-    return apiRequest<HostStats>(`/api/dashboard/host?userId=${hostId}`, {
-      method: 'GET',
-    });
+    try {
+      // Intentar primero el endpoint (por si el backend lo implementa en el futuro)
+      const endpointResponse = await apiRequest<HostStats>(`/api/dashboard/host?userId=${hostId}`, {
+        method: 'GET',
+      });
+      
+      if (endpointResponse.success && endpointResponse.data) {
+        console.log('✅ [DASHBOARD SERVICE] Stats obtenidas del endpoint');
+        return endpointResponse;
+      }
+      
+      // Si el endpoint no existe (404) o falla, calcular desde reservas
+      console.log('💡 [DASHBOARD SERVICE] Endpoint no disponible, calculando desde reservas');
+      
+      const allBookings = await getAllUserBookings();
+      const hostBookings = allBookings.filter(b => b.hostId === hostId);
+      
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      // Filtrar reservas del mes actual
+      const thisMonthBookings = hostBookings.filter(b => {
+        const checkIn = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        return checkIn.getMonth() === currentMonth && checkIn.getFullYear() === currentYear;
+      });
+      
+      // Filtrar reservas del mes anterior
+      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      const lastMonthBookings = hostBookings.filter(b => {
+        const checkIn = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        return checkIn.getMonth() === lastMonth && checkIn.getFullYear() === lastMonthYear;
+      });
+      
+      // Calcular estadísticas
+      const totalRevenue = hostBookings
+        .filter(b => b.status === 'confirmed' || b.status === 'completed')
+        .reduce((sum, b) => sum + (b.pricing?.total || 0), 0);
+      
+      const thisMonthRevenue = thisMonthBookings
+        .filter(b => b.status === 'confirmed' || b.status === 'completed')
+        .reduce((sum, b) => sum + (b.pricing?.total || 0), 0);
+      
+      const lastMonthRevenue = lastMonthBookings
+        .filter(b => b.status === 'confirmed' || b.status === 'completed')
+        .reduce((sum, b) => sum + (b.pricing?.total || 0), 0);
+      
+      const revenueTrend = lastMonthRevenue > 0 
+        ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+        : 0;
+      
+      // Obtener propiedades únicas
+      const uniquePropertyIds = new Set(hostBookings.map(b => b.propertyId));
+      const activeProperties = uniquePropertyIds.size;
+      
+      const totalBookings = hostBookings.length;
+      const pendingRequests = hostBookings.filter(b => b.status === 'pending').length;
+      
+      const upcomingArrivals = hostBookings.filter(b => {
+        const checkIn = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        return checkIn > now && (b.status === 'confirmed' || b.status === 'pending');
+      }).length;
+      
+      // Calcular rating promedio (si está disponible en las reservas)
+      const bookingsWithRating = hostBookings.filter(b => b.property?.rating);
+      const averageRating = bookingsWithRating.length > 0
+        ? bookingsWithRating.reduce((sum, b) => sum + (b.property?.rating || 0), 0) / bookingsWithRating.length
+        : 0;
+      
+      const totalReviews = bookingsWithRating.length;
+      
+      // Calcular occupancy rate (simplificado)
+      const confirmedBookings = hostBookings.filter(b => b.status === 'confirmed' || b.status === 'completed').length;
+      const occupancyRate = totalBookings > 0 ? (confirmedBookings / totalBookings) * 100 : 0;
+      
+      const stats: HostStats = {
+        hostId,
+        period: 'current_month',
+        totalRevenue,
+        revenueTrend,
+        activeProperties,
+        totalBookings,
+        pendingRequests,
+        upcomingArrivals,
+        occupancyRate,
+        averageRating,
+        totalReviews,
+        responseRate: 100, // No disponible desde reservas
+        responseTime: '1 hora', // No disponible desde reservas
+        propertyStats: [], // Se puede calcular si se necesita
+      };
+      
+      return {
+        success: true,
+        data: stats,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error calculando stats de anfitrión:', error);
+      return {
+        success: false,
+        error: {
+          code: 'CALCULATION_ERROR',
+          message: 'Error al calcular estadísticas de anfitrión',
+        },
+      };
+    }
   }
 
   /**
    * OBTENER PRÓXIMOS VIAJES (como huésped)
    * 
-   * Endpoint: GET /api/bookings?guestId={guestId}&status=upcoming
+   * SOLUCIÓN: El endpoint GET /api/bookings?guestId={id}&status=upcoming no está documentado.
+   * Usamos GET /api/bookings?status=confirmed y filtramos por guestId en el frontend.
+   * 
+   * Endpoint usado: GET /api/bookings?status=confirmed (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getUpcomingTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('✈️ [DASHBOARD SERVICE] Obteniendo próximos viajes:', guestId);
-    console.log('✈️ [DASHBOARD SERVICE] Endpoint:', `/api/bookings?guestId=${guestId}&status=upcoming`);
     
-    const response = await apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=upcoming`, {
-      method: 'GET',
-    });
-    
-    if (!response.success) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo próximos viajes:', {
-        code: response.error?.code,
-        message: response.error?.message,
-        status: response.error?.status,
-        endpoint: `/api/bookings?guestId=${guestId}&status=upcoming`
+    try {
+      // Obtener todas las reservas confirmadas
+      const response = await apiRequest<Booking[] | { bookings: Booking[] }>(
+        `/api/bookings?status=confirmed&page=1&limit=1000`,
+        { method: 'GET' }
+      );
+      
+      if (!response.success || !response.data) {
+        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
+        return {
+          success: false,
+          error: response.error || {
+            code: 'FETCH_ERROR',
+            message: 'Error al obtener reservas',
+          },
+        };
+      }
+      
+      // Filtrar por guestId y fechas futuras
+      const allBookings = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data as any).bookings || [];
+      
+      const now = new Date();
+      const upcomingTrips = allBookings.filter(b => {
+        const booking = b as Booking;
+        const checkIn = booking.checkIn instanceof Date 
+          ? booking.checkIn 
+          : new Date(booking.checkIn);
+        return booking.guestId === guestId && checkIn > now;
       });
+      
+      console.log(`✅ [DASHBOARD SERVICE] Encontrados ${upcomingTrips.length} próximos viajes`);
+      
+      return {
+        success: true,
+        data: upcomingTrips,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo próximos viajes:', error);
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Error de conexión al obtener próximos viajes',
+        },
+      };
     }
-    
-    return response;
   }
 
   /**
    * OBTENER HISTORIAL DE VIAJES (como huésped)
    * 
-   * Endpoint: GET /api/bookings?guestId={guestId}&status=past
+   * SOLUCIÓN: El endpoint GET /api/bookings?guestId={id}&status=past no está documentado.
+   * Usamos GET /api/bookings?status=completed y filtramos por guestId en el frontend.
+   * 
+   * Endpoint usado: GET /api/bookings?status=completed (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getPastTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('📚 [DASHBOARD SERVICE] Obteniendo historial:', guestId);
-    console.log('📚 [DASHBOARD SERVICE] Endpoint:', `/api/bookings?guestId=${guestId}&status=past`);
     
-    const response = await apiRequest<Booking[]>(`/api/bookings?guestId=${guestId}&status=past`, {
-      method: 'GET',
-    });
-    
-    if (!response.success) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo historial:', {
-        code: response.error?.code,
-        message: response.error?.message,
-        status: response.error?.status,
-        endpoint: `/api/bookings?guestId=${guestId}&status=past`
+    try {
+      // Obtener reservas completadas
+      const response = await apiRequest<Booking[] | { bookings: Booking[] }>(
+        `/api/bookings?status=completed&page=1&limit=1000`,
+        { method: 'GET' }
+      );
+      
+      if (!response.success || !response.data) {
+        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
+        return {
+          success: false,
+          error: response.error || {
+            code: 'FETCH_ERROR',
+            message: 'Error al obtener reservas',
+          },
+        };
+      }
+      
+      // Filtrar por guestId y fechas pasadas
+      const allBookings = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data as any).bookings || [];
+      
+      const now = new Date();
+      const pastTrips = allBookings.filter(b => {
+        const booking = b as Booking;
+        const checkOut = booking.checkOut instanceof Date 
+          ? booking.checkOut 
+          : new Date(booking.checkOut);
+        return booking.guestId === guestId && checkOut < now;
       });
+      
+      console.log(`✅ [DASHBOARD SERVICE] Encontrados ${pastTrips.length} viajes pasados`);
+      
+      return {
+        success: true,
+        data: pastTrips,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo historial:', error);
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Error de conexión al obtener historial',
+        },
+      };
     }
-    
-    return response;
   }
 
   /**
    * OBTENER SOLICITUDES PENDIENTES (como anfitrión)
    * 
-   * Endpoint: GET /api/bookings?hostId={hostId}&status=pending
+   * SOLUCIÓN: El endpoint GET /api/bookings?hostId={id}&status=pending no está documentado.
+   * Usamos GET /api/bookings?status=pending y filtramos por hostId en el frontend.
+   * 
+   * Endpoint usado: GET /api/bookings?status=pending (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getPendingRequests(hostId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('⏳ [DASHBOARD SERVICE] Obteniendo solicitudes pendientes:', hostId);
     
-    return apiRequest<Booking[]>(`/api/bookings?hostId=${hostId}&status=pending`, {
-      method: 'GET',
-    });
+    try {
+      // Obtener reservas pendientes
+      const response = await apiRequest<Booking[] | { bookings: Booking[] }>(
+        `/api/bookings?status=pending&page=1&limit=1000`,
+        { method: 'GET' }
+      );
+      
+      if (!response.success || !response.data) {
+        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
+        return {
+          success: false,
+          error: response.error || {
+            code: 'FETCH_ERROR',
+            message: 'Error al obtener reservas',
+          },
+        };
+      }
+      
+      // Filtrar por hostId
+      const allBookings = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data as any).bookings || [];
+      
+      const pendingRequests = allBookings.filter(b => {
+        const booking = b as Booking;
+        return booking.hostId === hostId;
+      });
+      
+      console.log(`✅ [DASHBOARD SERVICE] Encontradas ${pendingRequests.length} solicitudes pendientes`);
+      
+      return {
+        success: true,
+        data: pendingRequests,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo solicitudes pendientes:', error);
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Error de conexión al obtener solicitudes pendientes',
+        },
+      };
+    }
   }
 
   /**
    * OBTENER TODAS LAS RESERVAS (como anfitrión)
    * 
-   * Endpoint: GET /api/bookings?hostId={hostId}
+   * SOLUCIÓN: El endpoint GET /api/bookings?hostId={id} no está documentado.
+   * Usamos GET /api/bookings y filtramos por hostId en el frontend.
+   * 
+   * Endpoint usado: GET /api/bookings (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getHostBookings(hostId: string): Promise<DashboardResponse<Booking[]>> {
     console.log('🗓️ [DASHBOARD SERVICE] Obteniendo reservas del anfitrión:', hostId);
     
-    return apiRequest<Booking[]>(`/api/bookings?hostId=${hostId}`, {
-      method: 'GET',
-    });
+    try {
+      // Obtener todas las reservas
+      const allBookings = await getAllUserBookings();
+      
+      // Filtrar por hostId
+      const hostBookings = allBookings.filter(b => b.hostId === hostId);
+      
+      console.log(`✅ [DASHBOARD SERVICE] Encontradas ${hostBookings.length} reservas del anfitrión`);
+      
+      return {
+        success: true,
+        data: hostBookings,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas del anfitrión:', error);
+      return {
+        success: false,
+        error: {
+          code: 'NETWORK_ERROR',
+          message: 'Error de conexión al obtener reservas del anfitrión',
+        },
+      };
+    }
   }
 
   /**
    * OBTENER DATOS MENSUALES
    * 
-   * Endpoint: GET /api/dashboard/monthly?userId={userId}&mode={guest|host}
+   * SOLUCIÓN: El endpoint GET /api/dashboard/monthly no existe.
+   * Calculamos los datos mensuales desde las reservas del usuario.
+   * 
+   * Endpoint usado: GET /api/bookings (documentado)
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getMonthlyData(userId: string, mode: 'guest' | 'host'): Promise<DashboardResponse<MonthlyData[]>> {
-    console.log('📈 [DASHBOARD SERVICE] Obteniendo datos mensuales:', { userId, mode });
+    console.log('📈 [DASHBOARD SERVICE] Calculando datos mensuales desde reservas:', { userId, mode });
     
-    return apiRequest<MonthlyData[]>(`/api/dashboard/monthly?userId=${userId}&mode=${mode}`, {
-      method: 'GET',
-    });
+    try {
+      // Intentar primero el endpoint (por si el backend lo implementa en el futuro)
+      const endpointResponse = await apiRequest<MonthlyData[]>(
+        `/api/dashboard/monthly?userId=${userId}&mode=${mode}`,
+        { method: 'GET' }
+      );
+      
+      if (endpointResponse.success && endpointResponse.data) {
+        console.log('✅ [DASHBOARD SERVICE] Datos mensuales obtenidos del endpoint');
+        return endpointResponse;
+      }
+      
+      // Si el endpoint no existe (404) o falla, calcular desde reservas
+      console.log('💡 [DASHBOARD SERVICE] Endpoint no disponible, calculando desde reservas');
+      
+      const allBookings = await getAllUserBookings();
+      
+      // Filtrar reservas según el modo
+      const relevantBookings = mode === 'guest'
+        ? allBookings.filter(b => b.guestId === userId)
+        : allBookings.filter(b => b.hostId === userId);
+      
+      // Agrupar por mes
+      const monthlyMap = new Map<string, { revenue: number; bookings: number; nights: number }>();
+      
+      const monthNames = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      
+      relevantBookings.forEach(booking => {
+        const checkIn = booking.checkIn instanceof Date 
+          ? booking.checkIn 
+          : new Date(booking.checkIn);
+        const checkOut = booking.checkOut instanceof Date 
+          ? booking.checkOut 
+          : new Date(booking.checkOut);
+        
+        const monthKey = `${checkIn.getFullYear()}-${checkIn.getMonth()}`;
+        const monthName = `${monthNames[checkIn.getMonth()]} ${checkIn.getFullYear()}`;
+        
+        if (!monthlyMap.has(monthKey)) {
+          monthlyMap.set(monthKey, { revenue: 0, bookings: 0, nights: 0 });
+        }
+        
+        const monthData = monthlyMap.get(monthKey)!;
+        monthData.revenue += booking.pricing?.total || 0;
+        monthData.bookings += 1;
+        monthData.nights += booking.nights || 0;
+      });
+      
+      // Convertir a array y ordenar por fecha
+      const monthlyData: MonthlyData[] = Array.from(monthlyMap.entries())
+        .map(([key, data]) => {
+          const [year, month] = key.split('-').map(Number);
+          return {
+            month: `${monthNames[month]} ${year}`,
+            revenue: data.revenue,
+            bookings: data.bookings,
+            nights: data.nights,
+          };
+        })
+        .sort((a, b) => {
+          // Ordenar por fecha (más reciente primero)
+          const dateA = new Date(a.month);
+          const dateB = new Date(b.month);
+          return dateB.getTime() - dateA.getTime();
+        });
+      
+      console.log(`✅ [DASHBOARD SERVICE] Calculados datos de ${monthlyData.length} meses`);
+      
+      return {
+        success: true,
+        data: monthlyData,
+      };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error calculando datos mensuales:', error);
+      return {
+        success: false,
+        error: {
+          code: 'CALCULATION_ERROR',
+          message: 'Error al calcular datos mensuales',
+        },
+      };
+    }
   }
 
   /**

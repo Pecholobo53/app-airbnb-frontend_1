@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { MockFavoritesService } from '@/lib/favorites/mock-favorites-service';
+import { FavoritesService } from '@/lib/favorites/favorites-service';
 import { FavoriteProperty } from '@/types/favorites';
 import FavoritesList from '@/components/favorites/FavoritesList';
 import { ROUTES } from '@/lib/constants';
@@ -42,17 +42,23 @@ export default function FavoritesPage() {
     setError(null);
 
     try {
-      const response = await MockFavoritesService.getFavoriteProperties(user.id);
+      const response = await FavoritesService.getFavoriteProperties();
       
       if (response.success && response.data) {
         setFavorites(response.data);
       } else {
-        setError(response.error?.message || 'Error al cargar favoritos');
+        // Manejar errores específicos
+        if (response.error?.code === 'UNAUTHORIZED') {
+          setError('Tu sesión expiró. Por favor, inicia sesión de nuevo.');
+          router.push(ROUTES.LOGIN);
+        } else {
+          setError(response.error?.message || 'Error al cargar favoritos');
+        }
         setFavorites([]);
       }
     } catch (err) {
       console.error('Error cargando favoritos:', err);
-      setError('Error al cargar favoritos');
+      setError('Error al cargar favoritos. Por favor, intenta más tarde.');
       setFavorites([]);
     } finally {
       setIsLoading(false);
