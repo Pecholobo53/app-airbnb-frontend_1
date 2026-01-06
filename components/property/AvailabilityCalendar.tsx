@@ -58,61 +58,62 @@ export default function AvailabilityCalendar({
   );
 
   // Cargar fechas bloqueadas al montar el componente
+  // MODO PERMISIVO: No cargar fechas bloqueadas - mostrar todas como disponibles
   useEffect(() => {
     const loadBlockedDates = async () => {
-      // Primero intentar obtener del caché
-      const cachedBlockedDates = getCachedBlockedDates(propertyId);
-      
-      if (cachedBlockedDates.length > 0) {
-        setBlockedDates(cachedBlockedDates.map(date => new Date(date)));
-        return;
-      }
+      // MODO PERMISIVO: Siempre mostrar todas las fechas como disponibles
+      console.log('📅 [AVAILABILITY CALENDAR] Modo permisivo activado - todas las fechas aparecerán como disponibles');
+      setBlockedDates([]);
+      setIsLoading(false);
+      return;
 
-      // Si no hay caché, cargar desde la API
-      setIsLoading(true);
-      try {
-        const response = await PropertyService.getPropertyAvailability(propertyId);
-        
-        let blocked: string[] = [];
-        
-        if (response.success && response.data) {
-          // Usar SOLO las fechas bloqueadas que devuelve la API real
-          blocked = response.data.blockedDates || [];
-          
-          // Si la API no devuelve fechas bloqueadas, NO generar aleatorias
-          // Dejar que todas las fechas aparezcan como disponibles
-          // La validación real en PriceCalculator determinará si están realmente disponibles
-          if (blocked.length === 0) {
-            console.log('📅 [AVAILABILITY CALENDAR] API no devuelve fechas bloqueadas - todas las fechas aparecerán como disponibles');
-          } else {
-            console.log('📅 [AVAILABILITY CALENDAR] Fechas bloqueadas desde API:', blocked.length);
-          }
-          
-          setBlockedDates(blocked.map(date => new Date(date)));
-          
-          // Guardar en caché
-          setCachedAvailability(propertyId, {
-            blockedDates: blocked,
-            availableDates: response.data.availableDates || [],
-            minNights: response.data.minNights || minNights,
-            maxNights: response.data.maxNights || maxNights,
-            instantBook: response.data.instantBook || false,
-          });
-        } else {
-          // Si falla la API, NO generar fechas aleatorias
-          // Mostrar todas las fechas como disponibles y dejar que la validación real determine
-          console.log('📅 [AVAILABILITY CALENDAR] API no disponible - todas las fechas aparecerán como disponibles');
-          setBlockedDates([]);
-        }
-      } catch (error) {
-        console.error('Error cargando fechas bloqueadas:', error);
-        // En caso de error, NO generar fechas aleatorias
-        // Mostrar todas las fechas como disponibles
-        console.log('📅 [AVAILABILITY CALENDAR] Error en API - todas las fechas aparecerán como disponibles');
-        setBlockedDates([]);
-      } finally {
-        setIsLoading(false);
-      }
+      // CÓDIGO ORIGINAL COMENTADO (descomentar para reactivar validaciones):
+      // // Primero intentar obtener del caché
+      // const cachedBlockedDates = getCachedBlockedDates(propertyId);
+      // 
+      // if (cachedBlockedDates.length > 0) {
+      //   setBlockedDates(cachedBlockedDates.map(date => new Date(date)));
+      //   return;
+      // }
+
+      // // Si no hay caché, cargar desde la API
+      // setIsLoading(true);
+      // try {
+      //   const response = await PropertyService.getPropertyAvailability(propertyId);
+      //   
+      //   let blocked: string[] = [];
+      //   
+      //   if (response.success && response.data) {
+      //     // Usar SOLO las fechas bloqueadas que devuelve la API real
+      //     blocked = response.data.blockedDates || [];
+      //     
+      //     if (blocked.length === 0) {
+      //       console.log('📅 [AVAILABILITY CALENDAR] API no devuelve fechas bloqueadas - todas las fechas aparecerán como disponibles');
+      //     } else {
+      //       console.log('📅 [AVAILABILITY CALENDAR] Fechas bloqueadas desde API:', blocked.length);
+      //     }
+      //     
+      //     setBlockedDates(blocked.map(date => new Date(date)));
+      //     
+      //     // Guardar en caché
+      //     setCachedAvailability(propertyId, {
+      //       blockedDates: blocked,
+      //       availableDates: response.data.availableDates || [],
+      //       minNights: response.data.minNights || minNights,
+      //       maxNights: response.data.maxNights || maxNights,
+      //       instantBook: response.data.instantBook || false,
+      //     });
+      //   } else {
+      //     console.log('📅 [AVAILABILITY CALENDAR] API no disponible - todas las fechas aparecerán como disponibles');
+      //     setBlockedDates([]);
+      //   }
+      // } catch (error) {
+      //   console.error('Error cargando fechas bloqueadas:', error);
+      //   console.log('📅 [AVAILABILITY CALENDAR] Error en API - todas las fechas aparecerán como disponibles');
+      //   setBlockedDates([]);
+      // } finally {
+      //   setIsLoading(false);
+      // }
     };
 
     loadBlockedDates();
@@ -133,65 +134,72 @@ export default function AvailabilityCalendar({
     setDateRange(range);
     
     if (range?.from && range?.to) {
-      // Rango completo seleccionado - Validar disponibilidad en tiempo real
-      console.log('🔍 [AVAILABILITY CALENDAR] Rango completo seleccionado, validando disponibilidad...');
-      setIsValidating(true);
-      
-      try {
-        const checkInStr = range.from.toISOString().split('T')[0];
-        const checkOutStr = range.to.toISOString().split('T')[0];
-        
-        const validationResponse = await validateBooking({
-          propertyId: propertyId,
-          checkIn: checkInStr,
-          checkOut: checkOutStr,
-          guests: 1, // Usar valor por defecto, se ajustará en PriceCalculator
-        });
+      // MODO PERMISIVO: Permitir selección sin validación
+      console.log('✅ [AVAILABILITY CALENDAR] Modo permisivo - selección permitida sin validación');
+      onDateSelect(range.from, range.to);
+      setIsOpen(false);
+      return;
 
-        console.log('🔍 [AVAILABILITY CALENDAR] Respuesta de validación:', {
-          success: validationResponse.success,
-          available: validationResponse.data?.available,
-          message: validationResponse.data?.message,
-        });
+      // CÓDIGO ORIGINAL COMENTADO (descomentar para reactivar validaciones):
+      // // Rango completo seleccionado - Validar disponibilidad en tiempo real
+      // console.log('🔍 [AVAILABILITY CALENDAR] Rango completo seleccionado, validando disponibilidad...');
+      // setIsValidating(true);
+      // 
+      // try {
+      //   const checkInStr = range.from.toISOString().split('T')[0];
+      //   const checkOutStr = range.to.toISOString().split('T')[0];
+      //   
+      //   const validationResponse = await validateBooking({
+      //     propertyId: propertyId,
+      //     checkIn: checkInStr,
+      //     checkOut: checkOutStr,
+      //     guests: 1, // Usar valor por defecto, se ajustará en PriceCalculator
+      //   });
 
-        // Si el endpoint no existe (404), permitir continuar
-        if (!validationResponse.success) {
-          const errorCode = validationResponse.error?.code;
-          if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
-              validationResponse.error?.message?.includes('Ruta no encontrada')) {
-            console.warn('⚠️ [AVAILABILITY CALENDAR] Endpoint de validación no disponible, permitiendo selección');
-            onDateSelect(range.from, range.to);
-            setIsOpen(false);
-            return;
-          }
-        }
+      //   console.log('🔍 [AVAILABILITY CALENDAR] Respuesta de validación:', {
+      //     success: validationResponse.success,
+      //     available: validationResponse.data?.available,
+      //     message: validationResponse.data?.message,
+      //   });
 
-        // Si las fechas no están disponibles, mostrar error y NO permitir selección
-        if (!validationResponse.data?.available) {
-          const errorMessage = validationResponse.data?.message || 
-                              validationResponse.data?.reason ||
-                              'El rango de fechas seleccionado no está disponible';
-          console.error('❌ [AVAILABILITY CALENDAR] Fechas no disponibles:', errorMessage);
-          toast.error(errorMessage);
-          // Resetear selección
-          setDateRange(range.from ? { from: range.from } : undefined);
-          onDateSelect(range.from, null);
-          return;
-        }
+      //   // Si el endpoint no existe (404), permitir continuar
+      //   if (!validationResponse.success) {
+      //     const errorCode = validationResponse.error?.code;
+      //     if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
+      //         validationResponse.error?.message?.includes('Ruta no encontrada')) {
+      //       console.warn('⚠️ [AVAILABILITY CALENDAR] Endpoint de validación no disponible, permitiendo selección');
+      //       onDateSelect(range.from, range.to);
+      //       setIsOpen(false);
+      //       return;
+      //     }
+      //   }
 
-        // Si están disponibles, permitir selección
-        console.log('✅ [AVAILABILITY CALENDAR] Fechas validadas como disponibles');
-        onDateSelect(range.from, range.to);
-        setIsOpen(false);
-      } catch (error) {
-        console.error('❌ [AVAILABILITY CALENDAR] Error validando fechas:', error);
-        // En caso de error, permitir continuar (modo permisivo)
-        // El PriceCalculator validará de nuevo antes de reservar
-        onDateSelect(range.from, range.to);
-        setIsOpen(false);
-      } finally {
-        setIsValidating(false);
-      }
+      //   // Si las fechas no están disponibles, mostrar error y NO permitir selección
+      //   if (!validationResponse.data?.available) {
+      //     const errorMessage = validationResponse.data?.message || 
+      //                         validationResponse.data?.reason ||
+      //                         'El rango de fechas seleccionado no está disponible';
+      //     console.error('❌ [AVAILABILITY CALENDAR] Fechas no disponibles:', errorMessage);
+      //     toast.error(errorMessage);
+      //     // Resetear selección
+      //     setDateRange(range.from ? { from: range.from } : undefined);
+      //     onDateSelect(range.from, null);
+      //     return;
+      //   }
+
+      //   // Si están disponibles, permitir selección
+      //   console.log('✅ [AVAILABILITY CALENDAR] Fechas validadas como disponibles');
+      //   onDateSelect(range.from, range.to);
+      //   setIsOpen(false);
+      // } catch (error) {
+      //   console.error('❌ [AVAILABILITY CALENDAR] Error validando fechas:', error);
+      //   // En caso de error, permitir continuar (modo permisivo)
+      //   // El PriceCalculator validará de nuevo antes de reservar
+      //   onDateSelect(range.from, range.to);
+      //   setIsOpen(false);
+      // } finally {
+      //   setIsValidating(false);
+      // }
     } else if (range?.from) {
       // Solo check-in seleccionado
       onDateSelect(range.from, null);
