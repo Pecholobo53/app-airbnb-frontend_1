@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { UI_LABELS } from '@/lib/constants';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { normalizeText } from '@/lib/utils';
 
 interface PropertyCardProps {
   property: Property;
@@ -143,7 +144,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                {property.location.city}, {property.location.country}
+                {normalizeText(property.location.city)}, {normalizeText(property.location.country)}
               </p>
               {property.host.isSuperhost && (
                 <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">

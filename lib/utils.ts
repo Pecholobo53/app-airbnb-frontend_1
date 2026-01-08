@@ -95,6 +95,54 @@ export function pluralize(count: number, singular: string, plural: string): stri
  * @param countryName - Nombre del país en español o inglés
  * @returns Código ISO de 2 caracteres (ej: "ES", "US", "FR")
  */
+/**
+ * Normaliza texto para asegurar que los caracteres especiales se muestren correctamente
+ * @param text - Texto a normalizar
+ * @returns Texto normalizado con encoding UTF-8 correcto
+ */
+export function normalizeText(text: string | null | undefined): string {
+  if (!text) return '';
+  
+  // Reemplazos comunes para caracteres mal codificados
+  const replacements: Record<string, string> = {
+    'Espaa': 'España',  // Sin la ñ (viene del backend)
+    'Espa a': 'España',  // Con carácter de reemplazo
+    'Espana': 'España',
+    'EspaÃ±a': 'España',
+    'EspaÃƒÂ±a': 'España',
+    'MÃ©xico': 'México',
+    'México': 'México',
+    'PerÃº': 'Perú',
+    'Peru': 'Perú',
+  };
+  
+  let normalized = text;
+  
+  // Aplicar reemplazos
+  for (const [wrong, correct] of Object.entries(replacements)) {
+    normalized = normalized.replace(new RegExp(wrong, 'g'), correct);
+  }
+  
+  // Si hay caracteres de reemplazo Unicode (), intentar reparar
+  if (normalized.includes('\ufffd') || normalized.includes('')) {
+    try {
+      // Intentar decodificar como UTF-8
+      const bytes = new Uint8Array(
+        normalized.split('').map(char => char.charCodeAt(0))
+      );
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      const decoded = decoder.decode(bytes);
+      if (decoded && !decoded.includes('\ufffd')) {
+        normalized = decoded;
+      }
+    } catch (error) {
+      // Si falla, mantener el texto con reemplazos aplicados
+    }
+  }
+  
+  return normalized;
+}
+
 export function getCountryCode(countryName: string): string {
   const countryMap: Record<string, string> = {
     // Países en español

@@ -8,7 +8,6 @@ import { PropertyService } from '@/lib/properties/property-service';
 import PropertyGallery from '@/components/property/PropertyGallery';
 import PropertyHeader from '@/components/property/PropertyHeader';
 import PropertyInfo from '@/components/property/PropertyInfo';
-import HostSection from '@/components/property/HostSection';
 import AmenitiesList from '@/components/property/AmenitiesList';
 import ReviewsList from '@/components/property/ReviewsList';
 import PriceCalculator from '@/components/property/PriceCalculator';
@@ -330,14 +329,9 @@ export default function PropertyDetailPage() {
             {/* Información Básica */}
             <PropertyInfo property={property} />
 
-            {/* Amenidades */}
-            {property.amenities && (
-            <AmenitiesList amenities={property.amenities} />
-            )}
-
-            {/* Anfitrión */}
-            {property.host && (
-            <HostSection host={property.host} />
+            {/* Amenidades - Sección mejorada y destacada */}
+            {property.amenities && property.amenities.length > 0 && (
+              <AmenitiesList amenities={property.amenities} />
             )}
 
             {/* Reviews */}

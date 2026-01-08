@@ -95,29 +95,34 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
 
   return (
     <div className="py-8 border-b border-gray-200">
-      <h2 className="text-xl md:text-2xl font-semibold text-gray-900 mb-6">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
         Lo que ofrece este lugar
       </h2>
 
-      {/* Grid de amenidades */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      {/* Grid de amenidades mejorado - estilo Airbnb */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {displayedAmenities.map((amenity) => {
           const Icon = getAmenityIcon(amenity);
           return (
-            <div key={amenity} className="flex items-center gap-3">
-              <Icon className="w-5 h-5 text-gray-700" />
-              <span className="text-gray-900">{getAmenityLabel(amenity)}</span>
+            <div 
+              key={amenity} 
+              className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
+            >
+              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gray-100 rounded-lg">
+                <Icon className="w-5 h-5 text-gray-700" />
+              </div>
+              <span className="text-gray-900 font-medium text-base">{getAmenityLabel(amenity)}</span>
             </div>
           );
         })}
       </div>
 
-      {/* Botón Ver todas */}
+      {/* Botón Ver todas - mejorado */}
       {hasMore && (
         <Button
           variant="outline"
           onClick={() => setShowAll(true)}
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto border-gray-300 hover:border-gray-400 hover:bg-gray-50 font-medium"
         >
           Mostrar las {validAmenities.length} amenidades
         </Button>
@@ -130,13 +135,18 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
             <DialogTitle>Todas las amenidades</DialogTitle>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
             {validAmenities.map((amenity) => {
               const Icon = getAmenityIcon(amenity);
               return (
-                <div key={amenity} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                  <Icon className="w-5 h-5 text-gray-700" />
-                  <span className="text-gray-900">{getAmenityLabel(amenity)}</span>
+                <div 
+                  key={amenity} 
+                  className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-200"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gray-100 rounded-lg">
+                    <Icon className="w-5 h-5 text-gray-700" />
+                  </div>
+                  <span className="text-gray-900 font-medium">{getAmenityLabel(amenity)}</span>
                 </div>
               );
             })}

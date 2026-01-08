@@ -218,7 +218,9 @@ export default function PromotionsSection() {
                       </h3>
                       <div className="flex items-center text-texto-200 text-sm mt-1">
                         <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-                        <span className="truncate">{property.location.city}, {property.location.country}</span>
+                        <span className="truncate">
+                          {property.location.city}, {(property.location.country || '').replace(/Espa a/g, 'España').replace(/Espana/g, 'España')}
+                        </span>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">

@@ -6,6 +6,7 @@ import { Property } from '@/types/search';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
+import { normalizeText } from '@/lib/utils';
 
 interface PropertyHeaderProps {
   property: Property;
@@ -75,7 +76,7 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
           <div className="flex items-center gap-1 text-gray-700">
             <MapPin className="w-4 h-4" />
             <span className="underline cursor-pointer hover:text-gray-900">
-              {city}, {country}
+              {normalizeText(city)}, {normalizeText(country)}
             </span>
           </div>
 
