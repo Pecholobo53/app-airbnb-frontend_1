@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { validateBooking, createBooking, getBookingById, updateBooking, cleanupOldDrafts, type CreateBookingRequest, type Booking, type UpdateBookingRequest } from '@/lib/bookings/booking-service';
+import { createPaymentIntent, confirmPayment } from '@/lib/payments/payment-service';
 import { saveCheckoutData, getCheckoutData, clearCheckoutData, saveCheckoutStep, saveGuestInfo, savePaymentInfo, saveBillingAddress, saveBookingId } from '@/lib/utils/checkout-persistence';
 import { PropertyService } from '@/lib/properties/property-service';
 import { parseCheckoutParams } from '@/lib/checkout/utils';
@@ -18,6 +19,8 @@ import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import CheckoutSummary from '@/components/checkout/CheckoutSummary';
 import GuestInfoForm from '@/components/checkout/GuestInfoForm';
 import PaymentSection from '@/components/checkout/PaymentSection';
+import StripePaymentForm from '@/components/checkout/StripePaymentForm';
+import BillingAddressForm from '@/components/checkout/BillingAddressForm';
 import ConfirmationModal from '@/components/checkout/ConfirmationModal';
 import { ReservationProtectionsWithButton } from '@/components/checkout/ReservationProtections';
 import { formatPrice } from '@/lib/pricing/calculate-price';
@@ -50,9 +53,16 @@ export default function CheckoutPage() {
   const [bookingId, setBookingId] = useState<string>('');
   const [bookingData, setBookingData] = useState<Booking | null>(null);
   
+  // Estados para Stripe
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'success' | 'error'>('form');
+  const [hasDateConflict, setHasDateConflict] = useState(false); // Rastrear conflictos de fechas
+  
   // Referencia para evitar múltiples llamadas a loadCheckoutData
   const hasLoadedRef = useRef<string | null>(null);
   const isLoadingRef = useRef(false);
+  const hasTriedCreatePaymentRef = useRef(false); // Evitar múltiples intentos de crear Payment Intent
 
   useEffect(() => {
     // Limpiar borradores antiguos al iniciar (solo una vez)
@@ -62,10 +72,10 @@ export default function CheckoutPage() {
       });
     }
     
-    // Limpiar datos de sessionStorage al iniciar para evitar interferencias
-    // Esto asegura que siempre usamos datos frescos de la API
-    console.log('🧹 [CHECKOUT] Limpiando sessionStorage al iniciar para evitar datos antiguos');
-    clearCheckoutData();
+    // NO limpiar sessionStorage automáticamente - los datos persistentes son necesarios
+    // para mantener el estado del formulario cuando el usuario completa guestInfo y billingAddress
+    // Solo se limpiarán cuando se complete la reserva exitosamente
+    console.log('📦 [CHECKOUT] Manteniendo datos persistentes para preservar estado del formulario');
   }, [isAuthenticated, user]);
 
   // No redirigir automáticamente - el usuario decide desde el modal
@@ -140,12 +150,25 @@ export default function CheckoutPage() {
       // Recuperar datos persistentes primero (solo una vez)
       const persisted = getCheckoutData();
       if (persisted) {
-        console.log('📦 [CHECKOUT] Datos persistentes recuperados:', persisted);
+        console.log('📦 [CHECKOUT] Datos persistentes recuperados:', {
+          hasGuestInfo: !!persisted.guestInfo,
+          hasBillingAddress: !!persisted.billingAddress,
+          hasPaymentInfo: !!persisted.paymentInfo,
+          currentStep: persisted.currentStep,
+        });
         if (persisted.currentStep) setCurrentStep(persisted.currentStep);
-        if (persisted.guestInfo) setGuestInfo(persisted.guestInfo);
+        if (persisted.guestInfo) {
+          console.log('✅ [CHECKOUT] Cargando guestInfo desde persistencia');
+          setGuestInfo(persisted.guestInfo);
+        }
         if (persisted.paymentInfo) setPaymentInfo(persisted.paymentInfo);
-        if (persisted.billingAddress) setBillingAddress(persisted.billingAddress);
+        if (persisted.billingAddress) {
+          console.log('✅ [CHECKOUT] Cargando billingAddress desde persistencia');
+          setBillingAddress(persisted.billingAddress);
+        }
         // NO actualizar bookingId aquí para evitar bucles - se actualizará en loadCheckoutData si es necesario
+      } else {
+        console.log('📦 [CHECKOUT] No hay datos persistentes para recuperar');
       }
       
       loadCheckoutData()
@@ -529,8 +552,21 @@ export default function CheckoutPage() {
                 console.warn('⚠️ [CHECKOUT] Endpoint de creación no disponible (404), continuando con flujo antiguo');
                 // Continuar con flujo antiguo (sin reserva en borrador)
               } else {
-                // Otro error, mostrar y continuar con flujo antiguo
+                // MODO PERMISIVO: Ignorar todos los errores (incluidos 409) y continuar silenciosamente
+                // NO mostrar mensajes de error - todas las fechas están disponibles
+                const isConflict = 
+                  errorCode === 'CONFLICT' || 
+                  errorCode === 'HTTP_409' ||
+                  errorCode === '409' ||
+                  errorMessage.includes('no está disponible') || 
+                  errorMessage.includes('no disponible') ||
+                  errorMessage.includes('rango de fechas');
+                
+                if (isConflict) {
+                  console.warn('⚠️ [CHECKOUT] Conflicto detectado (409) - Modo permisivo: ignorando silenciosamente');
+                } else {
                 console.warn('⚠️ [CHECKOUT] Error creando reserva, continuando con flujo antiguo:', errorMessage);
+                }
               }
             } else if (bookingResponse.data?.booking) {
               // Si se creó exitosamente, redirigir a flujo unificado
@@ -643,10 +679,411 @@ export default function CheckoutPage() {
         console.error('❌ [CHECKOUT] Error actualizando reserva:', error);
       }
     }
+    
+    // El useEffect se encargará automáticamente de crear la reserva y Payment Intent
+    // cuando detecte que guestInfo y billingAddress están completos
   };
 
-  const handleBillingAddressSubmit = (data: BillingAddress) => {
+  // useEffect para crear automáticamente Payment Intent cuando guestInfo y billingAddress estén completos
+  useEffect(() => {
+    // Log de debug para entender el estado actual
+    console.log('🔍 [STRIPE] useEffect ejecutado - Estado actual:', {
+      hasGuestInfo: !!guestInfo,
+      hasBillingAddress: !!billingAddress,
+      hasClientSecret: !!clientSecret,
+      hasBookingId: !!bookingId,
+      isProcessing,
+      hasTriedCreatePayment: hasTriedCreatePaymentRef.current,
+      hasDateConflict,
+      hasCheckoutData: !!checkoutData,
+      hasUser: !!user,
+    });
+    
+    // CASO 1: Crear reserva y Payment Intent si no hay bookingId ni clientSecret
+    // CASO 2: Crear solo Payment Intent si hay bookingId pero NO hay clientSecret
+    const shouldCreateBooking = guestInfo && billingAddress && !clientSecret && !bookingId && !isProcessing && !hasTriedCreatePaymentRef.current && checkoutData && user;
+    const shouldCreatePaymentIntent = guestInfo && billingAddress && !clientSecret && bookingId && !isProcessing && !hasTriedCreatePaymentRef.current && checkoutData && user;
+    
+    if (shouldCreateBooking) {
+      console.log('🚀 [STRIPE] useEffect: GuestInfo y BillingAddress completos, creando reserva y Payment Intent automáticamente...');
+      hasTriedCreatePaymentRef.current = true;
+      
+      const createPaymentFlow = async () => {
+        try {
+          setIsProcessing(true);
+          setHasDateConflict(false); // Resetear conflicto antes de intentar
+          
+          const checkInStr = checkoutData.checkIn.toISOString().split('T')[0];
+          const checkOutStr = checkoutData.checkOut.toISOString().split('T')[0];
+          
+          // Crear reserva con paymentMethod: 'pending'
+          const bookingRequest: CreateBookingRequest = {
+            propertyId: checkoutData.propertyId,
+            checkIn: checkInStr,
+            checkOut: checkOutStr,
+            guests: checkoutData.guests.adults + (checkoutData.guests.children || 0),
+            guestInfo: {
+              name: guestInfo.name || guestInfo.fullName || user.name || '',
+              email: guestInfo.email || user.email || '',
+              phone: guestInfo.phone || '',
+            },
+            paymentMethod: 'pending',
+          };
+          
+          console.log('📝 [STRIPE] Creando reserva con datos:', {
+            propertyId: bookingRequest.propertyId,
+            checkIn: bookingRequest.checkIn,
+            checkOut: bookingRequest.checkOut,
+            guests: bookingRequest.guests,
+          });
+          
+          const bookingResponse = await createBooking(bookingRequest);
+          
+          console.log('📋 [STRIPE] Respuesta de createBooking:', {
+            success: bookingResponse.success,
+            hasData: !!bookingResponse.data,
+            errorCode: bookingResponse.error?.code,
+            errorMessage: bookingResponse.error?.message,
+            bookingId: bookingResponse.data?.booking?.id,
+          });
+          
+          // Manejar error 409 (Conflict)
+          if (!bookingResponse.success) {
+            const errorCode = bookingResponse.error?.code;
+            const errorMessage = bookingResponse.error?.message || '';
+            
+            const isConflict = 
+              errorCode === 'CONFLICT' || 
+              errorCode === 'HTTP_409' ||
+              errorCode === '409' ||
+              String(errorCode) === 'CONFLICT' ||
+              String(errorCode) === '409' ||
+              errorMessage.includes('no está disponible') || 
+              errorMessage.includes('no disponible') ||
+              errorMessage.includes('rango de fechas') ||
+              errorMessage.includes('El rango de fechas') ||
+              errorMessage.toLowerCase().includes('conflict') || 
+              errorMessage.toLowerCase().includes('409') ||
+              errorMessage.toLowerCase().includes('solapan') ||
+              errorMessage.toLowerCase().includes('reservada') ||
+              errorMessage.toLowerCase().includes('ya están reservadas');
+            
+            console.log('🔍 [STRIPE] Analizando error:', {
+              errorCode,
+              errorMessage,
+              isConflict,
+            });
+            
+            if (isConflict) {
+              // MODO PERMISIVO: Intentar crear Payment Intent incluso con conflicto
+              // Estrategia: Reintentar crear la reserva inmediatamente (puede funcionar si el conflicto se resolvió)
+              // Si falla de nuevo, intentamos crear el Payment Intent de todas formas
+              console.warn('⚠️ [STRIPE] Conflicto detectado (409) - Modo permisivo: reintentando crear reserva...');
+              
+              try {
+                // Reintentar crear la reserva inmediatamente (puede funcionar si el conflicto se resolvió)
+                console.log('🔄 [STRIPE] Reintentando crear reserva después de conflicto...');
+                const retryBookingResponse = await createBooking(bookingRequest);
+                
+                if (retryBookingResponse.success && retryBookingResponse.data?.booking?.id) {
+                  // ¡Éxito! La reserva se creó en el segundo intento
+                  console.log('✅ [STRIPE] Reserva creada exitosamente en segundo intento:', retryBookingResponse.data.booking.id);
+                  const retryBookingId = retryBookingResponse.data.booking.id;
+                  setBookingId(retryBookingId);
+                  
+                  // Crear Payment Intent con el bookingId exitoso
+                  const paymentIntentResponse = await createPaymentIntent(retryBookingId);
+                  
+                  if (paymentIntentResponse.success && paymentIntentResponse.data) {
+                    const { clientSecret, paymentIntentId } = paymentIntentResponse.data;
+                    setClientSecret(clientSecret);
+                    setPaymentIntentId(paymentIntentId);
+                    setPaymentStep('form');
+                    setHasDateConflict(false);
+                    
+                    console.log('✅ [STRIPE] Payment Intent creado exitosamente después de conflicto');
+                    toast.success('Reserva creada y formulario de pago listo');
+                    setIsProcessing(false);
+                    return;
+                  } else {
+                    console.warn('⚠️ [STRIPE] Reserva creada pero Payment Intent falló:', paymentIntentResponse.error);
+                    toast.warning('Reserva creada pero error al iniciar el pago. Intenta de nuevo.');
+                    setIsProcessing(false);
+                    hasTriedCreatePaymentRef.current = false;
+                    return;
+                  }
+                } else {
+                  // El reintento también falló con 409
+                  console.warn('⚠️ [STRIPE] Reintento también falló con conflicto. Continuando en modo permisivo...');
+                  
+                  // MODO PERMISIVO: Continuar como si la reserva se hubiera creado
+                  // Intentar crear el Payment Intent de todas formas (probablemente fallará)
+                  // Pero al menos el usuario verá el formulario de Stripe
+                  
+                  // Crear un bookingId temporal para intentar crear el Payment Intent
+                  // Enviar los datos de la reserva en el body para que el backend pueda crearla automáticamente
+                  const tempBookingId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                  
+                  console.log('🔄 [STRIPE] Intentando crear Payment Intent con bookingId temporal y datos de reserva:', {
+                    bookingId: tempBookingId,
+                    propertyId: bookingRequest.propertyId,
+                    checkIn: bookingRequest.checkIn,
+                    checkOut: bookingRequest.checkOut,
+                    guests: bookingRequest.guests,
+                    hasGuestInfo: !!bookingRequest.guestInfo,
+                    guestInfo: bookingRequest.guestInfo,
+                  });
+                  
+                  // Preparar datos para enviar al backend
+                  const paymentIntentData = {
+                    propertyId: bookingRequest.propertyId,
+                    checkIn: bookingRequest.checkIn,
+                    checkOut: bookingRequest.checkOut,
+                    guests: bookingRequest.guests,
+                    guestInfo: bookingRequest.guestInfo,
+                  };
+                  
+                  console.log('📤 [STRIPE] Datos que se enviarán al backend:', paymentIntentData);
+                  
+                  try {
+                    // Enviar los datos de la reserva para que el backend pueda crearla automáticamente
+                    const paymentIntentResponse = await createPaymentIntent(tempBookingId, paymentIntentData);
+                    
+                    if (paymentIntentResponse.success && paymentIntentResponse.data) {
+                      // ¡Inesperado! El Payment Intent se creó (puede ser que el backend sea permisivo)
+                      const { clientSecret, paymentIntentId } = paymentIntentResponse.data;
+                      setBookingId(tempBookingId);
+                      setClientSecret(clientSecret);
+                      setPaymentIntentId(paymentIntentId);
+                      setPaymentStep('form');
+                      setHasDateConflict(false);
+                      
+                      console.log('✅ [STRIPE] Payment Intent creado exitosamente en modo permisivo');
+                      toast.success('Formulario de pago listo (modo permisivo)');
+                      setIsProcessing(false);
+                      return;
+                    } else {
+                      // El Payment Intent falló (esperado)
+                      console.warn('⚠️ [STRIPE] Payment Intent falló (esperado):', paymentIntentResponse.error);
+                      
+                      // Continuar sin Payment Intent - mostrar mensaje pero permitir que el usuario vea el formulario
+                      setBookingId(tempBookingId);
+                      setHasDateConflict(false);
+                      setIsProcessing(false);
+                      hasTriedCreatePaymentRef.current = false;
+                      
+                      toast.warning('No se pudo crear el Payment Intent debido a conflicto de fechas. Por favor, selecciona otras fechas.');
+                      return;
+                    }
+                  } catch (paymentError) {
+                    console.error('❌ [STRIPE] Error creando Payment Intent:', paymentError);
+                    setHasDateConflict(false);
+                    setIsProcessing(false);
+                    hasTriedCreatePaymentRef.current = false;
+                    return;
+                  }
+                }
+              } catch (retryError) {
+                console.error('❌ [STRIPE] Error en reintento:', retryError);
+                setHasDateConflict(false);
+                setIsProcessing(false);
+                hasTriedCreatePaymentRef.current = false;
+                return;
+              }
+            } else {
+              console.error('❌ [STRIPE] Error creando reserva:', bookingResponse.error);
+              toast.error('Error al preparar el pago. Intenta de nuevo.');
+              setIsProcessing(false);
+              hasTriedCreatePaymentRef.current = false; // Permitir reintentar solo para errores no conflictos
+              return;
+            }
+          }
+          
+          // Si llegamos aquí, la reserva se creó exitosamente
+          const createdBooking = bookingResponse.data?.booking;
+          
+          if (!createdBooking || !createdBooking.id) {
+            console.error('❌ [STRIPE] Reserva creada pero sin ID válido:', createdBooking);
+            toast.error('Error: La reserva se creó pero no tiene ID válido.');
+            setIsProcessing(false);
+            hasTriedCreatePaymentRef.current = false;
+            return;
+          }
+          
+          console.log('✅ [STRIPE] Reserva creada exitosamente:', {
+            bookingId: createdBooking.id,
+            status: createdBooking.status,
+          });
+          
+          setBookingId(createdBooking.id);
+          setHasDateConflict(false); // Limpiar conflicto si la reserva se creó exitosamente
+          
+          // Crear Payment Intent
+          console.log('💳 [STRIPE] Creando Payment Intent para reserva:', createdBooking.id);
+          const paymentIntentResponse = await createPaymentIntent(createdBooking.id);
+          
+          console.log('📋 [STRIPE] Respuesta de createPaymentIntent:', {
+            success: paymentIntentResponse.success,
+            hasData: !!paymentIntentResponse.data,
+            errorCode: paymentIntentResponse.error?.code,
+            errorMessage: paymentIntentResponse.error?.message,
+            hasClientSecret: !!paymentIntentResponse.data?.clientSecret,
+          });
+          
+          if (!paymentIntentResponse.success || !paymentIntentResponse.data) {
+            console.error('❌ [STRIPE] Error creando Payment Intent:', paymentIntentResponse.error);
+            toast.error('Error al iniciar el proceso de pago. Intenta de nuevo.');
+            setIsProcessing(false);
+            hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+            return;
+          }
+          
+          const { clientSecret, paymentIntentId } = paymentIntentResponse.data;
+          
+          if (!clientSecret) {
+            console.error('❌ [STRIPE] Payment Intent creado pero sin clientSecret');
+            toast.error('Error: No se recibió el clientSecret del servidor.');
+            setIsProcessing(false);
+            hasTriedCreatePaymentRef.current = false;
+            return;
+          }
+          
+          console.log('✅ [STRIPE] Payment Intent creado exitosamente:', {
+            paymentIntentId,
+            hasClientSecret: !!clientSecret,
+            clientSecretLength: clientSecret.length,
+          });
+          
+          setClientSecret(clientSecret);
+          setPaymentIntentId(paymentIntentId);
+          setPaymentStep('form');
+          
+          console.log('✅ [STRIPE] Reserva y Payment Intent creados, mostrando formulario de Stripe');
+          toast.success('Formulario de pago listo');
+          
+        } catch (error) {
+          console.error('❌ [STRIPE] Error inesperado:', error);
+          toast.error('Error al preparar el pago. Intenta de nuevo.');
+          hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+      
+      createPaymentFlow();
+    } else if (shouldCreatePaymentIntent) {
+      // CASO 2: Ya hay bookingId, solo crear Payment Intent
+      console.log('🚀 [STRIPE] useEffect: Hay bookingId pero NO clientSecret, creando Payment Intent...');
+      hasTriedCreatePaymentRef.current = true;
+      
+      const createPaymentIntentOnly = async () => {
+        try {
+          setIsProcessing(true);
+          
+          console.log('💳 [STRIPE] Creando Payment Intent para reserva existente:', bookingId);
+          const paymentIntentResponse = await createPaymentIntent(bookingId);
+          
+          console.log('📋 [STRIPE] Respuesta de createPaymentIntent:', {
+            success: paymentIntentResponse.success,
+            hasData: !!paymentIntentResponse.data,
+            errorCode: paymentIntentResponse.error?.code,
+            errorMessage: paymentIntentResponse.error?.message,
+            hasClientSecret: !!paymentIntentResponse.data?.clientSecret,
+          });
+          
+          if (!paymentIntentResponse.success || !paymentIntentResponse.data) {
+            console.error('❌ [STRIPE] Error creando Payment Intent:', paymentIntentResponse.error);
+            
+            // Si el error es 404 y el backend pide datos, intentar con datos
+            if (paymentIntentResponse.error?.code === 'NOT_FOUND' && checkoutData) {
+              console.log('🔄 [STRIPE] Payment Intent falló con 404, intentando con datos de reserva...');
+              
+              const checkInStr = checkoutData.checkIn.toISOString().split('T')[0];
+              const checkOutStr = checkoutData.checkOut.toISOString().split('T')[0];
+              
+              const retryResponse = await createPaymentIntent(bookingId, {
+                propertyId: checkoutData.propertyId,
+                checkIn: checkInStr,
+                checkOut: checkOutStr,
+                guests: checkoutData.guests.adults + (checkoutData.guests.children || 0),
+                guestInfo: {
+                  name: guestInfo?.name || guestInfo?.fullName || user?.name || '',
+                  email: guestInfo?.email || user?.email || '',
+                  phone: guestInfo?.phone || '',
+                },
+              });
+              
+              if (retryResponse.success && retryResponse.data) {
+                const { clientSecret, paymentIntentId } = retryResponse.data;
+                setClientSecret(clientSecret);
+                setPaymentIntentId(paymentIntentId);
+                setPaymentStep('form');
+                console.log('✅ [STRIPE] Payment Intent creado exitosamente con datos adicionales');
+                toast.success('Formulario de pago listo');
+                setIsProcessing(false);
+                return;
+              }
+            }
+            
+            toast.error('Error al iniciar el proceso de pago. Intenta de nuevo.');
+            setIsProcessing(false);
+            hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+            return;
+          }
+          
+          const { clientSecret, paymentIntentId } = paymentIntentResponse.data;
+          
+          if (!clientSecret) {
+            console.error('❌ [STRIPE] Payment Intent creado pero sin clientSecret');
+            toast.error('Error: No se recibió el clientSecret del servidor.');
+            setIsProcessing(false);
+            hasTriedCreatePaymentRef.current = false;
+            return;
+          }
+          
+          console.log('✅ [STRIPE] Payment Intent creado exitosamente:', {
+            paymentIntentId,
+            hasClientSecret: !!clientSecret,
+            clientSecretLength: clientSecret.length,
+          });
+          
+          setClientSecret(clientSecret);
+          setPaymentIntentId(paymentIntentId);
+          setPaymentStep('form');
+          
+          console.log('✅ [STRIPE] Payment Intent creado, mostrando formulario de Stripe');
+          toast.success('Formulario de pago listo');
+          
+        } catch (error) {
+          console.error('❌ [STRIPE] Error inesperado creando Payment Intent:', error);
+          toast.error('Error al preparar el pago. Intenta de nuevo.');
+          hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+      
+      createPaymentIntentOnly();
+    }
+    // IMPORTANTE: Solo depender de guestInfo, billingAddress y bookingId
+    // NO incluir clientSecret, isProcessing porque causan bucles infinitos
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guestInfo, billingAddress, bookingId]);
+  
+  // Resetear el flag de conflicto y permitir reintentar cuando cambien las fechas
+  useEffect(() => {
+    if (checkoutData) {
+      setHasDateConflict(false);
+      hasTriedCreatePaymentRef.current = false; // Permitir reintentar cuando cambien las fechas
+    }
+  }, [checkoutData?.checkIn, checkoutData?.checkOut, checkoutData?.propertyId]);
+
+  const handleBillingAddressSubmit = async (data: BillingAddress) => {
     setBillingAddress(data);
+    
+    // El useEffect se encargará automáticamente de crear la reserva y Payment Intent
+    // cuando detecte que guestInfo y billingAddress están completos
+    // Solo necesitamos actualizar el estado aquí
   };
 
   const handlePaymentSubmit = (data: PaymentInfo) => {
@@ -679,6 +1116,54 @@ export default function CheckoutPage() {
     console.log('✅ Payment info guardada:', data);
   };
 
+  // Handler para cuando el pago Stripe sea exitoso
+  const handleStripePaymentSuccess = async (paymentIntentId: string) => {
+    console.log('✅ [STRIPE] Pago procesado exitosamente, confirmando en backend...');
+    setPaymentStep('processing');
+    
+    if (!bookingId || !paymentIntentId) {
+      console.error('❌ [STRIPE] Faltan datos para confirmar pago');
+      toast.error('Error al confirmar el pago. Contacta soporte.');
+      setPaymentStep('error');
+      return;
+    }
+    
+    try {
+      const confirmResponse = await confirmPayment(bookingId, paymentIntentId);
+      
+      if (!confirmResponse.success) {
+        console.error('❌ [STRIPE] Error confirmando pago:', confirmResponse.error);
+        toast.error(
+          confirmResponse.error?.message || 
+          'El pago se procesó pero no se pudo confirmar. Contacta soporte.'
+        );
+        setPaymentStep('error');
+        return;
+      }
+      
+      console.log('✅ [STRIPE] Pago confirmado exitosamente');
+      setPaymentStep('success');
+      setCurrentStep(3);
+      setShowConfirmation(true);
+      
+      // Limpiar datos persistentes
+      clearCheckoutData();
+      
+      toast.success('¡Reserva confirmada exitosamente!');
+    } catch (error) {
+      console.error('❌ [STRIPE] Error inesperado confirmando pago:', error);
+      toast.error('Error al confirmar el pago. Contacta soporte.');
+      setPaymentStep('error');
+    }
+  };
+
+  // Handler para errores de pago Stripe
+  const handleStripePaymentError = (error: string) => {
+    console.error('❌ [STRIPE] Error en pago:', error);
+    setPaymentStep('error');
+    // El toast ya se muestra en StripePaymentForm
+  };
+
   const handleConfirmBooking = async () => {
     console.log('🚀 ========== handleConfirmBooking INICIADO ==========');
     console.log('🚀 [CHECKOUT] USANDO API REAL - Modo permisivo activado');
@@ -703,35 +1188,17 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Validar que tenemos información de pago completa
-    if (!paymentInfo) {
-      console.error('❌ Validación fallida: paymentInfo faltante');
-      toast.error('Completa la información de pago (tarjeta y facturación)');
-      return;
-    }
-
-    // Asegurar que tenemos dirección de facturación (puede estar en paymentInfo o en billingAddress)
-    let finalPaymentInfo: PaymentInfo = { ...paymentInfo };
-    if (!finalPaymentInfo.billingAddress && billingAddress) {
-      finalPaymentInfo.billingAddress = billingAddress;
-    }
-
-    // Validar que tenemos dirección de facturación
-    if (!finalPaymentInfo.billingAddress) {
+    // Validar que tenemos dirección de facturación (requerida para Stripe)
+    if (!billingAddress) {
       console.error('❌ Validación fallida: billingAddress faltante');
-      toast.error('Completa la dirección de facturación');
+      toast.error('Completa la dirección de facturación antes de continuar');
       return;
     }
 
-    // Validar que tenemos todos los datos de tarjeta
-    if (!finalPaymentInfo.cardNumber || !finalPaymentInfo.cardHolder || !finalPaymentInfo.expiryDate || !finalPaymentInfo.cvv) {
-      console.error('❌ Validación fallida: datos de tarjeta incompletos', {
-        cardNumber: !!finalPaymentInfo.cardNumber,
-        cardHolder: !!finalPaymentInfo.cardHolder,
-        expiryDate: !!finalPaymentInfo.expiryDate,
-        cvv: !!finalPaymentInfo.cvv,
-      });
-      toast.error('Completa todos los datos de la tarjeta');
+    // Si ya tenemos clientSecret, significa que ya creamos la reserva y Payment Intent
+    // No deberíamos llegar aquí, pero por seguridad validamos
+    if (clientSecret) {
+      console.warn('⚠️ [STRIPE] Ya existe clientSecret, el pago debería estar en proceso');
       return;
     }
 
@@ -813,8 +1280,8 @@ export default function CheckoutPage() {
       //   skipValidation = true;
       // }
 
-      // PASO 2: Crear reserva con la API REAL
-      console.log('📝 [API REAL] Creando reserva...');
+      // PASO 2: Crear reserva con paymentMethod: 'pending' para Stripe
+      console.log('📝 [STRIPE] Creando reserva con paymentMethod: pending...');
       
       const bookingRequest: CreateBookingRequest = {
         propertyId: checkoutData.propertyId,
@@ -826,7 +1293,7 @@ export default function CheckoutPage() {
           email: guestInfo.email || user.email || '',
           phone: guestInfo.phone || '',
         },
-        paymentMethod: finalPaymentInfo.paymentMethod || 'card',
+        paymentMethod: 'pending', // Cambiar a 'pending' para procesar con Stripe
       };
 
       const bookingResponse = await createBooking(bookingRequest);
@@ -973,23 +1440,35 @@ export default function CheckoutPage() {
       }
 
       const createdBooking = bookingResponse.data.booking;
-      console.log('✅ [API REAL] Reserva creada exitosamente:', createdBooking.id);
+      console.log('✅ [STRIPE] Reserva creada exitosamente:', createdBooking.id);
       
       setBookingId(createdBooking.id);
-      setCurrentStep(3);
-      setShowConfirmation(true);
+      
+      // PASO 3: Crear Payment Intent de Stripe
+      console.log('💳 [STRIPE] Creando Payment Intent...');
+      const paymentIntentResponse = await createPaymentIntent(createdBooking.id);
+      
+      if (!paymentIntentResponse.success || !paymentIntentResponse.data) {
+        console.error('❌ [STRIPE] Error creando Payment Intent:', paymentIntentResponse.error);
+        toast.error(
+          paymentIntentResponse.error?.message || 
+          'No se pudo iniciar el proceso de pago. Intenta de nuevo.'
+        );
+      setIsProcessing(false);
+        return;
+      }
+      
+      const { clientSecret, paymentIntentId } = paymentIntentResponse.data;
+      console.log('✅ [STRIPE] Payment Intent creado:', paymentIntentId);
+      
+      // Guardar clientSecret y paymentIntentId
+      setClientSecret(clientSecret);
+      setPaymentIntentId(paymentIntentId);
+      setPaymentStep('form');
       setIsProcessing(false);
       
-      // Limpiar datos persistentes al confirmar
-      clearCheckoutData();
-      
-      toast.success('¡Reserva confirmada exitosamente!');
-      
-      console.log('🎉 Estado final:', {
-        currentStep: 3,
-        showConfirmation: true,
-        bookingId: createdBooking.id,
-      });
+      // NO mostrar confirmación todavía - esperar a que el usuario complete el pago
+      toast.success('Reserva creada. Completa el pago para confirmar.');
     } catch (err) {
       console.error('❌ [API REAL] Error inesperado:', err);
       toast.error('Error al confirmar la reserva. Por favor, intenta de nuevo.');
@@ -1094,14 +1573,52 @@ export default function CheckoutPage() {
                   isLoading={isProcessing}
                 />
 
-                {/* Mostrar PaymentSection si ya hay guestInfo */}
-                {guestInfo && (
-                  <PaymentSection
-                    initialData={checkoutData.paymentInfo}
-                    onSubmit={handlePaymentSubmit}
-                    isLoading={isProcessing}
-                  />
-                )}
+                {/* Mostrar StripePaymentForm siempre cuando hay guestInfo, intentar crear Payment Intent si no existe */}
+                {guestInfo ? (
+                  clientSecret && bookingId ? (
+                    <StripePaymentForm
+                      bookingId={bookingId}
+                      clientSecret={clientSecret}
+                      billingAddress={billingAddress || undefined}
+                      guestName={guestInfo.name || guestInfo.fullName || user?.name}
+                      onBillingAddressSubmit={handleBillingAddressSubmit}
+                      onPaymentSuccess={handleStripePaymentSuccess}
+                      onPaymentError={handleStripePaymentError}
+                      isLoading={isProcessing || paymentStep === 'processing'}
+                    />
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Mostrar mensaje mientras se prepara el pago */}
+                      {isProcessing ? (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                          <p className="text-blue-800 font-medium">Preparando formulario de pago...</p>
+                          <p className="text-blue-600 text-sm mt-2">Creando reserva y configurando Stripe</p>
+                        </div>
+                      ) : (
+                        // MODO PERMISIVO: No mostrar mensaje de conflicto de fechas
+                        // hasDateConflict está deshabilitado para permitir todas las fechas
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                          <p className="text-yellow-800 font-medium mb-2">⚠️ Preparando pago seguro con Stripe</p>
+                          <p className="text-yellow-700 text-sm">
+                            {billingAddress ? (
+                              <span>La dirección está completa. El formulario de Stripe aparecerá automáticamente.</span>
+                            ) : (
+                              <span>Completa la dirección de facturación para iniciar el proceso de pago con Stripe.</span>
+                            )}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Mostrar BillingAddressForm mientras esperamos */}
+                      <BillingAddressForm
+                        initialData={billingAddress || undefined}
+                        onSubmit={handleBillingAddressSubmit}
+                        isLoading={isProcessing}
+                      />
+                    </div>
+                  )
+                ) : null}
               </>
             )}
 
@@ -1191,15 +1708,15 @@ export default function CheckoutPage() {
                   </button>
                 )}
 
-                {/* Protecciones de Reserva con Botón de Confirmar (solo en paso 2) */}
-                {currentStep === 2 && (
+                {/* Protecciones de Reserva con Botón de Confirmar (solo en paso 2 y si NO hay clientSecret) */}
+                {currentStep === 2 && !clientSecret && (
                   <ReservationProtectionsWithButton
                     onConfirm={() => {
                       console.log('🔘 Botón Confirmar Reserva clickeado');
-                      console.log('📊 Estado:', { currentStep, guestInfo: !!guestInfo, paymentInfo: !!paymentInfo });
+                      console.log('📊 Estado:', { currentStep, guestInfo: !!guestInfo, billingAddress: !!billingAddress });
                       handleConfirmBooking();
                     }}
-                    disabled={isProcessing}
+                    disabled={isProcessing || !billingAddress}
                     isLoading={isProcessing}
                   />
                 )}

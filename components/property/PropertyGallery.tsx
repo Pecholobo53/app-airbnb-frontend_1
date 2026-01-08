@@ -56,6 +56,15 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
     const imageSrc = hasError ? placeholderImage : src;
     const isPlaceholder = imageSrc === placeholderImage || hasError;
     
+    // Validar que la URL no esté vacía o sea inválida
+    if (!imageSrc || imageSrc.trim() === '') {
+      return (
+        <div className={className} style={{ backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <p className="text-gray-400 text-sm">Sin imagen</p>
+        </div>
+      );
+    }
+    
     if (isBase64(imageSrc)) {
       return (
         <img
@@ -68,17 +77,25 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
         />
       );
     }
+    
+    // Para Next.js Image, usar un wrapper para manejar errores mejor
     return (
-      <Image
-        src={imageSrc}
-        alt={alt}
-        fill
-        className={className}
-        sizes={sizes}
-        priority={priority}
-        loading={priority ? undefined : 'lazy'}
-        onError={() => handleImageError(index, isPlaceholder)}
-      />
+      <div className="relative w-full h-full">
+        <Image
+          src={imageSrc}
+          alt={alt}
+          fill
+          className={className}
+          sizes={sizes}
+          priority={priority}
+          loading={priority ? undefined : 'lazy'}
+          onError={() => {
+            console.warn(`⚠️ [PROPERTY GALLERY] Error cargando imagen ${index}: ${imageSrc}`);
+            handleImageError(index, isPlaceholder);
+          }}
+          unoptimized={imageSrc.startsWith('http://localhost') || imageSrc.includes('localhost')}
+        />
+      </div>
     );
   };
 

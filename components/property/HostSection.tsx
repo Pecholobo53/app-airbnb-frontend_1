@@ -18,7 +18,8 @@ interface HostSectionProps {
 export default function HostSection({ host }: HostSectionProps) {
   // Validaciones robustas con valores por defecto
   const hostName = host?.name || 'Anfitrión';
-  const hostAvatar = host?.avatar || '/placeholder-avatar.png';
+  // Usar placeholder-property.jpg como fallback si no hay avatar
+  const hostAvatar = host?.avatar || '/placeholder-property.jpg';
   const isSuperhost = host?.isSuperhost ?? false;
   const responseRate = host?.responseRate;
   const responseTime = host?.responseTime;
@@ -56,7 +57,7 @@ export default function HostSection({ host }: HostSectionProps) {
               className="rounded-full"
               onError={(e) => {
                 // Fallback a imagen placeholder si falla
-                e.currentTarget.src = '/placeholder-avatar.png';
+                e.currentTarget.src = '/placeholder-property.jpg';
               }}
             />
             {isSuperhost && (

@@ -139,7 +139,7 @@ export default function PropertyDetailPage() {
             host: response.data.host || {
               id: 'unknown',
               name: 'Anfitrión',
-              avatar: '/placeholder-avatar.png',
+              avatar: '/placeholder-property.jpg',
               isSuperhost: false,
               joinedDate: new Date(),
               responseTime: '',

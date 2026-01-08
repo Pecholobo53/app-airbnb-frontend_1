@@ -89,3 +89,84 @@ export function truncate(text: string, maxLength: number): string {
 export function pluralize(count: number, singular: string, plural: string): string {
   return count === 1 ? singular : plural;
 }
+
+/**
+ * Convierte el nombre de un país a su código ISO 3166-1 alpha-2 (2 caracteres)
+ * @param countryName - Nombre del país en español o inglés
+ * @returns Código ISO de 2 caracteres (ej: "ES", "US", "FR")
+ */
+export function getCountryCode(countryName: string): string {
+  const countryMap: Record<string, string> = {
+    // Países en español
+    'España': 'ES',
+    'Francia': 'FR',
+    'Italia': 'IT',
+    'Portugal': 'PT',
+    'Alemania': 'DE',
+    'Reino Unido': 'GB',
+    'Estados Unidos': 'US',
+    'México': 'MX',
+    'Argentina': 'AR',
+    'Colombia': 'CO',
+    'Chile': 'CL',
+    'Perú': 'PE',
+    'Venezuela': 'VE',
+    'Ecuador': 'EC',
+    'Uruguay': 'UY',
+    'Paraguay': 'PY',
+    'Bolivia': 'BO',
+    'Brasil': 'BR',
+    'Cuba': 'CU',
+    'República Dominicana': 'DO',
+    'Panamá': 'PA',
+    'Costa Rica': 'CR',
+    'Guatemala': 'GT',
+    'Honduras': 'HN',
+    'El Salvador': 'SV',
+    'Nicaragua': 'NI',
+    'Canadá': 'CA',
+    // Países en inglés (fallback)
+    'Spain': 'ES',
+    'France': 'FR',
+    'Italy': 'IT',
+    'Portugal': 'PT',
+    'Germany': 'DE',
+    'United Kingdom': 'GB',
+    'United States': 'US',
+    'Mexico': 'MX',
+    'Argentina': 'AR',
+    'Colombia': 'CO',
+    'Chile': 'CL',
+    'Peru': 'PE',
+    'Venezuela': 'VE',
+    'Ecuador': 'EC',
+    'Uruguay': 'UY',
+    'Paraguay': 'PY',
+    'Bolivia': 'BO',
+    'Brazil': 'BR',
+    'Cuba': 'CU',
+    'Dominican Republic': 'DO',
+    'Panama': 'PA',
+    'Costa Rica': 'CR',
+    'Guatemala': 'GT',
+    'Honduras': 'HN',
+    'El Salvador': 'SV',
+    'Nicaragua': 'NI',
+    'Canada': 'CA',
+  };
+
+  // Si ya es un código de 2 caracteres, retornarlo directamente
+  if (countryName && countryName.length === 2 && /^[A-Z]{2}$/i.test(countryName)) {
+    return countryName.toUpperCase();
+  }
+
+  // Buscar en el mapa
+  const code = countryMap[countryName];
+  if (code) {
+    return code;
+  }
+
+  // Si no se encuentra, retornar 'ES' como fallback (España es el país por defecto)
+  console.warn(`⚠️ País no encontrado en el mapa: "${countryName}". Usando "ES" como fallback.`);
+  return 'ES';
+}

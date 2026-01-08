@@ -146,21 +146,38 @@ export default function PromotionsSection() {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Image */}
-                <div className="relative overflow-hidden flex-shrink-0">
+                <div className="relative overflow-hidden flex-shrink-0 bg-gray-100">
                   {(() => {
                     const hasError = imageErrors.has(property.id);
-                    const imageSrc = hasError || !property.images[0] 
+                    const originalImage = property.images && property.images.length > 0 && property.images[0] 
+                      ? property.images[0].trim() 
+                      : null;
+                    
+                    // Validar que la imagen no esté vacía o sea inválida
+                    const isValidImage = originalImage && 
+                      originalImage !== '' && 
+                      (originalImage.startsWith('http') || originalImage.startsWith('data:image') || originalImage.startsWith('/'));
+                    
+                    const imageSrc = hasError || !isValidImage
                       ? placeholderImage 
-                      : property.images[0];
-                    const isPlaceholder = imageSrc === placeholderImage || hasError;
+                      : originalImage;
+                    const isPlaceholder = imageSrc === placeholderImage || hasError || !isValidImage;
+                    
+                    // Si no hay imagen válida, mostrar placeholder directamente
+                    if (!isValidImage && !hasError) {
+                      console.warn(`⚠️ [PROMOTIONS] Propiedad ${property.id} sin imagen válida:`, originalImage);
+                    }
                     
                     if (isBase64(imageSrc)) {
                       return (
                         <img
                           src={imageSrc}
                           alt={property.title}
-                          className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500 bg-gray-100"
-                          onError={() => handleImageError(property.id, isPlaceholder)}
+                          className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500"
+                          onError={() => {
+                            console.warn(`⚠️ [PROMOTIONS] Error cargando imagen Base64 de propiedad ${property.id}`);
+                            handleImageError(property.id, isPlaceholder);
+                          }}
                         />
                       );
                     }
@@ -170,8 +187,12 @@ export default function PromotionsSection() {
                         alt={property.title}
                         width={600}
                         height={256}
-                        className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500 bg-gray-100"
-                        onError={() => handleImageError(property.id, isPlaceholder)}
+                        className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500"
+                        onError={() => {
+                          console.warn(`⚠️ [PROMOTIONS] Error cargando imagen de propiedad ${property.id}: ${imageSrc}`);
+                          handleImageError(property.id, isPlaceholder);
+                        }}
+                        unoptimized={imageSrc.startsWith('http://localhost') || imageSrc.includes('localhost')}
                       />
                     );
                   })()}
