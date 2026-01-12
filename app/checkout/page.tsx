@@ -63,6 +63,7 @@ export default function CheckoutPage() {
   const hasLoadedRef = useRef<string | null>(null);
   const isLoadingRef = useRef(false);
   const hasTriedCreatePaymentRef = useRef(false); // Evitar múltiples intentos de crear Payment Intent
+  const [paymentRetryCount, setPaymentRetryCount] = useState(0); // Forzar reintento cuando falle
 
   useEffect(() => {
     // Limpiar borradores antiguos al iniciar (solo una vez)
@@ -701,12 +702,29 @@ export default function CheckoutPage() {
     
     // CASO 1: Crear reserva y Payment Intent si no hay bookingId ni clientSecret
     // CASO 2: Crear solo Payment Intent si hay bookingId pero NO hay clientSecret
-    const shouldCreateBooking = guestInfo && billingAddress && !clientSecret && !bookingId && !isProcessing && !hasTriedCreatePaymentRef.current && checkoutData && user;
-    const shouldCreatePaymentIntent = guestInfo && billingAddress && !clientSecret && bookingId && !isProcessing && !hasTriedCreatePaymentRef.current && checkoutData && user;
+    // Permitir reintento si paymentRetryCount > 0 (fuerza re-ejecución después de un fallo)
+    // Límite máximo de 3 reintentos para evitar bucles infinitos
+    const MAX_RETRIES = 3;
+    const hasExceededMaxRetries = paymentRetryCount > MAX_RETRIES;
+    
+    if (hasExceededMaxRetries) {
+      console.warn('⚠️ [STRIPE] Se alcanzó el límite máximo de reintentos. Por favor, recarga la página o contacta soporte.');
+      toast.error('No se pudo inicializar el pago después de varios intentos. Por favor, recarga la página.');
+    }
+    
+    const shouldCreateBooking = !hasExceededMaxRetries && guestInfo && billingAddress && !clientSecret && !bookingId && !isProcessing && (!hasTriedCreatePaymentRef.current || (paymentRetryCount > 0 && paymentRetryCount <= MAX_RETRIES)) && checkoutData && user;
+    const shouldCreatePaymentIntent = !hasExceededMaxRetries && guestInfo && billingAddress && !clientSecret && bookingId && !isProcessing && (!hasTriedCreatePaymentRef.current || (paymentRetryCount > 0 && paymentRetryCount <= MAX_RETRIES)) && checkoutData && user;
     
     if (shouldCreateBooking) {
-      console.log('🚀 [STRIPE] useEffect: GuestInfo y BillingAddress completos, creando reserva y Payment Intent automáticamente...');
+      console.log('🚀 [STRIPE] useEffect: GuestInfo y BillingAddress completos, creando reserva y Payment Intent automáticamente...', {
+        isRetry: paymentRetryCount > 0,
+        retryCount: paymentRetryCount,
+      });
       hasTriedCreatePaymentRef.current = true;
+      // Resetear contador de reintentos al iniciar
+      if (paymentRetryCount > 0) {
+        setPaymentRetryCount(0);
+      }
       
       const createPaymentFlow = async () => {
         try {
@@ -807,9 +825,11 @@ export default function CheckoutPage() {
                     return;
                   } else {
                     console.warn('⚠️ [STRIPE] Reserva creada pero Payment Intent falló:', paymentIntentResponse.error);
-                    toast.warning('Reserva creada pero error al iniciar el pago. Intenta de nuevo.');
+                    toast.warning('Reserva creada pero error al iniciar el pago. Reintentando...');
                     setIsProcessing(false);
                     hasTriedCreatePaymentRef.current = false;
+                    // Forzar reintento incrementando el contador
+                    setPaymentRetryCount(prev => prev + 1);
                     return;
                   }
                 } else {
@@ -871,8 +891,10 @@ export default function CheckoutPage() {
                       setHasDateConflict(false);
                       setIsProcessing(false);
                       hasTriedCreatePaymentRef.current = false;
+                      // Forzar reintento incrementando el contador
+                      setPaymentRetryCount(prev => prev + 1);
                       
-                      toast.warning('No se pudo crear el Payment Intent debido a conflicto de fechas. Por favor, selecciona otras fechas.');
+                      toast.warning('No se pudo crear el Payment Intent debido a conflicto de fechas. Reintentando...');
                       return;
                     }
                   } catch (paymentError) {
@@ -932,9 +954,11 @@ export default function CheckoutPage() {
           
           if (!paymentIntentResponse.success || !paymentIntentResponse.data) {
             console.error('❌ [STRIPE] Error creando Payment Intent:', paymentIntentResponse.error);
-            toast.error('Error al iniciar el proceso de pago. Intenta de nuevo.');
+            toast.error('Error al iniciar el proceso de pago. Reintentando...');
             setIsProcessing(false);
             hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+            // Forzar reintento incrementando el contador
+            setPaymentRetryCount(prev => prev + 1);
             return;
           }
           
@@ -963,8 +987,10 @@ export default function CheckoutPage() {
           
         } catch (error) {
           console.error('❌ [STRIPE] Error inesperado:', error);
-          toast.error('Error al preparar el pago. Intenta de nuevo.');
+          toast.error('Error al preparar el pago. Reintentando...');
           hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+          // Forzar reintento incrementando el contador
+          setPaymentRetryCount(prev => prev + 1);
         } finally {
           setIsProcessing(false);
         }
@@ -973,8 +999,15 @@ export default function CheckoutPage() {
       createPaymentFlow();
     } else if (shouldCreatePaymentIntent) {
       // CASO 2: Ya hay bookingId, solo crear Payment Intent
-      console.log('🚀 [STRIPE] useEffect: Hay bookingId pero NO clientSecret, creando Payment Intent...');
+      console.log('🚀 [STRIPE] useEffect: Hay bookingId pero NO clientSecret, creando Payment Intent...', {
+        isRetry: paymentRetryCount > 0,
+        retryCount: paymentRetryCount,
+      });
       hasTriedCreatePaymentRef.current = true;
+      // Resetear contador de reintentos al iniciar
+      if (paymentRetryCount > 0) {
+        setPaymentRetryCount(0);
+      }
       
       const createPaymentIntentOnly = async () => {
         try {
@@ -1025,9 +1058,11 @@ export default function CheckoutPage() {
               }
             }
             
-            toast.error('Error al iniciar el proceso de pago. Intenta de nuevo.');
+            toast.error('Error al iniciar el proceso de pago. Reintentando...');
             setIsProcessing(false);
             hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+            // Forzar reintento incrementando el contador
+            setPaymentRetryCount(prev => prev + 1);
             return;
           }
           
@@ -1035,9 +1070,11 @@ export default function CheckoutPage() {
           
           if (!clientSecret) {
             console.error('❌ [STRIPE] Payment Intent creado pero sin clientSecret');
-            toast.error('Error: No se recibió el clientSecret del servidor.');
+            toast.error('Error: No se recibió el clientSecret del servidor. Reintentando...');
             setIsProcessing(false);
             hasTriedCreatePaymentRef.current = false;
+            // Forzar reintento incrementando el contador
+            setPaymentRetryCount(prev => prev + 1);
             return;
           }
           
@@ -1056,8 +1093,10 @@ export default function CheckoutPage() {
           
         } catch (error) {
           console.error('❌ [STRIPE] Error inesperado creando Payment Intent:', error);
-          toast.error('Error al preparar el pago. Intenta de nuevo.');
+          toast.error('Error al preparar el pago. Reintentando...');
           hasTriedCreatePaymentRef.current = false; // Permitir reintentar
+          // Forzar reintento incrementando el contador
+          setPaymentRetryCount(prev => prev + 1);
         } finally {
           setIsProcessing(false);
         }
@@ -1065,16 +1104,17 @@ export default function CheckoutPage() {
       
       createPaymentIntentOnly();
     }
-    // IMPORTANTE: Solo depender de guestInfo, billingAddress y bookingId
+    // IMPORTANTE: Incluir paymentRetryCount para forzar reintentos cuando falle
     // NO incluir clientSecret, isProcessing porque causan bucles infinitos
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [guestInfo, billingAddress, bookingId]);
+  }, [guestInfo, billingAddress, bookingId, paymentRetryCount]);
   
   // Resetear el flag de conflicto y permitir reintentar cuando cambien las fechas
   useEffect(() => {
     if (checkoutData) {
       setHasDateConflict(false);
       hasTriedCreatePaymentRef.current = false; // Permitir reintentar cuando cambien las fechas
+      setPaymentRetryCount(0); // Resetear contador de reintentos
     }
   }, [checkoutData?.checkIn, checkoutData?.checkOut, checkoutData?.propertyId]);
 
