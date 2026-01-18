@@ -45,31 +45,98 @@ export default function MisReservasPage() {
     setError(null);
 
     try {
-      // Cargar reservas futuras y pasadas en paralelo
-      const [upcomingResponse, pastResponse] = await Promise.all([
-        DashboardService.getUpcomingTrips(user.id),
-        DashboardService.getPastTrips(user.id),
-      ]);
+      console.log('👤 [MIS RESERVAS] Usuario actual:', {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      });
+      
+      // Cargar todas las reservas del usuario
+      const response = await DashboardService.getAllUserBookings(user.id);
 
-      if (upcomingResponse.success && upcomingResponse.data) {
-        setUpcomingBookings(upcomingResponse.data);
-      }
+      console.log('📥 [MIS RESERVAS] Respuesta del servicio:', {
+        success: response.success,
+        hasData: !!response.data,
+        dataLength: response.data?.length || 0,
+        error: response.error,
+      });
 
-      if (pastResponse.success && pastResponse.data) {
-        setPastBookings(pastResponse.data);
-      }
+      if (response.success && response.data) {
+        const allBookings = response.data;
+        console.log(`✅ [MIS RESERVAS] ${allBookings.length} reservas recibidas`);
 
-      // Si hay errores, mostrarlos
-      if (!upcomingResponse.success || !pastResponse.success) {
-        setError('Error al cargar algunas reservas');
+        const now = new Date();
+
+        // Separar en categorías
+        const upcoming: Booking[] = [];
+        const active: Booking[] = [];
+        const past: Booking[] = [];
+
+        allBookings.forEach(booking => {
+          const checkIn = booking.checkIn instanceof Date
+            ? booking.checkIn
+            : new Date(booking.checkIn);
+          const checkOut = booking.checkOut instanceof Date
+            ? booking.checkOut
+            : new Date(booking.checkOut);
+
+          // Reservas activas (entre check-in y check-out)
+          if (checkIn <= now && checkOut > now && booking.status === 'active') {
+            active.push(booking);
+          }
+          // Reservas futuras (check-in futuro y estado pending o confirmed)
+          else if (checkIn > now && (booking.status === 'pending' || booking.status === 'confirmed')) {
+            upcoming.push(booking);
+          }
+          // Reservas pasadas (check-out pasado o completadas/canceladas)
+          else if (checkOut < now || booking.status === 'completed' || booking.status === 'cancelled') {
+            past.push(booking);
+          }
+          // Reservas confirmadas futuras que no entraron en las categorías anteriores
+          else if (checkIn > now && booking.status === 'confirmed') {
+            upcoming.push(booking);
+          }
+          // Fallback: cualquier reserva sin categorizar va a upcoming
+          else {
+            console.warn('⚠️ [MIS RESERVAS] Reserva sin categorizar:', {
+              id: booking.id,
+              status: booking.status,
+              checkIn: checkIn,
+              checkOut: checkOut,
+            });
+            upcoming.push(booking);
+          }
+        });
+
+        console.log(`📊 [MIS RESERVAS] Categorización:`, {
+          upcoming: upcoming.length,
+          active: active.length,
+          past: past.length,
+        });
+
+        // Combinar próximas y activas en una sola sección
+        setUpcomingBookings([...upcoming, ...active]);
+        setPastBookings(past);
+      } else {
+        // Usar el mensaje de error del servicio (ya está mejorado)
+        const errorMessage = response.error?.message || 'Error al cargar reservas';
+        console.error('❌ [MIS RESERVAS] Error:', {
+          error: response.error,
+          code: response.error?.code,
+          message: errorMessage,
+        });
+        setError(errorMessage);
+        setUpcomingBookings([]);
+        setPastBookings([]);
       }
     } catch (err) {
-      console.error('Error cargando reservas:', err);
+      console.error('❌ [MIS RESERVAS] Error inesperado cargando reservas:', err);
       setError('Error al cargar reservas');
       setUpcomingBookings([]);
       setPastBookings([]);
     } finally {
       setIsLoading(false);
+      console.log('✅ [MIS RESERVAS] Carga de reservas completada');
     }
   };
 
@@ -97,12 +164,45 @@ export default function MisReservasPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Mis Reservas
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-6">
             {totalBookings > 0 
               ? `${totalBookings} ${totalBookings === 1 ? 'reserva' : 'reservas'} en total`
               : 'Tus reservas aparecerán aquí'
             }
           </p>
+
+          {/* Estadísticas rápidas */}
+          {totalBookings > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center gap-2">
+                  <Plane className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900">{upcomingBookings.length}</div>
+                    <div className="text-sm text-gray-500">Próximas</div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center gap-2">
+                  <History className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900">{pastBookings.length}</div>
+                    <div className="text-sm text-gray-500">Pasadas</div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-[#FF385C]" />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900">{totalBookings}</div>
+                    <div className="text-sm text-gray-500">Total</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Error State */}
@@ -161,7 +261,9 @@ export default function MisReservasPage() {
                       key={booking.id}
                       booking={booking}
                       onViewDetails={() => {
-                        router.push(`/propiedad/${booking.property.id}`);
+                        if (booking.property?.id || booking.propertyId) {
+                          router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
+                        }
                       }}
                     />
                   ))}
@@ -191,7 +293,9 @@ export default function MisReservasPage() {
                       key={booking.id}
                       booking={booking}
                       onViewDetails={() => {
-                        router.push(`/propiedad/${booking.property.id}`);
+                        if (booking.property?.id || booking.propertyId) {
+                          router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
+                        }
                       }}
                     />
                   ))}

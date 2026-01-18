@@ -1,0 +1,435 @@
+---
+alwaysApply: false
+
+# 🧪 PLAYWRIGHT TEST - MÓDULO "MIS RESERVAS"
+
+## 📋 INSTRUCCIONES PARA EL AGENTE
+
+Actúa como un QA tester profesional y revisa el módulo "Mis Reservas" usando Playwright MCP. Sigue estos pasos detallados:
+
+---
+
+## 🔐 CREDENCIALES DE PRUEBA
+
+### Usuario de Prueba - Mis Reservas
+```json
+{
+  "email": "lolo@gmail.com",
+  "password": "Pecholobo33",
+  "name": "Usuario de Prueba"
+}
+```
+
+**Nota**: Estas credenciales deben existir en el sistema de autenticación.
+
+---
+
+## 🎯 CONFIGURACIÓN BASE
+
+### URLs
+- **URL Base**: `http://localhost:3001`
+- **URL Login**: `http://localhost:3001/login`
+- **URL Mis Reservas**: `http://localhost:3001/mis-reservas`
+- **Backend API**: `http://localhost:3000` (o según configuración)
+
+### Selectores Principales
+
+#### Login
+- **Email Input**: `input[type="email"]` o `input[name="email"]`
+- **Password Input**: `input[type="password"]` o `input[name="password"]`
+- **Submit Button**: `button[type="submit"]` o `button:has-text("Iniciar sesión")`
+
+#### Mis Reservas
+- **Título**: `h1:has-text("Mis Reservas")`
+- **Estadísticas Cards**: `.grid.grid-cols-1.sm\\:grid-cols-3` o `div:has-text("Próximas")`
+- **Sección Próximos Viajes**: `section:has-text("Próximos Viajes")`
+- **Sección Historial**: `section:has-text("Historial de Viajes")`
+- **TripCard**: `.bg-white.rounded-xl.border` (card de reserva)
+- **Botón Ver Detalles**: `button:has-text("Ver detalles")`
+- **Loading State**: `.animate-spin` o skeleton cards
+- **Error State**: `.bg-red-50` o `div:has-text("Error")`
+- **Empty State**: `div:has-text("No tienes reservas aún")`
+
+---
+
+## 📝 FLUJO DE PRUEBA COMPLETO
+
+### PASO 1: Autenticación
+1. ✅ Visitar `http://localhost:3001/login`
+2. ✅ Verificar que el formulario de login está visible
+3. ✅ Ingresar email: `lolo@gmail.com`
+4. ✅ Ingresar password: `Pecholobo33`
+5. ✅ Hacer click en botón "Iniciar sesión"
+6. ✅ Verificar que se redirige a dashboard o página principal
+7. ✅ Verificar que hay sesión guardada en `localStorage` con clave `airbnb_session`
+8. ✅ Verificar que el token JWT está presente
+
+**Validaciones**:
+- No debe haber errores en consola relacionados con autenticación
+- La redirección debe ser exitosa
+- El usuario debe estar autenticado
+
+---
+
+### PASO 2: Navegación a Mis Reservas
+1. ✅ Navegar a `http://localhost:3001/mis-reservas`
+2. ✅ Verificar que la página carga correctamente
+3. ✅ Verificar que el título "Mis Reservas" es visible
+4. ✅ Verificar que no se redirige a login (está protegida pero usuario autenticado)
+
+**Validaciones**:
+- Si no está autenticado, debe redirigir a `/login`
+- Si está autenticado, debe mostrar la página
+
+---
+
+### PASO 3: Verificación de Header y Estadísticas
+1. ✅ Verificar que el título "Mis Reservas" es visible
+2. ✅ Verificar que hay un subtítulo con el total de reservas
+3. ✅ Verificar que hay 3 cards de estadísticas (si hay reservas):
+   - Card "Próximas" con icono de avión
+   - Card "Pasadas" con icono de historial
+   - Card "Total" con icono de calendario
+4. ✅ Verificar que los números en las cards son correctos
+
+**Validaciones**:
+- Las estadísticas deben coincidir con las reservas reales
+- Los iconos deben ser visibles
+- El diseño debe ser responsive
+
+---
+
+### PASO 4: Verificación de Carga de Datos
+1. ✅ Verificar que hay un estado de loading inicial (skeleton o spinner)
+2. ✅ Esperar a que las reservas se carguen
+3. ✅ Verificar que el estado de loading desaparece
+4. ✅ Verificar que se hace una petición a `/api/bookings?page=1&limit=1000`
+5. ✅ Verificar que el JWT se incluye en el header Authorization
+
+**Validaciones**:
+- La petición debe tener status 200 o 404 (si no hay reservas)
+- No debe haber errores 401 (no autorizado)
+- No debe haber errores 500 (error del servidor)
+- Los logs en consola deben mostrar: `📋 [DASHBOARD SERVICE] Obteniendo todas las reservas`
+
+---
+
+### PASO 5: Verificación de Categorización
+1. ✅ Verificar que las reservas se categorizan correctamente:
+   - **Próximas**: check-in futuro y estado pending/confirmed
+   - **Activas**: entre check-in y check-out con status active
+   - **Pasadas**: check-out pasado o completadas/canceladas
+2. ✅ Verificar que cada sección tiene un título:
+   - "Próximos Viajes" con icono de avión
+   - "Historial de Viajes" con icono de historial
+3. ✅ Verificar que se muestra el contador de reservas en cada sección
+
+**Validaciones**:
+- Las reservas deben estar en la sección correcta
+- No debe haber reservas duplicadas
+- Los contadores deben ser correctos
+
+---
+
+### PASO 6: Verificación de TripCard (Card de Reserva)
+Para cada reserva visible, verificar:
+
+#### Información Básica
+1. ✅ **Imagen de propiedad**: Debe ser visible o mostrar placeholder
+2. ✅ **Título de propiedad**: Debe ser visible y no estar vacío
+3. ✅ **Ubicación**: Debe mostrar ciudad y país
+4. ✅ **Badge de estado**: Debe mostrar el estado (Confirmada, Pendiente, etc.) con color correcto
+
+#### Fechas
+5. ✅ **Check-in**: Debe mostrar fecha formateada (ej: "15 Nov 2024")
+6. ✅ **Check-out**: Debe mostrar fecha formateada (ej: "20 Nov 2024")
+7. ✅ **Número de noches**: Debe mostrar "X noche(s)"
+
+#### Información de Pago (si está disponible)
+8. ✅ **Estado de pago**: Debe mostrar "Pagado", "Pendiente", "Fallido" o "Reembolsado"
+9. ✅ **Fecha de pago**: Debe mostrarse si está pagado
+10. ✅ **Método de pago**: Debe mostrarse si está disponible
+
+#### Fechas de Reserva
+11. ✅ **Fecha de creación**: Debe mostrar "Reserva creada: DD MMM YYYY"
+12. ✅ **Fecha de confirmación**: Debe mostrarse si está confirmada
+
+#### Precios
+13. ✅ **Precio total**: Debe estar formateado con símbolo de moneda (€)
+14. ✅ **Desglose de precios** (si está disponible):
+    - Alojamiento (X noches)
+    - Tarifa de limpieza
+    - Tarifa de servicio
+
+#### Huéspedes
+15. ✅ **Número de huéspedes**: Debe mostrar "X huésped(es)" si está disponible
+
+#### Acciones
+16. ✅ **Botón "Ver detalles"**: Debe ser visible y clickeable
+
+**Validaciones**:
+- Todos los datos deben ser legibles
+- Los precios deben estar formateados correctamente
+- Las fechas deben estar en formato español
+- No debe haber datos undefined o null visibles
+
+---
+
+### PASO 7: Verificación de Navegación
+1. ✅ Hacer click en "Ver detalles" de una reserva
+2. ✅ Verificar que navega a `/propiedad/{propertyId}`
+3. ✅ Verificar que la página de detalle carga correctamente
+4. ✅ Volver a "Mis Reservas" usando el navegador o botón de volver
+
+**Validaciones**:
+- La navegación debe ser fluida
+- No debe haber errores 404 en la página de detalle
+- El propertyId debe ser válido
+
+---
+
+### PASO 8: Verificación de Estados Especiales
+
+#### Estado Vacío (Sin Reservas)
+1. ✅ Si no hay reservas, verificar que se muestra:
+   - Icono de calendario
+   - Título: "No tienes reservas aún"
+   - Mensaje explicativo
+   - Botón "Explorar propiedades" que lleva a `/buscar`
+
+#### Estado de Error
+1. ✅ Simular un error (desconectar backend o forzar error)
+2. ✅ Verificar que se muestra mensaje de error
+3. ✅ Verificar que hay botón "Intentar de nuevo"
+4. ✅ Hacer click en "Intentar de nuevo" y verificar que reintenta la carga
+
+#### Estado de Loading
+1. ✅ Verificar que durante la carga se muestran skeleton cards
+2. ✅ Verificar que el loading desaparece cuando se cargan los datos
+
+**Validaciones**:
+- Los estados deben ser claros y útiles
+- Los botones de acción deben funcionar
+- No debe haber pantallas en blanco
+
+---
+
+### PASO 9: Verificación de Responsive Design
+1. ✅ Probar en diferentes tamaños de pantalla:
+   - Mobile (375px)
+   - Tablet (768px)
+   - Desktop (1280px)
+2. ✅ Verificar que:
+   - Las cards se adaptan correctamente
+   - El layout de TripCard es responsive
+   - Las estadísticas se apilan en mobile
+   - Los textos son legibles en todos los tamaños
+
+**Validaciones**:
+- No debe haber overflow horizontal
+- Los elementos deben ser accesibles
+- El diseño debe verse bien en todos los dispositivos
+
+---
+
+### PASO 10: Verificación de Consola y Logs
+1. ✅ Abrir DevTools y revisar la consola
+2. ✅ Verificar que hay logs informativos:
+   - `📋 [DASHBOARD SERVICE] Obteniendo todas las reservas del usuario: {userId}`
+   - `✅ [DASHBOARD SERVICE] Encontradas X reservas del usuario`
+   - `📥 [MIS RESERVAS] Respuesta del servicio`
+   - `📊 [MIS RESERVAS] Categorización: {upcoming, active, past}`
+3. ✅ Verificar que NO hay errores críticos:
+   - No errores de red (excepto 404 esperados si no hay backend)
+   - No errores de JavaScript
+   - No errores de TypeScript
+   - No errores de React
+
+**Validaciones**:
+- Los logs deben ser útiles para debugging
+- No debe haber errores que rompan la funcionalidad
+
+---
+
+### PASO 11: Verificación de Peticiones HTTP
+1. ✅ Abrir DevTools > Network
+2. ✅ Recargar la página
+3. ✅ Verificar que se hace petición a:
+   - `GET /api/bookings?page=1&limit=1000`
+4. ✅ Verificar que el header incluye:
+   - `Authorization: Bearer {token}`
+   - `Content-Type: application/json`
+5. ✅ Verificar el status de la respuesta:
+   - 200: OK (hay reservas)
+   - 404: Not Found (endpoint no existe, pero se maneja)
+   - 401: Unauthorized (token inválido o expirado)
+   - 429: Too Many Requests (rate limiting)
+
+**Validaciones**:
+- El token debe ser válido
+- No debe haber errores 500 (Internal Server Error)
+- Las peticiones deben ser correctas
+
+---
+
+### PASO 12: Verificación de localStorage
+1. ✅ Verificar que hay sesión guardada:
+   - Clave: `airbnb_session`
+   - Debe contener: `user`, `token`, `expiresAt`
+2. ✅ Verificar que el token no ha expirado
+3. ✅ Verificar que el userId coincide con el usuario autenticado
+
+**Validaciones**:
+- La sesión debe ser válida
+- El token debe estar presente
+- No debe estar expirado
+
+---
+
+## 🔍 VALIDACIONES ESPECÍFICAS DEL MÓDULO
+
+### Estructura de Datos Esperada
+```typescript
+interface Booking {
+  id: string;
+  propertyId: string;
+  property: {
+    id: string;
+    title: string;
+    images: string[];
+    location: {
+      city: string;
+      country: string;
+    };
+  };
+  checkIn: Date | string;
+  checkOut: Date | string;
+  nights: number;
+  guests: {
+    adults: number;
+    children: number;
+    infants: number;
+  };
+  pricing: {
+    basePrice: number;
+    nightsTotal: number;
+    cleaningFee: number;
+    serviceFee: number;
+    total: number;
+    currency?: string; // EUR por defecto
+  };
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'active';
+  createdAt: Date | string;
+  confirmedAt?: Date | string;
+  paymentInfo?: {
+    method: string;
+    status: 'pending' | 'paid' | 'failed' | 'refunded';
+    paidAt?: Date | string;
+  };
+}
+```
+
+### Endpoints Esperados
+- `GET /api/bookings?page=1&limit=1000` - Obtener todas las reservas
+- Requiere: Header `Authorization: Bearer {token}`
+- Respuesta esperada: Array de `Booking` o `{ bookings: Booking[] }`
+
+---
+
+## 📊 REPORTE ESPERADO
+
+Al finalizar las pruebas, generar un reporte con:
+
+1. **Resumen Ejecutivo**
+   - Estado general (✅ Funcional / ⚠️ Con observaciones / ❌ No funcional)
+   - Funcionalidades probadas
+   - Problemas encontrados
+
+2. **Detalles por Paso**
+   - Estado de cada paso (✅ / ⚠️ / ❌)
+   - Evidencias (screenshots, logs)
+   - Observaciones
+
+3. **Problemas Encontrados**
+   - Lista de bugs o issues
+   - Severidad (Crítico / Alto / Medio / Bajo)
+   - Pasos para reproducir
+
+4. **Recomendaciones**
+   - Mejoras sugeridas
+   - Optimizaciones posibles
+
+5. **Screenshots**
+   - Capturas de cada estado importante
+   - Evidencias visuales
+
+---
+
+## 🚨 PROBLEMAS COMUNES Y SOLUCIONES
+
+### Error 401 (Unauthorized)
+- **Causa**: Token expirado o inválido
+- **Solución**: Hacer login nuevamente
+
+### Error 404 (Not Found)
+- **Causa**: Endpoint no existe en backend
+- **Solución**: Verificar que el endpoint está implementado o que el frontend maneja el fallback
+
+### Error 429 (Too Many Requests)
+- **Causa**: Rate limiting del backend
+- **Solución**: Esperar unos segundos antes de reintentar
+
+### No se cargan las reservas
+- **Causa**: Error en la petición o datos incorrectos
+- **Solución**: Revisar logs en consola, verificar que el userId es correcto
+
+### Reservas en sección incorrecta
+- **Causa**: Lógica de categorización incorrecta
+- **Solución**: Revisar fechas y estados de las reservas
+
+---
+
+## 📝 NOTAS IMPORTANTES
+
+1. **Siempre buscar documentación**:
+   - `docs/API_Rest_documentation.json` - Estructura de endpoints
+   - `DASHBOARD_DOCUMENTATION.md` - Documentación del dashboard
+   - `IMPLEMENTACION_MIS_RESERVAS.md` - Documentación de implementación
+
+2. **Verificar estructura de datos**:
+   - Los tipos TypeScript en `types/dashboard.ts`
+   - La estructura esperada del backend
+
+3. **Logs útiles**:
+   - Prefijos: `📋 [DASHBOARD SERVICE]`, `📥 [MIS RESERVAS]`
+   - Buscar estos prefijos en consola para debugging
+
+4. **Credenciales**:
+   - Email: `lolo@gmail.com`
+   - Password: `Pecholobo33`
+   - Asegurarse de que el usuario existe en el sistema
+
+---
+
+## ✅ CHECKLIST FINAL
+
+- [ ] Login exitoso con credenciales
+- [ ] Navegación a /mis-reservas funciona
+- [ ] Header y estadísticas se muestran correctamente
+- [ ] Las reservas se cargan correctamente
+- [ ] Las reservas se categorizan correctamente
+- [ ] TripCard muestra toda la información
+- [ ] Navegación a detalles funciona
+- [ ] Estados vacíos/error/loading funcionan
+- [ ] Responsive design funciona
+- [ ] No hay errores en consola
+- [ ] Peticiones HTTP son correctas
+- [ ] localStorage tiene sesión válida
+- [ ] Reporte generado con todas las evidencias
+
+---
+
+**Última actualización**: Hoy  
+**Versión**: 1.0  
+**Módulo**: Mis Reservas  
+**Credenciales**: lolo@gmail.com / Pecholobo33

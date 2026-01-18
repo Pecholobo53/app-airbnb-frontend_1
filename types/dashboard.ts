@@ -56,12 +56,22 @@ export interface Booking {
     cleaningFee: number;
     serviceFee: number;
     total: number;
+    currency?: string;      // Moneda (EUR por defecto)
   };
   status: BookingStatus;
   createdAt: Date;
   confirmedAt?: Date;
   cancelledAt?: Date;
   cancellationReason?: string;
+  // Información de pago
+  paymentInfo?: {
+    method: string;
+    status: 'pending' | 'paid' | 'failed' | 'refunded';
+    transactionId?: string;
+    paidAt?: Date | string;
+    amount?: number;
+    currency?: string;
+  };
   // Reviews
   guestReviewGiven?: boolean;
   hostReviewGiven?: boolean;

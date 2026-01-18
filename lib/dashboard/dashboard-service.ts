@@ -144,6 +144,9 @@ async function apiRequest<T>(
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
       ...(options.headers as Record<string, string>),
     };
 
@@ -661,6 +664,153 @@ export class DashboardService {
         error: {
           code: 'NETWORK_ERROR',
           message: 'Error de conexión al obtener historial',
+        },
+      };
+    }
+  }
+
+  /**
+   * OBTENER TODAS LAS RESERVAS DEL USUARIO (sin filtrar por status)
+   * 
+   * Obtiene todas las reservas del usuario (pending, confirmed, active, completed, cancelled)
+   * y las ordena por fecha de check-in (más recientes primero).
+   * 
+   * Endpoint usado: GET /api/bookings?page=1&limit=1000
+   * Autenticación: JWT requerido (Bearer token)
+   */
+  static async getAllUserBookings(guestId: string): Promise<DashboardResponse<Booking[]>> {
+    console.log('📋 [DASHBOARD SERVICE] Obteniendo todas las reservas del usuario:', guestId);
+
+    try {
+      // Agregar timestamp para evitar caché del navegador
+      const timestamp = Date.now();
+      const response = await apiRequest<Booking[] | { bookings: Booking[] }>(
+        `/api/bookings?page=1&limit=1000&_t=${timestamp}`,
+        { method: 'GET' }
+      );
+
+      if (!response.success || !response.data) {
+        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
+        
+        // Mejorar mensaje de error según el código
+        let errorMessage = 'Error al cargar reservas';
+        if (response.error) {
+          if (response.error.code === 'NOT_FOUND') {
+            errorMessage = 'El endpoint de reservas no está disponible. Verifica que el backend esté configurado correctamente.';
+          } else if (response.error.code === 'UNAUTHORIZED') {
+            errorMessage = 'No tienes autorización para ver estas reservas. Por favor, inicia sesión nuevamente.';
+          } else if (response.error.code === 'NETWORK_ERROR') {
+            errorMessage = 'Error de conexión con el servidor. Verifica tu conexión a internet.';
+          } else if (response.error.message) {
+            errorMessage = response.error.message;
+          }
+        }
+        
+        return { 
+          success: false, 
+          error: {
+            code: response.error?.code || 'UNKNOWN_ERROR',
+            message: errorMessage
+          }
+        };
+      }
+
+      const allBookings = Array.isArray(response.data)
+        ? response.data
+        : (response.data as any).bookings || [];
+
+      console.log(`📦 [DASHBOARD SERVICE] Total de reservas recibidas: ${allBookings.length}`);
+      console.log(`🔍 [DASHBOARD SERVICE] Buscando reservas para guestId: ${guestId}`);
+      
+      // Log de todas las reservas para debugging
+      if (allBookings.length > 0) {
+        console.log('📋 [DASHBOARD SERVICE] Reservas recibidas (primeras 5):', 
+          allBookings.slice(0, 5).map((b: any) => ({
+            id: b.id,
+            guestId: b.guestId,
+            propertyId: b.propertyId,
+            status: b.status,
+            checkIn: b.checkIn,
+            match: b.guestId === guestId
+          }))
+        );
+      }
+
+      // Filtrar por guestId (comparación flexible para manejar strings y ObjectIds)
+      // También verificar userId por si el backend usa ese campo
+      const userBookings = allBookings.filter((b: any) => {
+        const booking = b as Booking;
+        
+        // Obtener el ID del usuario de la reserva (puede ser guestId o userId)
+        const bookingUserId = (booking as any).userId || booking.guestId;
+        
+        // Comparación flexible: convertir ambos a string para comparar
+        const bookingUserIdStr = String(bookingUserId || '').trim();
+        const userGuestIdStr = String(guestId || '').trim();
+        const matches = bookingUserIdStr === userGuestIdStr;
+        
+        if (!matches && allBookings.length <= 10) {
+          // Solo loggear si hay pocas reservas para no saturar la consola
+          console.log(`⚠️ [DASHBOARD SERVICE] Reserva no coincide:`, {
+            bookingId: booking.id,
+            bookingGuestId: booking.guestId,
+            bookingUserId: (booking as any).userId,
+            bookingUserIdStr: bookingUserIdStr,
+            userGuestId: userGuestIdStr,
+            match: matches,
+            hasGuestId: !!booking.guestId,
+            hasUserId: !!(booking as any).userId
+          });
+        }
+        return matches;
+      });
+      
+      console.log(`✅ [DASHBOARD SERVICE] Reservas filtradas para el usuario: ${userBookings.length} de ${allBookings.length}`);
+
+      // Ordenar por fecha de check-in (más recientes primero)
+      userBookings.sort((a: Booking, b: Booking) => {
+        const dateA = a.checkIn instanceof Date ? a.checkIn : new Date(a.checkIn);
+        const dateB = b.checkIn instanceof Date ? b.checkIn : new Date(b.checkIn);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      // Normalizar datos
+      const normalizedBookings = userBookings.map((booking: any) => {
+        const normalized: Booking = {
+          ...booking,
+          checkIn: booking.checkIn instanceof Date ? booking.checkIn : new Date(booking.checkIn),
+          checkOut: booking.checkOut instanceof Date ? booking.checkOut : new Date(booking.checkOut),
+          createdAt: booking.createdAt instanceof Date ? booking.createdAt : new Date(booking.createdAt),
+          pricing: {
+            ...booking.pricing,
+            currency: booking.pricing?.currency || 'EUR',
+          },
+        };
+        return normalized;
+      });
+
+      console.log(`✅ [DASHBOARD SERVICE] Encontradas ${normalizedBookings.length} reservas del usuario`);
+
+      return { success: true, data: normalizedBookings };
+    } catch (error) {
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo todas las reservas:', error);
+      
+      // Determinar tipo de error
+      let errorCode = 'NETWORK_ERROR';
+      let errorMessage = 'Error de conexión al obtener reservas';
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorCode = 'CONNECTION_ERROR';
+        errorMessage = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo en http://localhost:3000';
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      return {
+        success: false,
+        error: {
+          code: errorCode,
+          message: errorMessage,
         },
       };
     }
