@@ -55,7 +55,17 @@ import { AuthResponse } from '@/types/auth';
  * - El token se busca en los campos 'token' o 'accessToken' de la sesión
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
+// En producción usamos la URL completa del backend
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+  : ''; // URL vacía = relativa, pasa por el proxy de Next.js
+
+// Log temporal para verificar que la variable se carga correctamente
+if (typeof window !== 'undefined') {
+  console.log('🔍 [DASHBOARD SERVICE] API_BASE_URL configurada:', API_BASE_URL || '(proxy local)');
+  console.log('🔍 [DASHBOARD SERVICE] NODE_ENV:', process.env.NODE_ENV);
+}
 
 /**
  * Helper para obtener el userId del usuario autenticado desde sessionStorage
@@ -126,20 +136,45 @@ async function apiRequest<T>(
     
     console.log('🔑 [DASHBOARD SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
     
+    // Log completo de la sesión para debugging
+    if (session) {
+      console.log('📝 [DASHBOARD SERVICE] Contenido RAW de sesión (primeros 500 chars):', session.substring(0, 500));
+    }
+    
     let token = null;
     if (session) {
       try {
         const parsed = JSON.parse(session);
         // Buscar token en ambos campos (el backend puede usar 'token' o 'accessToken')
         token = parsed.token || parsed.accessToken;
-        console.log('🔑 [DASHBOARD SERVICE] Token extraído:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
-        console.log('🔑 [DASHBOARD SERVICE] Estructura de sesión:', Object.keys(parsed));
-        if (parsed.user) {
-          console.log('👤 [DASHBOARD SERVICE] Usuario en sesión:', parsed.user.name);
+        
+        // Log detallado de la estructura
+        console.log('🔑 [DASHBOARD SERVICE] Estructura de sesión:', {
+          hasToken: !!parsed.token,
+          hasAccessToken: !!parsed.accessToken,
+          tokenLength: token ? token.length : 0,
+          keys: Object.keys(parsed),
+          user: parsed.user ? { id: parsed.user.id, name: parsed.user.name } : null
+        });
+        
+        if (token) {
+          console.log('✅ [DASHBOARD SERVICE] Token extraído:', `${token.substring(0, 30)}...`);
+        } else {
+          console.error('❌ [DASHBOARD SERVICE] NO HAY TOKEN en la sesión');
+          console.error('❌ [DASHBOARD SERVICE] Claves disponibles:', Object.keys(parsed));
+          // Intentar buscar en otras ubicaciones
+          if (parsed.data?.token) token = parsed.data.token;
+          if (parsed.data?.accessToken) token = parsed.data.accessToken;
+          if (token) {
+            console.log('✅ [DASHBOARD SERVICE] Token encontrado en parsed.data:', `${token.substring(0, 30)}...`);
+          }
         }
       } catch (parseError) {
         console.error('❌ [DASHBOARD SERVICE] Error parseando sesión:', parseError);
       }
+    } else {
+      console.error('❌ [DASHBOARD SERVICE] No hay sesión en sessionStorage');
+      console.error('❌ [DASHBOARD SERVICE] Verifica que el usuario esté logueado');
     }
 
     const headers: Record<string, string> = {
@@ -167,10 +202,24 @@ async function apiRequest<T>(
       'Authorization': token ? 'Bearer ***' : 'NO TOKEN'
     });
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    console.log('🌐 [DASHBOARD SERVICE] Haciendo fetch a:', url);
+    console.log('🌐 [DASHBOARD SERVICE] Con headers:', JSON.stringify(headers, null, 2));
+    
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+        mode: 'cors', // Modo CORS explícito
+        // Nota: No usamos credentials: 'include' porque usamos Authorization header
+      });
+      console.log('✅ [DASHBOARD SERVICE] Fetch exitoso, status:', response.status);
+    } catch (fetchError) {
+      console.error('❌ [DASHBOARD SERVICE] Error en fetch:', fetchError);
+      console.error('❌ [DASHBOARD SERVICE] Tipo de error:', (fetchError as Error).name);
+      console.error('❌ [DASHBOARD SERVICE] Mensaje:', (fetchError as Error).message);
+      throw fetchError;
+    }
 
     console.log('📥 [DASHBOARD SERVICE] Response:', {
       status: response.status,
@@ -266,12 +315,20 @@ async function apiRequest<T>(
         errorCode = data.error.code;
       }
       
-      // Mejorar mensaje de error para 404
+      // Mejorar mensaje de error según el código HTTP
       let errorMessage = data.error?.message || data.message || 'Error en la petición';
       if (response.status === 404) {
         errorMessage = 'Ruta no encontrada';
         console.warn('⚠️ [DASHBOARD SERVICE] Endpoint no encontrado (404):', url);
         console.warn('💡 [DASHBOARD SERVICE] Verifica que el backend tenga este endpoint implementado');
+      } else if (response.status === 401) {
+        errorMessage = 'No tienes autorización para acceder a esta información. Por favor, inicia sesión nuevamente.';
+        console.warn('⚠️ [DASHBOARD SERVICE] Error de autenticación (401):', url);
+        console.warn('💡 [DASHBOARD SERVICE] Verifica que tengas una sesión activa y que el token sea válido');
+      } else if (response.status === 403) {
+        errorMessage = 'No tienes permisos para realizar esta acción.';
+      } else if (response.status >= 500) {
+        errorMessage = 'Error en el servidor. Por favor, intenta más tarde.';
       }
       
       return {
@@ -315,11 +372,45 @@ async function apiRequest<T>(
     };
   } catch (error) {
     console.error('❌ [DASHBOARD SERVICE] Error en API request:', error);
+    
+    // Detectar tipo específico de error
+    let errorCode = 'NETWORK_ERROR';
+    let errorMessage = 'Error de conexión con el servidor. Verifica tu conexión a internet.';
+    
+    if (error instanceof TypeError) {
+      // TypeError generalmente significa que fetch falló (backend no disponible, CORS, etc.)
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        errorCode = 'CONNECTION_ERROR';
+        // Verificar si hay sesión para dar un mensaje más específico
+        const hasSession = typeof window !== 'undefined' && sessionStorage.getItem('airbnb_session');
+        if (hasSession) {
+          errorMessage = `No se pudo conectar con el servidor en ${API_BASE_URL}. Esto puede deberse a: 1) El backend no está corriendo, 2) Problema de CORS, o 3) Error de red. Verifica la consola para más detalles.`;
+        } else {
+          errorMessage = `No se pudo conectar con el servidor en ${API_BASE_URL}. Además, no hay sesión activa. Por favor, inicia sesión primero.`;
+        }
+      } else if (error.message.includes('NetworkError') || error.message.includes('Network request failed')) {
+        errorCode = 'NETWORK_ERROR';
+        errorMessage = 'Error de red. Verifica tu conexión a internet.';
+      } else if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
+        errorCode = 'CORS_ERROR';
+        errorMessage = 'Error de CORS. El backend no permite solicitudes desde este origen. Contacta al administrador.';
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
+    console.error('🔍 [DASHBOARD SERVICE] Detalles del error:', {
+      errorType: error instanceof TypeError ? 'TypeError' : error instanceof Error ? 'Error' : typeof error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      apiUrl: API_BASE_URL,
+      endpoint: endpoint
+    });
+    
     return {
       success: false,
       error: {
-        code: 'NETWORK_ERROR',
-        message: 'Error de conexión. Verifica tu conexión a internet.',
+        code: errorCode,
+        message: errorMessage,
       },
     };
   }
@@ -799,9 +890,13 @@ export class DashboardService {
       let errorCode = 'NETWORK_ERROR';
       let errorMessage = 'Error de conexión al obtener reservas';
       
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        errorCode = 'CONNECTION_ERROR';
-        errorMessage = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo en http://localhost:3000';
+      if (error instanceof TypeError) {
+        if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+          errorCode = 'CONNECTION_ERROR';
+          errorMessage = `No se pudo conectar con el servidor en ${API_BASE_URL}. Verifica que el backend esté corriendo.`;
+        } else {
+          errorMessage = error.message;
+        }
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }

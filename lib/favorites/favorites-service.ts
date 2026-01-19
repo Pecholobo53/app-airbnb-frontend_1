@@ -47,7 +47,10 @@ import { PropertyService } from '@/lib/properties/property-service';
  * - Si no hay token, el backend retornará 401 Unauthorized
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+  : '';
 
 /**
  * Interface para respuestas de la API

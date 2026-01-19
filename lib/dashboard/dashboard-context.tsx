@@ -212,17 +212,38 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       
       setState(prev => ({ ...prev, error: errorMessage }));
       
+      // Verificar si es un error de conexión (CONNECTION_ERROR o NETWORK_ERROR)
+      const isConnectionError = errors.some(e => 
+        e.toLowerCase().includes('no se pudo conectar') || 
+        e.toLowerCase().includes('connection') ||
+        e.toLowerCase().includes('network') ||
+        e.toLowerCase().includes('conexión')
+      );
+      
+      // Verificar si es un error 404 (ruta no encontrada)
+      const is404 = errors.some(e => 
+        e.toLowerCase().includes('ruta no encontrada') || 
+        e.toLowerCase().includes('not found') ||
+        e.toLowerCase().includes('endpoint no encontrado')
+      );
+      
       if (hasData) {
-        // Si hay al menos algunos datos, mostrar warning
-        toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
+        // Si hay al menos algunos datos, mostrar warning solo si NO es un error de conexión
+        if (!isConnectionError && !is404) {
+          toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
+        } else if (isConnectionError) {
+          // Error de conexión es crítico, mostrar siempre
+          toast.error(`Error de conexión: ${errorMessage}`, { duration: 7000 });
+        }
       } else {
-        // Si no hay datos, verificar si es un error 404 (ruta no encontrada)
-        const is404 = errors.some(e => e.toLowerCase().includes('ruta no encontrada') || e.toLowerCase().includes('not found'));
+        // Si no hay datos
         if (is404) {
           // No mostrar error si los endpoints no están implementados en el backend
-          // El dashboard funcionará con valores por defecto (0) sin mostrar errores molestos
           console.warn('⚠️ [DASHBOARD] Endpoints del dashboard no implementados en el backend. Mostrando valores por defecto.');
           // NO mostrar toast de error - el dashboard funcionará sin datos
+        } else if (isConnectionError) {
+          // Error de conexión es crítico, mostrar siempre
+          toast.error(`Error de conexión: ${errorMessage}`, { duration: 7000 });
         } else {
           toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
         }

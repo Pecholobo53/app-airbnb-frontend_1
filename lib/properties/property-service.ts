@@ -35,7 +35,10 @@ import { Property, SearchParams, SearchResults, SearchResponse } from '@/types/s
  * - Otros endpoints son públicos (buscar, ver detalles)
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+  : '';
 
 /**
  * Helper para realizar requests HTTP
@@ -122,7 +125,7 @@ async function apiRequest<T>(
       ...options,
       headers,
       mode: 'cors',
-      credentials: 'include',
+      // Nota: No usamos credentials: 'include' porque usamos Authorization header
     });
     
     console.log('📥 [PROPERTY SERVICE] Response recibida:', {

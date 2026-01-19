@@ -6,7 +6,11 @@
  * NO usa mocks ni fallbacks - solo la API real.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
+// En producción usamos la URL completa del backend
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
+  : ''; // URL vacía = relativa, pasa por el proxy de Next.js
 
 export interface BookingValidationRequest {
   propertyId: string;
@@ -62,7 +66,7 @@ export interface ApiResponse<T> {
  * Obtener token de autenticación del sessionStorage o localStorage
  * 
  * Busca en:
- * 1. sessionStorage['airbnb_session'] -> accessToken
+ * 1. sessionStorage['airbnb_session'] -> accessToken o token
  * 2. localStorage['token']
  * 3. localStorage['authToken']
  */
@@ -74,17 +78,28 @@ function getAuthToken(): string | null {
     const sessionStr = sessionStorage.getItem('airbnb_session');
     if (sessionStr) {
       const session = JSON.parse(sessionStr);
-      if (session.accessToken) {
-        console.log('🔑 [BOOKING SERVICE] Token encontrado en sessionStorage');
-        return session.accessToken;
+      // Buscar token en ambos campos (el backend puede usar 'token' o 'accessToken')
+      const token = session.token || session.accessToken;
+      if (token) {
+        console.log('🔑 [BOOKING SERVICE] Token encontrado en sessionStorage:', `${token.substring(0, 20)}...`);
+        return token;
+      } else {
+        console.warn('⚠️ [BOOKING SERVICE] Sesión encontrada pero SIN token');
+        console.warn('⚠️ [BOOKING SERVICE] Claves en sesión:', Object.keys(session));
       }
+    } else {
+      console.warn('⚠️ [BOOKING SERVICE] No hay sesión en sessionStorage');
     }
   } catch (error) {
     console.warn('⚠️ [BOOKING SERVICE] Error leyendo sessionStorage:', error);
   }
   
   // Fallback a localStorage (compatibilidad hacia atrás)
-  return localStorage.getItem('token') || localStorage.getItem('authToken');
+  const localToken = localStorage.getItem('token') || localStorage.getItem('authToken');
+  if (localToken) {
+    console.log('🔑 [BOOKING SERVICE] Token encontrado en localStorage');
+  }
+  return localToken;
 }
 
 /**
@@ -108,10 +123,13 @@ async function apiRequest<T>(
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     console.log(`📡 [BOOKING SERVICE] ${options.method || 'GET'} ${url}`);
+    console.log(`🔑 [BOOKING SERVICE] Token en headers:`, token ? 'Bearer ***' : 'NO HAY TOKEN');
     
     const response = await fetch(url, {
       ...options,
       headers,
+      mode: 'cors', // Modo CORS explícito
+      // Nota: No usamos credentials: 'include' porque usamos Authorization header
     });
 
     const data = await response.json();

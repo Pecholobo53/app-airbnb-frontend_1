@@ -7,6 +7,17 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
+  
+  // Proxy de desarrollo para evitar problemas de CORS
+  // Las peticiones a /api se redirigen al backend en localhost:3000
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3000/api/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
