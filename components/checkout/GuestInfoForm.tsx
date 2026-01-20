@@ -89,7 +89,7 @@ export default function GuestInfoForm({
         }} 
         className="space-y-4"
       >
-        {/* Nombre */}
+        {/* Nombre - ancho completo */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Nombre completo *
@@ -108,46 +108,49 @@ export default function GuestInfoForm({
           )}
         </div>
 
-        {/* Email */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
-          <input
-            id="email"
-            type="email"
-            {...register('email')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
-            placeholder="tu@email.com"
-            autoComplete="email"
-            disabled={isLoading}
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
+        {/* Grid 2 columnas: Email y Teléfono */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email *
+            </label>
+            <input
+              id="email"
+              type="email"
+              {...register('email')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
+              placeholder="tu@email.com"
+              autoComplete="email"
+              disabled={isLoading}
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
+          </div>
 
-        {/* Teléfono (opcional) */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-            Teléfono (opcional)
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            {...register('phone')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
-            placeholder="+34 612 345 678"
-            autoComplete="tel"
-            disabled={isLoading}
-          />
-          {errors.phone && (
-            <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            El anfitrión puede contactarte por teléfono si es necesario
-          </p>
+          {/* Teléfono (opcional) */}
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Teléfono (opcional)
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              {...register('phone')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
+              placeholder="+34 612 345 678"
+              autoComplete="tel"
+              disabled={isLoading}
+            />
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+            )}
+          </div>
         </div>
+        <p className="text-xs text-gray-500 -mt-2">
+          El anfitrión puede contactarte por teléfono si es necesario
+        </p>
 
         {/* Botón para continuar */}
         {isValid && (

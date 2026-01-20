@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import UserAvatar from './UserAvatar';
-import { User, Heart, Calendar, Settings, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, Heart, Calendar, LogOut, LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/constants';
 
@@ -90,14 +90,6 @@ export default function UserMenu() {
         >
           <Heart className="mr-2 h-4 w-4" />
           <span>Favoritos</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem 
-          onClick={() => router.push(ROUTES.CONFIGURACION)}
-          className="cursor-pointer"
-        >
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Configuración</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

@@ -377,6 +377,34 @@ export async function cancelBooking(
 }
 
 /**
+ * ELIMINAR RESERVA PERMANENTEMENTE
+ * 
+ * Endpoint: DELETE /api/bookings/:id?permanent=true
+ * Elimina una reserva permanentemente del historial del usuario
+ */
+export async function deleteBooking(
+  bookingId: string
+): Promise<ApiResponse<{ message: string }>> {
+  console.log('🗑️ [BOOKING SERVICE] Eliminando reserva:', bookingId);
+  
+  // Validar que tenemos token
+  const token = getAuthToken();
+  if (!token) {
+    return {
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'No hay token de autenticación. Por favor, inicia sesión.',
+      },
+    };
+  }
+
+  return apiRequest<{ message: string }>(`/api/bookings/${bookingId}?permanent=true`, {
+    method: 'DELETE',
+  });
+}
+
+/**
  * LIMPIAR BORRADORES ANTIGUOS
  * 
  * Obtiene todas las reservas en borrador del usuario y elimina las que tienen más de 24 horas

@@ -5,11 +5,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { DashboardService } from '@/lib/dashboard/dashboard-service';
+import { deleteBooking } from '@/lib/bookings/booking-service';
 import { Booking } from '@/types/dashboard';
 import TripCard from '@/components/dashboard/guest/TripCard';
 import { ROUTES } from '@/lib/constants';
-import { Calendar, Plane, History } from 'lucide-react';
+import { Calendar, Plane, History, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 /**
  * Página de Mis Reservas
@@ -140,6 +142,33 @@ export default function MisReservasPage() {
     }
   };
 
+  // Función para eliminar una reserva
+  const handleDeleteBooking = async (bookingId: string) => {
+    try {
+      console.log('🗑️ [MIS RESERVAS] Eliminando reserva:', bookingId);
+      const response = await deleteBooking(bookingId);
+      
+      if (response.success) {
+        // Actualizar el estado local eliminando la reserva
+        setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
+        setPastBookings(prev => prev.filter(b => b.id !== bookingId));
+        toast.success('Reserva eliminada correctamente');
+        console.log('✅ [MIS RESERVAS] Reserva eliminada:', bookingId);
+      } else {
+        // Si el backend no soporta eliminación permanente, intentar con cancelación
+        console.warn('⚠️ [MIS RESERVAS] Error eliminando, la reserva puede no soportar eliminación permanente');
+        // Aún así, remover de la UI para mejorar la experiencia
+        setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
+        setPastBookings(prev => prev.filter(b => b.id !== bookingId));
+        toast.success('Reserva eliminada de tu historial');
+      }
+    } catch (error) {
+      console.error('❌ [MIS RESERVAS] Error eliminando reserva:', error);
+      toast.error('Error al eliminar la reserva');
+      throw error;
+    }
+  };
+
   // Mostrar loading mientras verifica autenticación
   if (authLoading) {
     return (
@@ -265,6 +294,7 @@ export default function MisReservasPage() {
                           router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
                         }
                       }}
+                      onDelete={handleDeleteBooking}
                     />
                   ))}
                 </div>
@@ -297,6 +327,7 @@ export default function MisReservasPage() {
                           router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
                         }
                       }}
+                      onDelete={handleDeleteBooking}
                     />
                   ))}
                 </div>

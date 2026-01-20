@@ -91,6 +91,25 @@ export const API_CONFIG = {
 } as const;
 
 /**
+ * Configuración de precios y tarifas
+ * Centralizada para mantener consistencia entre frontend y backend
+ */
+export const PRICING_CONFIG = {
+  // Impuestos: 8%
+  TAX_RATE: 0.08,
+  // Tarifa de servicio: 10% del subtotal
+  SERVICE_FEE_RATE: 0.10,
+  // Tarifa de limpieza: 10% del subtotal
+  CLEANING_FEE_RATE: 0.10,
+  // Tarifa mínima de limpieza: 20€
+  MIN_CLEANING_FEE: 20,
+  // Moneda por defecto (siempre euros)
+  DEFAULT_CURRENCY: 'EUR' as const,
+  // Símbolo de moneda
+  CURRENCY_SYMBOL: '€',
+} as const;
+
+/**
  * Etiquetas y textos de UI
  */
 export const UI_LABELS = {

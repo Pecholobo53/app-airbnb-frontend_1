@@ -1588,6 +1588,21 @@ export default function CheckoutPage() {
         <CheckoutProgress currentStep={currentStep} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Resumen móvil - Solo visible en pantallas pequeñas, arriba */}
+          <div className="lg:hidden">
+            <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-medium">Total a pagar</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {formatPrice(checkoutData.pricing.total, checkoutData.pricing.currency)}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                {checkoutData.nights} {checkoutData.nights === 1 ? 'noche' : 'noches'} · {checkoutData.guests.adults + (checkoutData.guests.children || 0)} {(checkoutData.guests.adults + (checkoutData.guests.children || 0)) === 1 ? 'huésped' : 'huéspedes'}
+              </p>
+            </div>
+          </div>
+
           {/* Columna Principal - Formularios (2/3) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Paso 1: Resumen de Checkout */}
@@ -1621,6 +1636,16 @@ export default function CheckoutPage() {
                       clientSecret={clientSecret}
                       billingAddress={billingAddress || undefined}
                       guestName={guestInfo.name || guestInfo.fullName || user?.name}
+                      pricing={{
+                        basePrice: checkoutData.pricing.basePrice,
+                        nights: checkoutData.nights,
+                        subtotal: checkoutData.pricing.subtotal,
+                        cleaningFee: checkoutData.pricing.cleaningFee,
+                        serviceFee: checkoutData.pricing.serviceFee,
+                        taxes: checkoutData.pricing.taxes,
+                        total: checkoutData.pricing.total,
+                        currency: checkoutData.pricing.currency,
+                      }}
                       onBillingAddressSubmit={handleBillingAddressSubmit}
                       onPaymentSuccess={handleStripePaymentSuccess}
                       onPaymentError={handleStripePaymentError}

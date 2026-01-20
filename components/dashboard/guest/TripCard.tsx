@@ -6,8 +6,9 @@
  * Muestra info de una reserva con acciones rápidas
  */
 
+import { useState } from 'react';
 import { Booking } from '@/types/dashboard';
-import { Calendar, MapPin, Users, Euro, CreditCard, CheckCircle, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users, Euro, CreditCard, CheckCircle, Clock, Trash2, AlertTriangle, X, ImageOff } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -17,10 +18,21 @@ import { formatPrice } from '@/lib/utils';
 interface TripCardProps {
   booking: Booking;
   onViewDetails?: () => void;
+  onDelete?: (bookingId: string) => Promise<void>;
 }
 
-export default function TripCard({ booking, onViewDetails }: TripCardProps) {
+export default function TripCard({ booking, onViewDetails, onDelete }: TripCardProps) {
   const { property, checkIn, checkOut, nights, pricing, status, createdAt, confirmedAt, paymentInfo, guests } = booking;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  // Verificar si property existe - si no, usar valores por defecto
+  const safeProperty = property || {
+    title: 'Propiedad no disponible',
+    images: [],
+    location: { city: 'Ciudad no especificada', country: 'País no especificado' }
+  };
 
   // Normalizar fechas
   const checkInDate = checkIn instanceof Date ? checkIn : new Date(checkIn);
@@ -45,41 +57,115 @@ export default function TripCard({ booking, onViewDetails }: TripCardProps) {
   // Calcular total de huéspedes
   const totalGuests = guests ? (guests.adults || 0) + (guests.children || 0) + (guests.infants || 0) : 0;
 
+  // Verificar si la imagen es válida
+  const hasValidImage = safeProperty.images && 
+    safeProperty.images.length > 0 && 
+    safeProperty.images[0] && 
+    !imageError;
+
+  // Manejar eliminación
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(booking.id);
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error('Error eliminando reserva:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all">
-      <div className="flex flex-col sm:flex-row">
-        {/* Imagen */}
-        <div className="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0 bg-gray-200">
-          {property.images && property.images.length > 0 && property.images[0] ? (
-            <Image
-              src={property.images[0]}
-              alt={property.title || 'Propiedad'}
-              fill
-              className="object-cover"
-              onError={(e) => {
-                // Fallback a placeholder si la imagen falla
-                e.currentTarget.src = '/placeholder-property.jpg';
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-              <Calendar className="w-12 h-12 text-gray-400" />
+    <>
+      {/* Modal de confirmación de eliminación */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">¿Eliminar reserva?</h3>
             </div>
-          )}
-          <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
-            {statusStyle.label}
+            <p className="text-gray-600 mb-6">
+              Esta acción eliminará la reserva de tu historial. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isDeleting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Eliminando...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all relative group">
+        {/* Botón de eliminar - visible en hover */}
+        {onDelete && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="absolute top-3 left-3 z-10 p-2 bg-white/90 hover:bg-red-50 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Eliminar reserva"
+          >
+            <Trash2 className="w-4 h-4 text-red-600" />
+          </button>
+        )}
+
+        <div className="flex flex-col sm:flex-row">
+          {/* Imagen */}
+          <div className="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0 bg-gray-100">
+            {hasValidImage ? (
+              <Image
+                src={safeProperty.images[0]}
+                alt={safeProperty.title || 'Propiedad'}
+                fill
+                className="object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+                <ImageOff className="w-10 h-10 text-gray-400 mb-2" />
+                <span className="text-xs text-gray-500 text-center">Imagen no disponible</span>
+              </div>
+            )}
+            <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text}`}>
+              {statusStyle.label}
+            </div>
+          </div>
 
         {/* Info */}
         <div className="flex-1 p-6">
           <h3 className="font-semibold text-lg text-gray-900 mb-1">
-            {property.title || 'Propiedad sin título'}
+            {safeProperty.title || 'Propiedad sin título'}
           </h3>
-          {property.location && (
+          {safeProperty.location && (
             <div className="flex items-center text-sm text-gray-500 mb-4">
               <MapPin className="h-4 w-4 mr-1" />
-              {property.location.city || 'Ciudad no especificada'}, {property.location.country || 'País no especificado'}
+              {safeProperty.location.city || 'Ciudad no especificada'}, {safeProperty.location.country || 'País no especificado'}
             </div>
           )}
 
@@ -191,6 +277,7 @@ export default function TripCard({ booking, onViewDetails }: TripCardProps) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

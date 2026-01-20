@@ -1,7 +1,21 @@
 // lib/pricing/calculate-price.ts
 
 import { PriceBreakdown, Pricing } from '@/types/search';
+import { PRICING_CONFIG } from '@/lib/constants';
 import { differenceInDays } from 'date-fns';
+
+/**
+ * MODULO DE CALCULO DE PRECIOS
+ * 
+ * Usa PRICING_CONFIG para mantener consistencia en toda la app.
+ * Los precios SIEMPRE se muestran en euros.
+ * 
+ * Configuracion actual (desde PRICING_CONFIG):
+ * - TAX_RATE: 8%
+ * - SERVICE_FEE_RATE: 10%
+ * - CLEANING_FEE_RATE: 10%
+ * - MIN_CLEANING_FEE: 20 euros
+ */
 
 /**
  * Calcula el desglose completo de precios para una reserva
@@ -12,41 +26,33 @@ export function calculatePriceBreakdown(
   checkOut: Date,
   guests: number = 1
 ): PriceBreakdown {
-  // Calcular número de noches
   const nights = differenceInDays(checkOut, checkIn);
   
   if (nights <= 0) {
     throw new Error('La fecha de salida debe ser posterior a la entrada');
   }
 
-  // Precio base
   const basePrice = pricing.basePrice;
   const subtotal = basePrice * nights;
 
-  // Aplicar descuentos
   let discount = 0;
   if (pricing.discounts) {
     if (nights >= 28 && pricing.discounts.monthly) {
-      // Descuento mensual (28+ noches)
       discount = subtotal * (pricing.discounts.monthly / 100);
     } else if (nights >= 7 && pricing.discounts.weekly) {
-      // Descuento semanal (7+ noches)
       discount = subtotal * (pricing.discounts.weekly / 100);
     }
   }
 
   const subtotalWithDiscount = subtotal - discount;
 
-  // Tarifa de limpieza (una vez)
-  const cleaningFee = pricing.cleaningFee || 0;
+  const calculatedCleaningFee = Math.round(subtotalWithDiscount * PRICING_CONFIG.CLEANING_FEE_RATE);
+  const cleaningFee = Math.max(calculatedCleaningFee, PRICING_CONFIG.MIN_CLEANING_FEE);
 
-  // Tarifa de servicio (10% del subtotal)
-  const serviceFee = Math.round(subtotalWithDiscount * 0.1);
+  const serviceFee = Math.round(subtotalWithDiscount * PRICING_CONFIG.SERVICE_FEE_RATE);
 
-  // Impuestos (estimado 8%)
-  const taxes = Math.round((subtotalWithDiscount + cleaningFee + serviceFee) * 0.08);
+  const taxes = Math.round((subtotalWithDiscount + cleaningFee + serviceFee) * PRICING_CONFIG.TAX_RATE);
 
-  // Total
   const total = subtotalWithDiscount + cleaningFee + serviceFee + taxes;
 
   return {
@@ -58,25 +64,31 @@ export function calculatePriceBreakdown(
     taxes,
     discount: discount > 0 ? discount : undefined,
     total,
-    currency: pricing.currency
+    currency: PRICING_CONFIG.DEFAULT_CURRENCY,
   };
 }
 
 /**
- * Formatea un precio con su moneda
+ * Formatea un precio con su moneda (siempre euros)
  */
 export function formatPrice(amount: number, currency: 'EUR' | 'USD' | 'GBP' = 'EUR'): string {
-  const symbols: Record<string, string> = {
-    EUR: '€',
-    USD: '$',
-    GBP: '£'
-  };
-
-  return `${symbols[currency]}${amount.toFixed(0)}`;
+  return `${PRICING_CONFIG.CURRENCY_SYMBOL}${Math.round(amount).toLocaleString('es-ES')}`;
 }
 
 /**
- * Valida que las fechas sean válidas para reserva
+ * Formatea un precio usando Intl.NumberFormat
+ */
+export function formatPriceIntl(amount: number, currency: string = 'EUR'): string {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+/**
+ * Valida que las fechas sean validas para reserva
  */
 export function validateBookingDates(
   checkIn: Date,
@@ -87,34 +99,46 @@ export function validateBookingDates(
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Check-in no puede ser en el pasado
   if (checkIn < today) {
     return { valid: false, error: 'La fecha de entrada no puede ser en el pasado' };
   }
 
-  // Check-out debe ser después de check-in
   if (checkOut <= checkIn) {
     return { valid: false, error: 'La fecha de salida debe ser posterior a la entrada' };
   }
 
   const nights = differenceInDays(checkOut, checkIn);
 
-  // Validar noches mínimas
   if (nights < minNights) {
     return { 
       valid: false, 
-      error: `Esta propiedad requiere mínimo ${minNights} ${minNights === 1 ? 'noche' : 'noches'}` 
+      error: `Esta propiedad requiere minimo ${minNights} ${minNights === 1 ? 'noche' : 'noches'}` 
     };
   }
 
-  // Validar noches máximas
   if (nights > maxNights) {
     return { 
       valid: false, 
-      error: `La estancia máxima es de ${maxNights} noches` 
+      error: `La estancia maxima es de ${maxNights} noches` 
     };
   }
 
   return { valid: true };
 }
 
+/**
+ * Obtiene el desglose de precios formateado para mostrar en UI
+ */
+export function getPriceBreakdownFormatted(breakdown: PriceBreakdown) {
+  return {
+    basePrice: formatPrice(breakdown.basePrice),
+    subtotal: formatPrice(breakdown.subtotal),
+    cleaningFee: formatPrice(breakdown.cleaningFee),
+    serviceFee: formatPrice(breakdown.serviceFee),
+    taxes: formatPrice(breakdown.taxes),
+    discount: breakdown.discount ? formatPrice(breakdown.discount) : null,
+    total: formatPrice(breakdown.total),
+    nights: breakdown.nights,
+    nightsLabel: `${breakdown.nights} ${breakdown.nights === 1 ? 'noche' : 'noches'}`,
+  };
+}

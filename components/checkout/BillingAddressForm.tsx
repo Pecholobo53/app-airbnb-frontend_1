@@ -108,7 +108,7 @@ export default function BillingAddressForm({
       </div>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-        {/* Dirección */}
+        {/* Dirección - ancho completo */}
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
             Dirección *
@@ -127,89 +127,95 @@ export default function BillingAddressForm({
           )}
         </div>
 
-        {/* Ciudad */}
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-            Ciudad *
-          </label>
-          <input
-            id="city"
-            type="text"
-            {...register('city')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
-            placeholder="Barcelona"
-            autoComplete="address-level2"
-            disabled={isLoading}
-          />
-          {errors.city && (
-            <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
-          )}
+        {/* Grid 2 columnas: Ciudad y Estado */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Ciudad */}
+          <div>
+            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+              Ciudad *
+            </label>
+            <input
+              id="city"
+              type="text"
+              {...register('city')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
+              placeholder="Barcelona"
+              autoComplete="address-level2"
+              disabled={isLoading}
+            />
+            {errors.city && (
+              <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
+            )}
+          </div>
+
+          {/* Estado/Provincia */}
+          <div>
+            <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+              Estado/Provincia *
+            </label>
+            <input
+              id="state"
+              type="text"
+              {...register('state')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
+              placeholder="Cataluña"
+              autoComplete="address-level1"
+              disabled={isLoading}
+            />
+            {errors.state && (
+              <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
+            )}
+          </div>
         </div>
 
-        {/* Estado/Provincia */}
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-            Estado/Provincia *
-          </label>
-          <input
-            id="state"
-            type="text"
-            {...register('state')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
-            placeholder="Cataluña"
-            autoComplete="address-level1"
-            disabled={isLoading}
-          />
-          {errors.state && (
-            <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
-          )}
-        </div>
+        {/* Grid 2 columnas: Código Postal y País */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Código Postal */}
+          <div>
+            <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+              Código postal *
+            </label>
+            <input
+              id="postalCode"
+              type="text"
+              {...register('postalCode')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
+              placeholder="08001"
+              autoComplete="postal-code"
+              disabled={isLoading}
+            />
+            {errors.postalCode && (
+              <p className="mt-1 text-sm text-red-600">{errors.postalCode.message}</p>
+            )}
+          </div>
 
-        {/* Código Postal */}
-        <div>
-          <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
-            Código postal *
-          </label>
-          <input
-            id="postalCode"
-            type="text"
-            {...register('postalCode')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none"
-            placeholder="08001"
-            autoComplete="postal-code"
-            disabled={isLoading}
-          />
-          {errors.postalCode && (
-            <p className="mt-1 text-sm text-red-600">{errors.postalCode.message}</p>
-          )}
-        </div>
-
-        {/* País */}
-        <div>
-          <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
-            País *
-          </label>
-          <select
-            id="country"
-            {...register('country')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none bg-white"
-            autoComplete="country"
-            disabled={isLoading}
-          >
-            <option value="España">España</option>
-            <option value="Francia">Francia</option>
-            <option value="Italia">Italia</option>
-            <option value="Portugal">Portugal</option>
-            <option value="Alemania">Alemania</option>
-            <option value="Reino Unido">Reino Unido</option>
-            <option value="Estados Unidos">Estados Unidos</option>
-            <option value="México">México</option>
-            <option value="Argentina">Argentina</option>
-            <option value="Colombia">Colombia</option>
-          </select>
-          {errors.country && (
-            <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
-          )}
+          {/* País */}
+          <div>
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
+              País *
+            </label>
+            <select
+              id="country"
+              {...register('country')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none bg-white"
+              autoComplete="country"
+              disabled={isLoading}
+            >
+              <option value="España">España</option>
+              <option value="Francia">Francia</option>
+              <option value="Italia">Italia</option>
+              <option value="Portugal">Portugal</option>
+              <option value="Alemania">Alemania</option>
+              <option value="Reino Unido">Reino Unido</option>
+              <option value="Estados Unidos">Estados Unidos</option>
+              <option value="México">México</option>
+              <option value="Argentina">Argentina</option>
+              <option value="Colombia">Colombia</option>
+            </select>
+            {errors.country && (
+              <p className="mt-1 text-sm text-red-600">{errors.country.message}</p>
+            )}
+          </div>
         </div>
       </form>
     </div>

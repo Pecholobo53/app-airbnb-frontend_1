@@ -18,8 +18,20 @@ import {
   type CardType
 } from '@/lib/utils/card-validation';
 
+interface PricingInfo {
+  basePrice: number;
+  nights: number;
+  subtotal: number;
+  cleaningFee: number;
+  serviceFee: number;
+  taxes: number;
+  total: number;
+  currency: string;
+}
+
 interface PaymentSectionProps {
   initialData?: PaymentInfo;
+  pricing?: PricingInfo; // Información de precios para mostrar el total
   onSubmit: (data: PaymentInfo) => void;
   isLoading?: boolean;
 }
@@ -31,8 +43,17 @@ interface PaymentSectionProps {
  * Solo acepta tarjeta de crédito/débito.
  * TODOS LOS PAGOS SON SIMULADOS.
  */
+// Helper para formatear precios
+const formatPrice = (amount: number, currency: string = 'EUR') => {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency,
+  }).format(amount);
+};
+
 export default function PaymentSection({
   initialData,
+  pricing,
   onSubmit,
   isLoading = false,
 }: PaymentSectionProps) {
@@ -347,6 +368,40 @@ export default function PaymentSection({
         isLoading={isLoading}
       />
 
+      {/* Resumen de pago con Total prominente */}
+      {pricing && (
+        <div className="bg-gradient-to-r from-[#FF385C] to-[#E31C5F] rounded-xl p-5 text-white">
+          <h3 className="text-lg font-semibold mb-3">Resumen del pago</h3>
+          
+          {/* Desglose compacto */}
+          <div className="space-y-2 text-sm mb-4 opacity-90">
+            <div className="flex justify-between">
+              <span>{formatPrice(pricing.basePrice, pricing.currency)} × {pricing.nights} {pricing.nights === 1 ? 'noche' : 'noches'}</span>
+              <span>{formatPrice(pricing.subtotal, pricing.currency)}</span>
+            </div>
+            {pricing.cleaningFee > 0 && (
+              <div className="flex justify-between">
+                <span>Limpieza</span>
+                <span>{formatPrice(pricing.cleaningFee, pricing.currency)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Tarifa de servicio</span>
+              <span>{formatPrice(pricing.serviceFee, pricing.currency)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Impuestos</span>
+              <span>{formatPrice(pricing.taxes, pricing.currency)}</span>
+            </div>
+          </div>
+          
+          {/* Total destacado */}
+          <div className="flex justify-between items-center pt-3 border-t border-white/30">
+            <span className="text-xl font-bold">Total a pagar</span>
+            <span className="text-2xl font-bold">{formatPrice(pricing.total, pricing.currency)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Mensaje importante */}
       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">

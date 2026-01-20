@@ -16,11 +16,23 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { getCountryCode } from '@/lib/utils';
 
+interface PricingInfo {
+  basePrice: number;
+  nights: number;
+  subtotal: number;
+  cleaningFee: number;
+  serviceFee: number;
+  taxes: number;
+  total: number;
+  currency: string;
+}
+
 interface StripePaymentFormProps {
   bookingId: string;
   clientSecret: string;
   billingAddress?: BillingAddress;
   guestName?: string; // Nombre del huésped para billing_details
+  pricing?: PricingInfo; // Información de precios para mostrar el total
   onBillingAddressSubmit: (address: BillingAddress) => void;
   onPaymentSuccess: (paymentIntentId: string) => void;
   onPaymentError: (error: string) => void;
@@ -35,11 +47,20 @@ const stripePromise = loadStripe(
 /**
  * Componente interno que usa los hooks de Stripe
  */
+// Helper para formatear precios
+const formatPrice = (amount: number, currency: string = 'EUR') => {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency,
+  }).format(amount);
+};
+
 function PaymentFormInner({
   bookingId,
   clientSecret,
   billingAddress,
   guestName,
+  pricing,
   onBillingAddressSubmit,
   onPaymentSuccess,
   onPaymentError,
@@ -246,42 +267,78 @@ function PaymentFormInner({
         isLoading={isLoading}
       />
 
-      {/* Botón de Pago */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between pt-4">
-        <p className="text-sm text-gray-600 flex items-center gap-2">
-          <Lock className="w-4 h-4" />
-          Tus datos están protegidos y encriptados
-        </p>
-        <div className="flex flex-col items-end gap-2">
-          <Button
-            type="submit"
-            disabled={!canSubmit}
-            className="w-full sm:w-auto min-w-[200px] bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Procesando...
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4" />
-                Pagar ahora
-              </>
-            )}
-          </Button>
-          {/* Debug info - solo en desarrollo */}
-          {process.env.NODE_ENV === 'development' && !canSubmit && (
-            <div className="text-xs text-gray-500 mt-1">
-              {!stripe && '⏳ Cargando Stripe... '}
-              {!elements && '⏳ Cargando Elements... '}
-              {!cardComplete && '💳 Completa la tarjeta '}
-              {!billingAddress && '📍 Completa la dirección '}
-              {!isValidClientSecret && '⚠️ ClientSecret inválido '}
-              {isLoading && '⏳ Procesando...'}
+      {/* Resumen de pago con Total prominente */}
+      {pricing && (
+        <div className="bg-gradient-to-r from-[#FF385C] to-[#E31C5F] rounded-xl p-5 text-white">
+          <h3 className="text-lg font-semibold mb-3">Resumen del pago</h3>
+          
+          {/* Desglose compacto */}
+          <div className="space-y-2 text-sm mb-4 opacity-90">
+            <div className="flex justify-between">
+              <span>{formatPrice(pricing.basePrice, pricing.currency)} × {pricing.nights} {pricing.nights === 1 ? 'noche' : 'noches'}</span>
+              <span>{formatPrice(pricing.subtotal, pricing.currency)}</span>
             </div>
-          )}
+            {pricing.cleaningFee > 0 && (
+              <div className="flex justify-between">
+                <span>Limpieza</span>
+                <span>{formatPrice(pricing.cleaningFee, pricing.currency)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>Tarifa de servicio</span>
+              <span>{formatPrice(pricing.serviceFee, pricing.currency)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Impuestos</span>
+              <span>{formatPrice(pricing.taxes, pricing.currency)}</span>
+            </div>
+          </div>
+          
+          {/* Total destacado */}
+          <div className="flex justify-between items-center pt-3 border-t border-white/30">
+            <span className="text-xl font-bold">Total a pagar</span>
+            <span className="text-2xl font-bold">{formatPrice(pricing.total, pricing.currency)}</span>
+          </div>
         </div>
+      )}
+
+      {/* Botón de Pago */}
+      <div className="space-y-4 pt-2">
+        <Button
+          type="submit"
+          disabled={!canSubmit}
+          className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Procesando pago...
+            </>
+          ) : (
+            <>
+              <Lock className="w-5 h-5" />
+              {pricing ? `Pagar ${formatPrice(pricing.total, pricing.currency)}` : 'Pagar ahora'}
+            </>
+          )}
+        </Button>
+        
+        {/* Información de seguridad */}
+        <p className="text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+          <Lock className="w-4 h-4" />
+          Pago seguro con encriptación SSL
+        </p>
+        
+        {/* Debug info - solo en desarrollo */}
+        {process.env.NODE_ENV === 'development' && !canSubmit && (
+          <div className="text-xs text-gray-500 text-center">
+            {!stripe && '⏳ Cargando Stripe... '}
+            {!elements && '⏳ Cargando Elements... '}
+            {!cardComplete && '💳 Completa la tarjeta '}
+            {!billingAddress && '📍 Completa la dirección '}
+            {!isValidClientSecret && '⚠️ ClientSecret inválido '}
+            {isLoading && '⏳ Procesando...'}
+          </div>
+        )}
       </div>
 
       {/* Mensaje informativo */}
