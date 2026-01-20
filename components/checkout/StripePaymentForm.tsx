@@ -39,10 +39,25 @@ interface StripePaymentFormProps {
   isLoading?: boolean;
 }
 
-// Inicializar Stripe
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-);
+// Inicializar Stripe - usar función para evitar problemas de inicialización
+let stripePromise: Promise<any> | null = null;
+
+function getStripePromise() {
+  if (stripePromise) {
+    return stripePromise;
+  }
+  
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+  
+  if (!stripePublishableKey) {
+    console.warn('⚠️ [STRIPE] NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY no está configurada');
+    stripePromise = Promise.resolve(null);
+    return stripePromise;
+  }
+  
+  stripePromise = loadStripe(stripePublishableKey);
+  return stripePromise;
+}
 
 /**
  * Componente interno que usa los hooks de Stripe
@@ -71,8 +86,21 @@ function PaymentFormInner({
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
+  const [stripeReady, setStripeReady] = useState(false);
 
   const isLoading = externalLoading || isProcessing;
+
+  // Verificar cuando Stripe está listo
+  useEffect(() => {
+    const isReady = !!(stripe && elements);
+    setStripeReady(isReady);
+    
+    if (isReady) {
+      console.log('✅ [STRIPE] Stripe y Elements están listos');
+    } else {
+      console.log('⏳ [STRIPE] Esperando Stripe...', { stripe: !!stripe, elements: !!elements });
+    }
+  }, [stripe, elements]);
 
   // Manejar cambios en el elemento de tarjeta
   const handleCardChange = (event: any) => {
@@ -231,29 +259,60 @@ function PaymentFormInner({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Datos de la tarjeta *
             </label>
-            <div className="px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#FF385C] focus-within:border-transparent">
-              <CardElement
-                options={{
-                  style: {
-                    base: {
-                      fontSize: '16px',
-                      color: '#374151',
-                      '::placeholder': {
-                        color: '#9CA3AF',
+            <div 
+              id="stripe-card-element-wrapper"
+              className="px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#FF385C] focus-within:border-transparent"
+              style={{ 
+                minHeight: '48px',
+                position: 'relative',
+                zIndex: 1,
+                pointerEvents: 'auto',
+              }}
+            >
+              {stripeReady && stripe && elements ? (
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: '#374151',
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
+                        '::placeholder': {
+                          color: '#9CA3AF',
+                        },
+                      },
+                      invalid: {
+                        color: '#EF4444',
                       },
                     },
-                    invalid: {
-                      color: '#EF4444',
-                    },
-                  },
-                }}
-                onChange={handleCardChange}
-              />
+                    hidePostalCode: false,
+                  }}
+                  onChange={handleCardChange}
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-gray-500 py-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#FF385C]" />
+                  <span className="text-sm">
+                    Cargando formulario de pago seguro...
+                  </span>
+                  {process.env.NODE_ENV === 'development' && (
+                    <span className="text-xs text-gray-400 mt-1">
+                      Stripe: {stripe ? '✅' : '⏳'} | Elements: {elements ? '✅' : '⏳'}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             {paymentError && (
               <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
                 <AlertCircle className="w-4 h-4" />
                 {paymentError}
+              </p>
+            )}
+            {!stripe && (
+              <p className="mt-2 text-sm text-yellow-600 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                Cargando Stripe...
               </p>
             )}
           </div>
@@ -415,8 +474,33 @@ export default function StripePaymentForm(props: StripePaymentFormProps) {
     );
   }
 
+  const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
+  // Si no hay clave de Stripe, mostrar error
+  if (!stripePublishableKey) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <p className="text-yellow-800 font-medium mb-2">⚠️ Error de configuración de Stripe</p>
+        <p className="text-yellow-700 text-sm">
+          La clave pública de Stripe no está configurada. Por favor, configura NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY en tu archivo .env.local y reinicia el servidor.
+        </p>
+      </div>
+    );
+  }
+
+  const promise = getStripePromise();
+  
+  if (!promise) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-[#FF385C]" />
+        <span className="ml-2 text-gray-600">Inicializando Stripe...</span>
+      </div>
+    );
+  }
+
   return (
-    <Elements stripe={stripePromise} options={options}>
+    <Elements stripe={promise} options={options}>
       <PaymentFormInner {...props} />
     </Elements>
   );

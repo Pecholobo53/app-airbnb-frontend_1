@@ -1,9 +1,11 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
+import { GoogleAuthProvider } from '@/components/providers/GoogleAuthProvider';
 import ConditionalOfferTopBar from '@/components/ConditionalOfferTopBar';
 import Header from '@/components/Header';
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { NotificationProvider } from '@/lib/notifications/notification-context';
 import { Toaster } from '@/components/ui/sonner';
 
 const dmSans = DM_Sans({ 
@@ -31,17 +33,21 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${dmSans.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <Header />
-          <ConditionalOfferTopBar 
-            discount="40%" 
-            maxUsers={10}
-            showTimer={true}
-            timerMinutes={60}
-          />
-          {children}
-          <Toaster richColors position="top-center" />
-        </AuthProvider>
+        <GoogleAuthProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <Header />
+              <ConditionalOfferTopBar 
+                discount="40%" 
+                maxUsers={10}
+                showTimer={true}
+                timerMinutes={60}
+              />
+              {children}
+              <Toaster richColors position="top-center" />
+            </NotificationProvider>
+          </AuthProvider>
+        </GoogleAuthProvider>
       </body>
     </html>
   );

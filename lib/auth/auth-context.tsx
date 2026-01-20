@@ -427,42 +427,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loginWithGoogle = useCallback(async (): Promise<boolean> => {
-    try {
-      // En producción, esto debería obtener los datos de Google OAuth
-      // Por ahora, necesitamos email, name, avatar y providerId del callback OAuth
-      // TODO: Implementar flujo completo de OAuth con Google
-      toast.error('Login con Google requiere implementación de OAuth');
-      return false;
-      
-      // Ejemplo de uso cuando se implemente OAuth:
-      // const response = await AuthService.loginWithGoogle({
-      //   email: 'user@gmail.com',
-      //   name: 'Usuario Google',
-      //   avatar: 'https://example.com/avatar.jpg',
-      //   providerId: 'google-123456'
-      // });
-      
-      // if (response.success && response.data) {
-      //   const session: AuthSession = {
-      //     ...response.data,
-      //     expiresAt: new Date(response.data.expiresAt),
-      //     user: {
-      //       ...response.data.user,
-      //       createdAt: new Date(response.data.user.createdAt),
-      //       updatedAt: new Date(response.data.user.updatedAt),
-      //     },
-      //   };
-      //   setSession(session);
-      //   toast.success(`¡Bienvenido, ${session.user.name}!`);
-      //   return true;
-      // } else {
-      //   toast.error(response.error?.message || 'Error al iniciar sesión con Google');
-      //   return false;
-      // }
-    } catch (error) {
-      toast.error('Error de conexión. Intenta nuevamente.');
-      return false;
-    }
+    // Esta función ahora se maneja directamente en SocialAuthButtons.tsx
+    // usando useGoogleLogin hook. Se mantiene aquí para compatibilidad
+    // pero el flujo real está en el componente.
+    console.warn('loginWithGoogle debe ser llamado desde el botón de Google');
+    return false;
   }, []);
 
   const loginWithFacebook = useCallback(async (): Promise<boolean> => {

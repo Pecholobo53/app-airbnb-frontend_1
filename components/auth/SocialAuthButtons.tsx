@@ -2,65 +2,117 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { isAdmin } from '@/lib/utils/admin';
+import { useGoogleLogin } from '@react-oauth/google';
+import { AuthService } from '@/lib/auth/auth-service';
+import { toast } from 'sonner';
 
 export default function SocialAuthButtons() {
-  const { loginWithGoogle, loginWithFacebook } = useAuth();
   const router = useRouter();
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
-  const [isLoadingFacebook, setIsLoadingFacebook] = useState(false);
 
-  const handleGoogleLogin = async () => {
-    setIsLoadingGoogle(true);
-    const success = await loginWithGoogle();
-    setIsLoadingGoogle(false);
-    if (success) {
-      // Esperar a que la sesión se guarde y verificar el rol
-      await new Promise(resolve => setTimeout(resolve, 200));
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoadingGoogle(true);
       try {
-        const session = sessionStorage.getItem('airbnb_session');
-        if (session) {
-          const parsed = JSON.parse(session);
-          if (parsed.user) {
-            const userIsAdmin = isAdmin(parsed.user);
-            router.push(userIsAdmin ? '/admin' : '/dashboard');
-            return;
+        console.log('✅ [GOOGLE LOGIN] Token recibido de Google');
+        
+        // Obtener datos del usuario desde Google
+        console.log('📡 [GOOGLE LOGIN] Obteniendo información del usuario desde Google...');
+        const userInfoResponse = await fetch(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+          {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
           }
+        );
+        
+        if (!userInfoResponse.ok) {
+          const errorText = await userInfoResponse.text();
+          console.error('❌ [GOOGLE LOGIN] Error obteniendo datos de Google:', userInfoResponse.status, errorText);
+          throw new Error(`Error al obtener datos de Google: ${userInfoResponse.status}`);
         }
-      } catch (e) {
-        console.error('Error verificando rol después de login social:', e);
-      }
-      router.push('/dashboard');
-    }
-  };
+        
+        const googleUser = await userInfoResponse.json();
+        console.log('✅ [GOOGLE LOGIN] Datos de Google obtenidos:', { email: googleUser.email, name: googleUser.name });
+        
+        // Enviar datos al backend
+        console.log('📡 [GOOGLE LOGIN] Enviando datos al backend...');
+        const response = await AuthService.loginWithGoogle({
+          email: googleUser.email,
+          name: googleUser.name,
+          avatar: googleUser.picture,
+          providerId: googleUser.sub,
+        });
 
-  const handleFacebookLogin = async () => {
-    setIsLoadingFacebook(true);
-    const success = await loginWithFacebook();
-    setIsLoadingFacebook(false);
-    if (success) {
-      // Esperar a que la sesión se guarde y verificar el rol
-      await new Promise(resolve => setTimeout(resolve, 200));
-      try {
-        const session = sessionStorage.getItem('airbnb_session');
-        if (session) {
-          const parsed = JSON.parse(session);
-          if (parsed.user) {
-            const userIsAdmin = isAdmin(parsed.user);
-            router.push(userIsAdmin ? '/admin' : '/dashboard');
-            return;
-          }
+        console.log('📥 [GOOGLE LOGIN] Respuesta del backend:', response);
+
+        if (response.success && response.data) {
+          // Manejar diferentes estructuras de respuesta del backend
+          const userData = response.data.user || response.data;
+          const token = response.data.token || response.data.accessToken;
+          const expiresAt = response.data.expiresAt 
+            ? new Date(response.data.expiresAt) 
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días por defecto
+          
+          const session = {
+            ...response.data,
+            token: token,
+            expiresAt: expiresAt,
+            user: {
+              ...userData,
+              createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date(),
+              updatedAt: userData.updatedAt ? new Date(userData.updatedAt) : new Date(),
+            },
+          };
+          
+          // Guardar sesión en sessionStorage
+          sessionStorage.setItem('airbnb_session', JSON.stringify(session));
+          
+          // Recargar la página para que el AuthContext detecte la nueva sesión
+          // O redirigir directamente y el contexto se actualizará automáticamente
+          toast.success(`¡Bienvenido, ${session.user.name}!`);
+          
+          // Pequeño delay para asegurar que la sesión se guarde
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Redirigir según rol - el AuthContext detectará la sesión al cargar
+          const userIsAdmin = isAdmin(session.user);
+          window.location.href = userIsAdmin ? '/admin' : '/dashboard';
+        } else {
+          console.error('❌ [GOOGLE LOGIN] Error en respuesta del backend:', response.error);
+          toast.error(response.error?.message || 'Error al iniciar sesión con Google');
         }
-      } catch (e) {
-        console.error('Error verificando rol después de login social:', e);
+      } catch (error) {
+        console.error('❌ [GOOGLE LOGIN] Error completo:', error);
+        
+        // Mensajes de error más específicos
+        if (error instanceof Error) {
+          if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+            toast.error('No se pudo conectar al backend. Verifica que el servidor esté corriendo en http://localhost:3000');
+          } else if (error.message.includes('obtener datos de Google')) {
+            toast.error('Error al obtener información de Google. Intenta nuevamente.');
+          } else {
+            toast.error(`Error: ${error.message}`);
+          }
+        } else {
+          toast.error('Error de conexión. Intenta nuevamente.');
+        }
+      } finally {
+        setIsLoadingGoogle(false);
       }
-      router.push('/dashboard');
-    }
-  };
+    },
+    onError: (error) => {
+      console.error('❌ [GOOGLE LOGIN] Error en autenticación de Google:', error);
+      setIsLoadingGoogle(false);
+      toast.error('Error al autenticar con Google. Verifica que tu email esté en la lista de usuarios de prueba.');
+    },
+  });
+
 
   return (
     <div className="space-y-3">
@@ -68,8 +120,8 @@ export default function SocialAuthButtons() {
         type="button"
         variant="outline"
         className="w-full h-12 font-medium"
-        onClick={handleGoogleLogin}
-        disabled={isLoadingGoogle || isLoadingFacebook}
+        onClick={() => handleGoogleLogin()}
+        disabled={isLoadingGoogle}
       >
         {isLoadingGoogle ? (
           <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -94,23 +146,6 @@ export default function SocialAuthButtons() {
           </svg>
         )}
         Continuar con Google
-      </Button>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full h-12 font-medium"
-        onClick={handleFacebookLogin}
-        disabled={isLoadingGoogle || isLoadingFacebook}
-      >
-        {isLoadingFacebook ? (
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-        ) : (
-          <svg className="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-          </svg>
-        )}
-        Continuar con Facebook
       </Button>
     </div>
   );
