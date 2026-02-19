@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight, MapPin, Phone, Mail, ShieldCheck, Sparkles, Gift, Bell, Zap, CheckCircle2, Users, Loader2, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { subscribeNewsletter, getSubscriptionStatus } from '@/lib/newsletter/newsletter-service';
+import BrandLogo from '@/components/BrandLogo';
 
 const links = {
   soporte: [
@@ -351,12 +352,7 @@ export default function Footer() {
           {/* Brand col — spans 2 on md */}
           <div className="col-span-2 space-y-5">
             {/* Logo */}
-            <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-acento-200 to-acento-100 rounded-xl flex items-center justify-center shadow-lg shadow-acento-200/30">
-                <Heart className="w-5 h-5 text-white fill-current" />
-              </div>
-              <span className="text-2xl font-black tracking-tight">StayLux</span>
-            </Link>
+            <BrandLogo variant="dark" size="lg" />
 
             {/* Tagline */}
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
@@ -423,7 +419,7 @@ export default function Footer() {
 
             {/* Legal links */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-gray-500">
-              <span>© 2025 StayLux, S.L. Todos los derechos reservados.</span>
+              <span>© {new Date().getFullYear()} VoyagerAuMaroc. Todos los derechos reservados.</span>
               <Link href="#" className="hover:text-gray-300 transition-colors">Privacidad</Link>
               <Link href="#" className="hover:text-gray-300 transition-colors">Términos</Link>
               <Link href="#" className="hover:text-gray-300 transition-colors">Cookies</Link>

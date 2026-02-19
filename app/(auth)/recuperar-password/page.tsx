@@ -5,8 +5,8 @@ import PasswordRecoveryForm from '@/components/auth/PasswordRecoveryForm';
 import { KeyRound } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Recuperar Contraseña - Airbnb',
-  description: 'Recupera el acceso a tu cuenta de Airbnb',
+  title: 'Recuperar Contraseña - VoyagerAuMaroc',
+  description: 'Recupera el acceso a tu cuenta de VoyagerAuMaroc',
 };
 
 export default function RecuperarPasswordPage() {

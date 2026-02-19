@@ -6,8 +6,8 @@ import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Iniciar Sesión - Airbnb',
-  description: 'Inicia sesión en tu cuenta de Airbnb para acceder a tus reservas y ofertas especiales',
+  title: 'Iniciar Sesión - VoyagerAuMaroc',
+  description: 'Inicia sesión en tu cuenta de VoyagerAuMaroc para acceder a tus reservas y ofertas especiales',
 };
 
 export default function LoginPage() {

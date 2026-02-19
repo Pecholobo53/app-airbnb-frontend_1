@@ -44,7 +44,7 @@ const faqs = [
   },
   {
     id: 7,
-    question: '¿En qué se diferencia reservar aquí frente a Airbnb o Booking.com?',
+    question: '¿En qué se diferencia reservar con VoyagerAuMaroc frente a otras plataformas?',
     answer:
       'Tres diferencias clave: (1) Atención humana real — hablamos con personas, no con bots, con respuesta media de 4 minutos. (2) Mejor precio garantizado — si encuentras el mismo alojamiento más barato en otra plataforma en las 24h siguientes, igualamos el precio y te devolvemos un 5% adicional. (3) Calidad certificada — cada propiedad pasa una auditoría de 48 puntos y limpieza profesional certificada antes de cada estancia.',
   },

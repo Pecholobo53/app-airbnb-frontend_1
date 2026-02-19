@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import UserMenu from '@/components/auth/UserMenu';
 import NotificationsMenu from '@/components/notifications/NotificationsMenu';
 import HeaderSearchFilter from '@/components/search/HeaderSearchFilter';
+import BrandLogo from '@/components/BrandLogo';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
@@ -155,12 +156,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center space-x-2 hover:opacity-80 transition-opacity flex-shrink-0">
-            <div className="w-8 h-8 bg-gradient-to-r from-acento-200 to-acento-100 rounded-lg flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white fill-current" />
-            </div>
-            <span className="text-xl font-bold text-texto-100">airbnb</span>
-          </Link>
+          <BrandLogo variant="light" size="md" href={ROUTES.HOME} />
 
           {/* Barra de búsqueda - Desktop con autocompletado */}
           <div ref={wrapperRef} className="hidden md:flex flex-1 max-w-md mx-4 relative">

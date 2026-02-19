@@ -19,7 +19,7 @@ export default function AuthLayout({
       {/* Simple Footer */}
       <footer className="p-4 sm:p-6 text-center text-sm text-gray-600">
         <p>
-          © {new Date().getFullYear()} Airbnb Clone. Proyecto de demostración.
+          © {new Date().getFullYear()} VoyagerAuMaroc. Todos los derechos reservados.
         </p>
       </footer>
     </div>

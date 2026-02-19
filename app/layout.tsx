@@ -17,21 +17,21 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Airbnb - Alojamientos únicos y experiencias',
-    template: '%s | Airbnb',
+    default: 'VoyagerAuMaroc - Alojamientos únicos en Marruecos',
+    template: '%s | VoyagerAuMaroc',
   },
-  description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos de Airbnb. Reserva casas, apartamentos y experiencias en todo el mundo.',
+  description: 'Descubre los mejores alojamientos y experiencias únicas en Marruecos. Reserva riads, casas y villas con VoyagerAuMaroc.',
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    siteName: 'Airbnb',
-    title: 'Airbnb - Alojamientos únicos y experiencias',
-    description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos de Airbnb.',
+    siteName: 'VoyagerAuMaroc',
+    title: 'VoyagerAuMaroc - Alojamientos únicos en Marruecos',
+    description: 'Descubre los mejores alojamientos y experiencias únicas en Marruecos con VoyagerAuMaroc.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Airbnb - Alojamientos únicos y experiencias',
-    description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos.',
+    title: 'VoyagerAuMaroc - Alojamientos únicos en Marruecos',
+    description: 'Descubre los mejores alojamientos y experiencias únicas en Marruecos.',
   },
   robots: {
     index: true,

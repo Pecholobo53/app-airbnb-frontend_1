@@ -99,7 +99,7 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
         Lo que ofrece este lugar
       </h2>
 
-      {/* Grid de amenidades mejorado - estilo Airbnb */}
+      {/* Grid de amenidades */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {displayedAmenities.map((amenity) => {
           const Icon = getAmenityIcon(amenity);

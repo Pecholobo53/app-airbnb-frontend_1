@@ -16,7 +16,7 @@ const pillars = [
     icon: TrendingDown,
     title: 'Mejor precio garantizado',
     description:
-      'Si encuentras el mismo alojamiento más barato en Airbnb o Booking.com en las siguientes 24h, igualamos el precio y te descontamos un 5% adicional. Sin letra pequeña.',
+      'Si encuentras el mismo alojamiento más barato en otra plataforma en las siguientes 24h, igualamos el precio y te descontamos un 5% adicional. Sin letra pequeña.',
     highlight: 'Garantía de precio válida 24h',
   },
   {
@@ -57,7 +57,7 @@ export default function GuaranteeSection() {
             La diferencia que se siente
           </p>
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            ¿Por qué reservar aquí y no en Airbnb o Booking?
+            ¿Por qué reservar con VoyagerAuMaroc?
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg">
             Plataformas masivas para resultados genéricos. Nosotros ofrecemos lo que ellas no pueden: servicio de verdad.

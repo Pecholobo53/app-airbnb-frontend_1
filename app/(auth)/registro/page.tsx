@@ -6,8 +6,8 @@ import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Crear Cuenta - Airbnb',
-  description: 'Crea tu cuenta de Airbnb y descubre ofertas exclusivas en alojamientos únicos',
+  title: 'Crear Cuenta - VoyagerAuMaroc',
+  description: 'Crea tu cuenta en VoyagerAuMaroc y descubre ofertas exclusivas en alojamientos únicos',
 };
 
 export default function RegisterPage() {
