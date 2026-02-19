@@ -40,11 +40,6 @@ function PerfilContent() {
   // Actualizar defaultValues cuando user cambia
   useEffect(() => {
     if (user) {
-      console.log('🔄 [PERFIL] Usuario actualizado, reseteando formulario:', {
-        name: user.name,
-        phone: user.phone,
-        hasAvatar: !!user.avatar
-      });
       reset({
         name: user.name || '',
         phone: user.phone || '',
@@ -56,24 +51,6 @@ function PerfilContent() {
     setIsLoading(true);
     
     try {
-      console.log('📝 [PERFIL] Datos del formulario:', data);
-      console.log('🖼️ [PERFIL] Avatar preview:', previewAvatar ? 'Sí' : 'No');
-      
-      // Verificar token antes de enviar
-      const session = sessionStorage.getItem('airbnb_session');
-      if (session) {
-        try {
-          const parsed = JSON.parse(session);
-          const token = parsed.token || parsed.accessToken;
-          console.log('🔑 [PERFIL] Token disponible:', token ? `${token.substring(0, 30)}...` : 'NO HAY TOKEN');
-          console.log('🔑 [PERFIL] Estructura de sesión:', Object.keys(parsed));
-        } catch (e) {
-          console.error('❌ [PERFIL] Error parseando sesión:', e);
-        }
-      } else {
-        console.warn('⚠️ [PERFIL] NO HAY SESIÓN EN LOCALSTORAGE');
-      }
-      
       // Preparar datos para actualizar
       const updateData: Partial<User> = {
         name: data.name,
@@ -87,35 +64,25 @@ function PerfilContent() {
         const maxSize = 500 * 1024; // 500KB
         
         if (base64Size > maxSize) {
-          console.warn('⚠️ Avatar aún muy grande después de compresión:', Math.round(base64Size / 1024), 'KB');
           toast.error('La imagen es demasiado grande. Intenta con una imagen más pequeña.');
           setIsLoading(false);
           return;
         }
         
         updateData.avatar = previewAvatar;
-        console.log('✅ [PERFIL] Avatar agregado a updateData. Tamaño:', Math.round(base64Size / 1024), 'KB');
       }
-      
-      console.log('📤 [PERFIL] Enviando datos al backend:', {
-        name: updateData.name,
-        phone: updateData.phone,
-        hasAvatar: !!updateData.avatar
-      });
       
       const success = await updateUser(updateData);
       
       if (success) {
-        console.log('✅ [PERFIL] Perfil actualizado exitosamente');
         toast.success('Perfil actualizado correctamente');
         setPreviewAvatar(null);
         setIsEditing(false);
       } else {
-        console.error('❌ [PERFIL] Error: updateUser retornó false');
-        toast.error('Error al actualizar el perfil. Revisa la consola para más detalles.');
+        toast.error('Error al actualizar el perfil.');
       }
     } catch (error) {
-      console.error('❌ [PERFIL] Error en onSubmit:', error);
+      console.error('Error en onSubmit');
       toast.error('Error inesperado al actualizar el perfil.');
     } finally {
       setIsLoading(false);
@@ -209,9 +176,8 @@ function PerfilContent() {
       // Comprimir imagen antes de crear preview
       const compressedBase64 = await compressImage(file);
       setPreviewAvatar(compressedBase64);
-      console.log('✅ Imagen comprimida. Tamaño:', Math.round(compressedBase64.length / 1024), 'KB');
     } catch (error) {
-      console.error('❌ Error comprimiendo imagen:', error);
+      console.error('Error comprimiendo imagen');
       alert('Error al procesar la imagen. Intenta con otra imagen.');
     }
   };
@@ -348,7 +314,7 @@ function PerfilContent() {
                     <div className="flex gap-2 pt-4">
                       <Button
                         type="submit"
-                        className="bg-[#FF385C] hover:bg-[#E31C5F]"
+                        className="bg-acento-200 hover:bg-acento-100"
                         disabled={isLoading}
                       >
                         {isLoading ? (
@@ -443,17 +409,17 @@ function PerfilContent() {
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <Calendar className="w-6 h-6 text-[#FF385C] mx-auto mb-2" />
+                    <Calendar className="w-6 h-6 text-acento-200 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">0</p>
                     <p className="text-sm text-gray-600">Reservas</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <Heart className="w-6 h-6 text-[#FF385C] mx-auto mb-2" />
+                    <Heart className="w-6 h-6 text-acento-200 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">{user.favorites?.length || 0}</p>
                     <p className="text-sm text-gray-600">Favoritos</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <MapPin className="w-6 h-6 text-[#FF385C] mx-auto mb-2" />
+                    <MapPin className="w-6 h-6 text-acento-200 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">0</p>
                     <p className="text-sm text-gray-600">Destinos</p>
                   </div>

@@ -56,14 +56,11 @@ async function apiRequest<T>(
       ? sessionStorage.getItem('airbnb_session') 
       : null;
     
-    console.log('🔑 [PROPERTY SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
     
     let token = null;
     if (session) {
       try {
         const parsed = JSON.parse(session);
-        console.log('🔑 [PROPERTY SERVICE] Estructura completa de sesión:', JSON.stringify(parsed, null, 2));
-        console.log('🔑 [PROPERTY SERVICE] Claves en sesión:', Object.keys(parsed));
         
         // Buscar token en TODOS los campos posibles (en orden de prioridad)
         // La sesión se guarda con 'accessToken' según auth-context.tsx línea 253
@@ -73,32 +70,11 @@ async function apiRequest<T>(
                 (parsed.data && (parsed.data.accessToken || parsed.data.token)) ||
                 (parsed.user && parsed.user.token);
         
-        console.log('🔑 [PROPERTY SERVICE] Token extraído:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
-        console.log('🔑 [PROPERTY SERVICE] Token encontrado en:', 
-          parsed.token ? 'parsed.token' :
-          parsed.accessToken ? 'parsed.accessToken' :
-          parsed.access_token ? 'parsed.access_token' :
-          (parsed.data && parsed.data.token) ? 'parsed.data.token' :
-          (parsed.data && parsed.data.accessToken) ? 'parsed.data.accessToken' :
-          (parsed.user && parsed.user.token) ? 'parsed.user.token' :
-          'NINGÚN CAMPO'
-        );
         
-        if (parsed.user) {
-          console.log('👤 [PROPERTY SERVICE] Usuario en sesión:', parsed.user.email, 'Role:', parsed.user.role);
-        }
-        
-        // Si NO hay token, mostrar TODA la estructura para debugging
-        if (!token) {
-          console.error('❌ [PROPERTY SERVICE] NO SE ENCONTRÓ TOKEN EN LA SESIÓN');
-          console.error('❌ [PROPERTY SERVICE] Sesión completa:', JSON.stringify(parsed, null, 2));
-        }
       } catch (parseError) {
-        console.error('❌ [PROPERTY SERVICE] Error parseando sesión:', parseError);
-        console.error('❌ [PROPERTY SERVICE] Sesión raw:', session);
+        console.error('❌ [PROPERTY SERVICE] Error parseando sesión');
+        console.error('❌ [PROPERTY SERVICE] Sesión raw');
       }
-    } else {
-      console.warn('⚠️ [PROPERTY SERVICE] NO HAY SESIÓN EN sessionStorage (esto es normal para endpoints públicos)');
     }
 
     const headers: HeadersInit = {
@@ -108,18 +84,8 @@ async function apiRequest<T>(
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('✅ [PROPERTY SERVICE] Header Authorization agregado');
-    } else {
-      console.warn('⚠️ [PROPERTY SERVICE] NO HAY TOKEN - Request sin autenticación');
-      console.warn('⚠️ [PROPERTY SERVICE] El backend rechazará esta petición con 401 Unauthorized');
     }
     
-    console.log('📤 [PROPERTY SERVICE] Enviando request a:', url);
-    console.log('📤 [PROPERTY SERVICE] Método:', options.method || 'GET');
-    console.log('📤 [PROPERTY SERVICE] Headers:', { 
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token.substring(0, 20)}...` : 'NO TOKEN'
-    });
 
     const response = await fetch(url, {
       ...options,
@@ -128,23 +94,7 @@ async function apiRequest<T>(
       // Nota: No usamos credentials: 'include' porque usamos Authorization header
     });
     
-    console.log('📥 [PROPERTY SERVICE] Response recibida:', {
-      status: response.status,
-      ok: response.ok,
-      statusText: response.statusText,
-      hasToken: !!token,
-    });
     
-    // Logging especial para errores de autenticación
-    if (response.status === 401) {
-      console.error('🔒 [PROPERTY SERVICE] Error 401 Unauthorized:', {
-        hasToken: !!token,
-        tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
-        endpoint: url,
-        sessionExists: !!session,
-      });
-    }
-
     // Verificar si la respuesta es JSON válida
     let data;
     const contentType = response.headers.get('content-type');
@@ -154,7 +104,6 @@ async function apiRequest<T>(
         data = await response.json();
       } else {
         const text = await response.text();
-        console.warn('⚠️ [PROPERTY SERVICE] Response no es JSON:', text.substring(0, 100));
         return {
           success: false,
           error: {
@@ -164,7 +113,7 @@ async function apiRequest<T>(
         };
       }
     } catch (jsonError) {
-      console.error('❌ [PROPERTY SERVICE] Error parseando respuesta:', jsonError);
+      console.error('❌ [PROPERTY SERVICE] Error parseando respuesta');
       return {
         success: false,
         error: {
@@ -175,11 +124,6 @@ async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      console.error('❌ [PROPERTY SERVICE] Error en response:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: data.error || data.message,
-      });
 
       // Manejar errores específicos
       if (response.status === 400) {
@@ -188,15 +132,9 @@ async function apiRequest<T>(
         let errorMessage = '';
         
         // Log completo de la respuesta del servidor
-        console.error('🔴 [PROPERTY SERVICE] ========== ERROR 400 DETALLADO ==========');
-        console.error('📋 [PROPERTY SERVICE] Respuesta completa del servidor:', JSON.stringify(data, null, 2));
-        console.error('📋 [PROPERTY SERVICE] URL:', url);
-        console.error('📋 [PROPERTY SERVICE] Status:', response.status, response.statusText);
         
         // Analizar el mensaje de error para identificar el campo problemático
         const fullErrorMessage = data.error?.message || data.message || '';
-        console.error('📋 [PROPERTY SERVICE] Mensaje de error completo:', fullErrorMessage);
-        console.error('📋 [PROPERTY SERVICE] Estructura completa de data.error:', JSON.stringify(data.error, null, 2));
         
         // Extraer información del campo problemático del mensaje
         const undefinedMatch = fullErrorMessage.match(/expected object, received undefined/i);
@@ -206,24 +144,15 @@ async function apiRequest<T>(
                          fullErrorMessage.match(/\.([a-zA-Z_][a-zA-Z0-9_]*)/g);
         
         if (undefinedMatch) {
-          console.error('🔍 [PROPERTY SERVICE] PROBLEMA DETECTADO: Campo undefined detectado');
           if (fieldMatch) {
             if (Array.isArray(fieldMatch)) {
-              console.error('🔍 [PROPERTY SERVICE] Campos problemáticos encontrados:', fieldMatch);
-            } else {
-              console.error('🔍 [PROPERTY SERVICE] Campo problemático:', fieldMatch[1] || fieldMatch);
             }
           }
         }
         
         // Buscar en data.error.details si existe
         if (data.error?.details && Array.isArray(data.error.details)) {
-          console.error('📋 [PROPERTY SERVICE] Detalles del error (data.error.details):', JSON.stringify(data.error.details, null, 2));
           data.error.details.forEach((detail: any, index: number) => {
-            console.error(`📋 [PROPERTY SERVICE] Detalle ${index + 1}:`, JSON.stringify(detail, null, 2));
-            if (detail.path) {
-              console.error(`  🔴 CAMPO EN DETAILS: ${Array.isArray(detail.path) ? detail.path.join('.') : detail.path}`);
-            }
           });
         }
         
@@ -231,19 +160,8 @@ async function apiRequest<T>(
         if (options.body) {
           try {
             const payloadObj = JSON.parse(options.body as string);
-            console.error('📤 [PROPERTY SERVICE] Payload enviado (completo):', JSON.stringify(payloadObj, null, 2));
             
             // Verificar cada objeto requerido en el payload
-            console.error('🔍 [PROPERTY SERVICE] Verificación de objetos en payload:');
-            console.error('  - location:', !!payloadObj.location, payloadObj.location ? Object.keys(payloadObj.location) : 'UNDEFINED');
-            console.error('  - location.coordinates:', !!payloadObj.location?.coordinates, payloadObj.location?.coordinates);
-            console.error('  - pricing:', !!payloadObj.pricing, payloadObj.pricing ? Object.keys(payloadObj.pricing) : 'UNDEFINED');
-            console.error('  - capacity:', !!payloadObj.capacity, payloadObj.capacity ? Object.keys(payloadObj.capacity) : 'UNDEFINED');
-            console.error('  - availability:', !!payloadObj.availability, payloadObj.availability ? Object.keys(payloadObj.availability) : 'UNDEFINED');
-            console.error('  - propertyType:', payloadObj.propertyType);
-            console.error('  - roomType:', payloadObj.roomType);
-            console.error('  - images:', Array.isArray(payloadObj.images) ? payloadObj.images.length : 'NO ES ARRAY');
-            console.error('  - amenities:', Array.isArray(payloadObj.amenities) ? payloadObj.amenities.length : 'NO ES ARRAY');
             
             // Buscar campos undefined en el payload
             const findUndefinedFields = (obj: any, path = ''): string[] => {
@@ -261,34 +179,21 @@ async function apiRequest<T>(
             
             const undefinedFields = findUndefinedFields(payloadObj);
             if (undefinedFields.length > 0) {
-              console.error('⚠️ [PROPERTY SERVICE] CAMPOS UNDEFINED ENCONTRADOS EN PAYLOAD:', undefinedFields);
-            } else {
-              console.error('✅ [PROPERTY SERVICE] No se encontraron campos undefined en el payload');
             }
           } catch (e) {
-            console.error('❌ [PROPERTY SERVICE] Error parseando payload:', e);
-            console.error('📤 [PROPERTY SERVICE] Payload (raw, primeros 500 chars):', (options.body as string).substring(0, 500));
+            console.error('❌ [PROPERTY SERVICE] Error parseando payload');
+            console.error('📤 [PROPERTY SERVICE] Payload (raw, primeros 500 chars)');
           }
         }
         
         if (validationErrors.length > 0) {
           // Si hay errores de validación específicos, mostrarlos
-          console.error('📋 [PROPERTY SERVICE] Errores de validación del servidor (COMPLETO):', JSON.stringify(validationErrors, null, 2));
-          console.error('📋 [PROPERTY SERVICE] Cantidad de errores:', validationErrors.length);
           
           // Expandir cada error individualmente
           validationErrors.forEach((error: any, index: number) => {
-            console.error(`📋 [PROPERTY SERVICE] Error ${index + 1}:`, JSON.stringify(error, null, 2));
             if (error.path) {
               const fieldPath = Array.isArray(error.path) ? error.path.join('.') : error.path;
-              console.error(`  🔴 CAMPO PROBLEMÁTICO: ${fieldPath}`);
-              console.error(`  🔴 MENSAJE: ${error.message || error.msg || JSON.stringify(error)}`);
-              console.error(`  🔴 TIPO ESPERADO: ${error.expected || 'N/A'}`);
-              console.error(`  🔴 TIPO RECIBIDO: ${error.received || 'N/A'}`);
             } else if (typeof error === 'string') {
-              console.error(`  🔴 ERROR STRING: ${error}`);
-            } else {
-              console.error(`  🔴 ERROR OBJETO:`, error);
             }
           });
           
@@ -298,7 +203,6 @@ async function apiRequest<T>(
               const fieldPath = Array.isArray(e.path) ? e.path.join('.') : e.path;
               const expected = e.expected || 'objeto';
               const received = e.received || 'undefined';
-              console.error(`  - Campo: ${fieldPath}, Error: ${e.message || e}, Esperado: ${expected}, Recibido: ${received}`);
               return `${fieldPath}: ${e.message || e} (esperado: ${expected}, recibido: ${received})`;
             }
             return e.message || JSON.stringify(e);
@@ -311,14 +215,6 @@ async function apiRequest<T>(
                         'Error de validación. Verifica los datos ingresados.';
         }
         
-        console.error('❌ [PROPERTY SERVICE] Error 400 - Resumen:', {
-          status: response.status,
-          statusText: response.statusText,
-          url: url,
-          errorMessage: errorMessage,
-          validationErrors: validationErrors,
-        });
-        console.error('🔴 [PROPERTY SERVICE] ===========================================');
         
         return {
           success: false,
@@ -331,12 +227,6 @@ async function apiRequest<T>(
       }
 
       if (response.status === 404) {
-        console.error('❌ [PROPERTY SERVICE] Error 404 - Endpoint no encontrado:', {
-          status: response.status,
-          url: url,
-          endpoint: endpoint,
-          method: options.method || 'GET',
-        });
         return {
           success: false,
           error: {
@@ -395,27 +285,16 @@ async function apiRequest<T>(
     // Si la respuesta tiene estructura anidada { data: { property: {...} } }
     if (responseData && typeof responseData === 'object' && responseData.property) {
       responseData = responseData.property;
-      console.log('📦 [PROPERTY SERVICE] Estructura anidada detectada, extrayendo property');
     }
     
     // Log para debugging
-    console.log('✅ [PROPERTY SERVICE] Respuesta exitosa:', {
-      hasData: !!responseData,
-      dataType: typeof responseData,
-      isArray: Array.isArray(responseData),
-      dataKeys: responseData && typeof responseData === 'object' ? Object.keys(responseData) : [],
-      hasId: responseData?.id ? true : false,
-      hasTitle: responseData?.title ? true : false,
-      hasImages: Array.isArray(responseData?.images),
-      imagesCount: Array.isArray(responseData?.images) ? responseData.images.length : 0,
-    });
     
     return {
       success: true,
       data: responseData,
     };
   } catch (error) {
-    console.error('❌ [PROPERTY SERVICE] Error de red:', error);
+    console.error('❌ [PROPERTY SERVICE] Error de red');
     return {
       success: false,
       error: {
@@ -619,7 +498,7 @@ export class PropertyService {
         method: 'GET',
       });
     } catch (error) {
-      console.error('❌ [PROPERTY SERVICE] Error en searchProperties:', error);
+      console.error('❌ [PROPERTY SERVICE] Error en searchProperties');
       const errorMessage = error instanceof Error 
         ? `Error al buscar propiedades: ${error.message}`
         : 'Error inesperado al buscar propiedades. Por favor, verifica tu conexión e intenta de nuevo.';
@@ -641,36 +520,9 @@ export class PropertyService {
    */
   static async createProperty(data: CreatePropertyData): Promise<SearchResponse<Property>> {
     // Validar que todos los objetos requeridos estén presentes antes de enviar
-    console.log('🔍 [PROPERTY SERVICE] Validando datos antes de enviar:', {
-      hasTitle: !!data.title,
-      hasDescription: !!data.description,
-      hasLocation: !!data.location,
-      hasLocationCity: !!data.location?.city,
-      hasLocationCountry: !!data.location?.country,
-      hasCoordinates: !!data.location?.coordinates,
-      hasCoordinatesLat: typeof data.location?.coordinates?.lat === 'number',
-      hasCoordinatesLng: typeof data.location?.coordinates?.lng === 'number',
-      hasPropertyType: !!data.propertyType,
-      hasRoomType: !!data.roomType,
-      hasPricing: !!data.pricing,
-      hasPricingBasePrice: typeof data.pricing?.basePrice === 'number',
-      hasPricingCurrency: !!data.pricing?.currency,
-      hasCapacity: !!data.capacity,
-      hasCapacityGuests: typeof data.capacity?.guests === 'number',
-      hasCapacityBedrooms: typeof data.capacity?.bedrooms === 'number',
-      hasCapacityBeds: typeof data.capacity?.beds === 'number',
-      hasCapacityBathrooms: typeof data.capacity?.bathrooms === 'number',
-      hasAmenities: Array.isArray(data.amenities),
-      hasAvailability: !!data.availability,
-      hasAvailabilityMinNights: typeof data.availability?.minNights === 'number',
-      hasAvailabilityMaxNights: typeof data.availability?.maxNights === 'number',
-      hasAvailabilityInstantBook: typeof data.availability?.instantBook === 'boolean',
-      hasImages: Array.isArray(data.images),
-    });
 
     // Validar estructura antes de serializar
     if (!data.location || typeof data.location !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] location es undefined o no es objeto');
       return {
         success: false,
         error: {
@@ -681,7 +533,6 @@ export class PropertyService {
     }
 
     if (!data.location.coordinates || typeof data.location.coordinates !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] coordinates es undefined o no es objeto');
       return {
         success: false,
         error: {
@@ -692,7 +543,6 @@ export class PropertyService {
     }
 
     if (!data.pricing || typeof data.pricing !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] pricing es undefined o no es objeto');
       return {
         success: false,
         error: {
@@ -703,7 +553,6 @@ export class PropertyService {
     }
 
     if (!data.capacity || typeof data.capacity !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] capacity es undefined o no es objeto');
       return {
         success: false,
         error: {
@@ -714,7 +563,6 @@ export class PropertyService {
     }
 
     if (!data.availability || typeof data.availability !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] availability es undefined o no es objeto');
       return {
         success: false,
         error: {
@@ -729,24 +577,11 @@ export class PropertyService {
     const cleanedData = data;
     
     // Verificación final exhaustiva ANTES de serializar
-    console.log('🔍 [PROPERTY SERVICE] Verificación final ANTES de serializar:');
-    console.log('  ✅ location existe:', !!cleanedData.location, typeof cleanedData.location);
-    console.log('  ✅ location.coordinates existe:', !!cleanedData.location?.coordinates, typeof cleanedData.location?.coordinates);
-    console.log('  ✅ pricing existe:', !!cleanedData.pricing, typeof cleanedData.pricing);
-    console.log('  ✅ capacity existe:', !!cleanedData.capacity, typeof cleanedData.capacity);
-    console.log('  ✅ availability existe:', !!cleanedData.availability, typeof cleanedData.availability);
-    console.log('  ✅ host existe:', !!(cleanedData as any).host, typeof (cleanedData as any).host);
     if ((cleanedData as any).host) {
-      console.log('  ✅ host.id:', (cleanedData as any).host.id);
-      console.log('  ✅ host.name:', (cleanedData as any).host.name);
-      console.log('  ✅ host.email:', (cleanedData as any).host.email);
-    } else {
-      console.error('  ❌ host NO EXISTE - El backend lo requiere');
     }
     
     // Garantizar que los objetos requeridos estén presentes
     if (!cleanedData.location || typeof cleanedData.location !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] CRÍTICO: location no es un objeto válido');
       return {
         success: false,
         error: {
@@ -756,7 +591,6 @@ export class PropertyService {
       };
     }
     if (!cleanedData.location.coordinates || typeof cleanedData.location.coordinates !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] CRÍTICO: location.coordinates no es un objeto válido');
       return {
         success: false,
         error: {
@@ -766,7 +600,6 @@ export class PropertyService {
       };
     }
     if (!cleanedData.pricing || typeof cleanedData.pricing !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] CRÍTICO: pricing no es un objeto válido');
       return {
         success: false,
         error: {
@@ -776,7 +609,6 @@ export class PropertyService {
       };
     }
     if (!cleanedData.capacity || typeof cleanedData.capacity !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] CRÍTICO: capacity no es un objeto válido');
       return {
         success: false,
         error: {
@@ -786,7 +618,6 @@ export class PropertyService {
       };
     }
     if (!cleanedData.availability || typeof cleanedData.availability !== 'object') {
-      console.error('❌ [PROPERTY SERVICE] CRÍTICO: availability no es un objeto válido');
       return {
         success: false,
         error: {
@@ -796,22 +627,9 @@ export class PropertyService {
       };
     }
     
-    console.log('✅ [PROPERTY SERVICE] Todos los objetos requeridos están presentes y son válidos');
     
     // Validación final antes de serializar
     if (!cleanedData.location || !cleanedData.pricing || !cleanedData.capacity || !cleanedData.availability) {
-      console.error('❌ [PROPERTY SERVICE] Datos inválidos después de limpiar:', {
-        hasLocation: !!cleanedData.location,
-        hasPricing: !!cleanedData.pricing,
-        hasCapacity: !!cleanedData.capacity,
-        hasAvailability: !!cleanedData.availability,
-        originalData: {
-          hasLocation: !!data.location,
-          hasPricing: !!data.pricing,
-          hasCapacity: !!data.capacity,
-          hasAvailability: !!data.availability,
-        }
-      });
       return {
         success: false,
         error: {
@@ -831,56 +649,10 @@ export class PropertyService {
       return value;
     });
     
-    console.log('📤 [PROPERTY SERVICE] Datos serializados (sin undefined):', serialized);
-    console.log('📤 [PROPERTY SERVICE] Tamaño del payload:', serialized.length, 'bytes');
     
     // Verificar que los objetos requeridos estén en el JSON serializado
     try {
       const parsedCheck = JSON.parse(serialized);
-      console.log('✅ [PROPERTY SERVICE] Verificación final del JSON serializado:');
-      console.log('  📍 location:', {
-        exists: !!parsedCheck.location,
-        type: typeof parsedCheck.location,
-        isObject: typeof parsedCheck.location === 'object' && parsedCheck.location !== null,
-        keys: parsedCheck.location ? Object.keys(parsedCheck.location) : [],
-        city: parsedCheck.location?.city,
-        country: parsedCheck.location?.country,
-      });
-      console.log('  📍 location.coordinates:', {
-        exists: !!parsedCheck.location?.coordinates,
-        type: typeof parsedCheck.location?.coordinates,
-        isObject: typeof parsedCheck.location?.coordinates === 'object' && parsedCheck.location?.coordinates !== null,
-        lat: parsedCheck.location?.coordinates?.lat,
-        lng: parsedCheck.location?.coordinates?.lng,
-      });
-      console.log('  💰 pricing:', {
-        exists: !!parsedCheck.pricing,
-        type: typeof parsedCheck.pricing,
-        isObject: typeof parsedCheck.pricing === 'object' && parsedCheck.pricing !== null,
-        keys: parsedCheck.pricing ? Object.keys(parsedCheck.pricing) : [],
-        basePrice: parsedCheck.pricing?.basePrice,
-        currency: parsedCheck.pricing?.currency,
-      });
-      console.log('  👥 capacity:', {
-        exists: !!parsedCheck.capacity,
-        type: typeof parsedCheck.capacity,
-        isObject: typeof parsedCheck.capacity === 'object' && parsedCheck.capacity !== null,
-        keys: parsedCheck.capacity ? Object.keys(parsedCheck.capacity) : [],
-        guests: parsedCheck.capacity?.guests,
-        bedrooms: parsedCheck.capacity?.bedrooms,
-      });
-      console.log('  📅 availability:', {
-        exists: !!parsedCheck.availability,
-        type: typeof parsedCheck.availability,
-        isObject: typeof parsedCheck.availability === 'object' && parsedCheck.availability !== null,
-        keys: parsedCheck.availability ? Object.keys(parsedCheck.availability) : [],
-        minNights: parsedCheck.availability?.minNights,
-        maxNights: parsedCheck.availability?.maxNights,
-      });
-      console.log('  🏠 propertyType:', parsedCheck.propertyType, typeof parsedCheck.propertyType);
-      console.log('  🛏️ roomType:', parsedCheck.roomType, typeof parsedCheck.roomType);
-      console.log('  🖼️ images:', Array.isArray(parsedCheck.images) ? `${parsedCheck.images.length} imágenes` : 'NO ES ARRAY');
-      console.log('  ⭐ amenities:', Array.isArray(parsedCheck.amenities) ? `${parsedCheck.amenities.length} amenidades` : 'NO ES ARRAY');
       
       // Buscar campos undefined en el JSON parseado
       const findUndefinedInObject = (obj: any, path = ''): string[] => {
@@ -904,19 +676,13 @@ export class PropertyService {
       
       const undefinedFields = findUndefinedInObject(parsedCheck);
       if (undefinedFields.length > 0) {
-        console.error('⚠️ [PROPERTY SERVICE] ⚠️ CAMPOS UNDEFINED EN JSON SERIALIZADO:', undefinedFields);
-      } else {
-        console.log('✅ [PROPERTY SERVICE] No se encontraron campos undefined en el JSON serializado');
       }
     } catch (e) {
-      console.error('❌ [PROPERTY SERVICE] Error verificando JSON:', e);
+      console.error('❌ [PROPERTY SERVICE] Error verificando JSON');
     }
 
     // Asegurar que la URL sea correcta
     const endpoint = '/api/properties';
-    console.log('📡 [PROPERTY SERVICE] Endpoint:', endpoint);
-    console.log('📡 [PROPERTY SERVICE] Método: POST');
-    console.log('📡 [PROPERTY SERVICE] URL completa:', `${API_BASE_URL}${endpoint}`);
 
     return await apiRequest<Property>(endpoint, {
       method: 'POST',

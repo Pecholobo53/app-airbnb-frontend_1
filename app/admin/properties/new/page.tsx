@@ -69,15 +69,12 @@ export default function NewPropertyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🚀 [FORM] handleSubmit ejecutado');
-    
     // Verificar autenticación ANTES de procesar el formulario
     const session = typeof window !== 'undefined' 
       ? sessionStorage.getItem('airbnb_session') 
       : null;
     
     if (!session) {
-      console.error('❌ [FORM] NO HAY SESIÓN - El usuario no está autenticado');
       toast.error('Debes iniciar sesión para crear una propiedad');
       router.push('/login');
       return;
@@ -89,34 +86,21 @@ export default function NewPropertyPage() {
       const token = parsed.token || parsed.accessToken;
       user = parsed.user;
       if (!token) {
-        console.error('❌ [FORM] NO HAY TOKEN en la sesión');
         toast.error('Sesión inválida. Por favor, inicia sesión nuevamente');
         router.push('/login');
         return;
       }
       if (!user || !user.id) {
-        console.error('❌ [FORM] NO HAY USUARIO en la sesión');
         toast.error('Sesión inválida. Por favor, inicia sesión nuevamente');
         router.push('/login');
         return;
       }
-      console.log('✅ [FORM] Usuario autenticado, token presente:', `${token.substring(0, 20)}...`);
-      console.log('✅ [FORM] Usuario ID:', user.id);
     } catch (error) {
-      console.error('❌ [FORM] Error verificando sesión:', error);
+      console.error('Error verificando sesión');
       toast.error('Error de autenticación. Por favor, inicia sesión nuevamente');
       router.push('/login');
       return;
     }
-    console.log('📋 [FORM] Estado actual del formulario:', {
-      title: formData.title,
-      description: formData.description,
-      city: formData.location.city,
-      country: formData.location.country,
-      basePrice: formData.pricing.basePrice,
-      imagesCount: formData.images.length,
-      amenitiesCount: formData.amenities.length,
-    });
     setIsSaving(true);
 
     try {
@@ -173,7 +157,7 @@ export default function NewPropertyPage() {
 
       // Preparar datos para enviar - asegurar que todos los objetos requeridos estén presentes
       // Construir location con validación de campos
-      const locationData = {
+      const locationData: Record<string, any> = {
         city: (formData.location.city || '').trim(),
         country: (formData.location.country || '').trim(),
         coordinates: {
@@ -182,19 +166,18 @@ export default function NewPropertyPage() {
         },
       };
       
-      // Agregar campos opcionales solo si tienen valor
-      const region = (formData.location.region || '').trim();
+      const region = ((formData.location as any).region || '').trim();
       if (region) {
         locationData.region = region;
       }
       
-      const address = (formData.location.address || '').trim();
+      const address = ((formData.location as any).address || '').trim();
       if (address) {
         locationData.address = address;
       }
 
       // Construir pricing con validación
-      const pricingData = {
+      const pricingData: Record<string, any> = {
         basePrice: Number(formData.pricing.basePrice) || 0,
         currency: (formData.pricing.currency || 'EUR') as 'EUR' | 'USD' | 'GBP',
       };
@@ -210,7 +193,7 @@ export default function NewPropertyPage() {
       }
 
       // Construir availability con validación
-      const availabilityData = {
+      const availabilityData: Record<string, any> = {
         minNights: Number(formData.availability.minNights) || 1,
         maxNights: Number(formData.availability.maxNights) || 365,
         instantBook: Boolean(formData.availability.instantBook),
@@ -333,46 +316,10 @@ export default function NewPropertyPage() {
         throw new Error('El objeto availability es requerido');
       }
 
-      // Log detallado de cada campo antes de enviar
-      console.log('📤 [FORM] Datos antes de limpiar:', {
-        title: dataToSend.title,
-        description: dataToSend.description,
-        location: dataToSend.location,
-        locationType: typeof dataToSend.location,
-        coordinates: dataToSend.location.coordinates,
-        coordinatesType: typeof dataToSend.location.coordinates,
-        propertyType: dataToSend.propertyType,
-        roomType: dataToSend.roomType,
-        pricing: dataToSend.pricing,
-        pricingType: typeof dataToSend.pricing,
-        capacity: dataToSend.capacity,
-        capacityType: typeof dataToSend.capacity,
-        amenities: dataToSend.amenities,
-        amenitiesIsArray: Array.isArray(dataToSend.amenities),
-        availability: dataToSend.availability,
-        availabilityType: typeof dataToSend.availability,
-        images: dataToSend.images,
-        imagesIsArray: Array.isArray(dataToSend.images),
-      });
-
       // NO limpiar el objeto - enviarlo tal cual está construido
       // El backend debe recibir exactamente lo que construimos
       // Solo usar JSON.stringify que automáticamente omite undefined
       const cleanedData = dataToSend as CreatePropertyData;
-      
-      // Verificación final exhaustiva ANTES de serializar
-      console.log('🔍 [FORM] Verificación final ANTES de serializar:');
-      console.log('  ✅ location existe:', !!cleanedData.location, typeof cleanedData.location);
-      console.log('  ✅ location.coordinates existe:', !!cleanedData.location?.coordinates, typeof cleanedData.location?.coordinates);
-      console.log('  ✅ pricing existe:', !!cleanedData.pricing, typeof cleanedData.pricing);
-      console.log('  ✅ capacity existe:', !!cleanedData.capacity, typeof cleanedData.capacity);
-      console.log('  ✅ availability existe:', !!cleanedData.availability, typeof cleanedData.availability);
-      console.log('  ✅ host existe:', !!(cleanedData as any).host, typeof (cleanedData as any).host);
-      if ((cleanedData as any).host) {
-        console.log('  ✅ host.id:', (cleanedData as any).host.id);
-        console.log('  ✅ host.name:', (cleanedData as any).host.name);
-        console.log('  ✅ host.email:', (cleanedData as any).host.email);
-      }
       
       // Garantizar que los objetos requeridos estén presentes
       if (!cleanedData.location || typeof cleanedData.location !== 'object') {
@@ -391,8 +338,6 @@ export default function NewPropertyPage() {
         throw new Error('CRÍTICO: availability no es un objeto válido');
       }
       
-      console.log('✅ [FORM] Todos los objetos requeridos están presentes y son válidos');
-
       // Validación final exhaustiva antes de enviar
       const validationErrors: string[] = [];
 
@@ -476,70 +421,22 @@ export default function NewPropertyPage() {
       }
 
       if (validationErrors.length > 0) {
-        console.error('❌ [FORM] Errores de validación:', validationErrors);
         toast.error(`Errores de validación: ${validationErrors.join(', ')}`);
         setIsSaving(false);
         return;
       }
 
-      console.log('📤 [FORM] JSON completo (limpiado y validado):', JSON.stringify(cleanedData, null, 2));
-      console.log('✅ [FORM] Todos los campos requeridos están presentes y válidos');
-      
-      // Log detallado de cada objeto antes de enviar
-      console.log('🔍 [FORM] Verificación detallada antes de enviar:');
-      console.log('  📍 location:', {
-        exists: !!cleanedData.location,
-        city: cleanedData.location?.city,
-        country: cleanedData.location?.country,
-        hasCoordinates: !!cleanedData.location?.coordinates,
-        coordinates: cleanedData.location?.coordinates,
-        keys: cleanedData.location ? Object.keys(cleanedData.location) : [],
-      });
-      console.log('  💰 pricing:', {
-        exists: !!cleanedData.pricing,
-        basePrice: cleanedData.pricing?.basePrice,
-        currency: cleanedData.pricing?.currency,
-        keys: cleanedData.pricing ? Object.keys(cleanedData.pricing) : [],
-      });
-      console.log('  👥 capacity:', {
-        exists: !!cleanedData.capacity,
-        guests: cleanedData.capacity?.guests,
-        bedrooms: cleanedData.capacity?.bedrooms,
-        beds: cleanedData.capacity?.beds,
-        bathrooms: cleanedData.capacity?.bathrooms,
-        keys: cleanedData.capacity ? Object.keys(cleanedData.capacity) : [],
-      });
-      console.log('  📅 availability:', {
-        exists: !!cleanedData.availability,
-        minNights: cleanedData.availability?.minNights,
-        maxNights: cleanedData.availability?.maxNights,
-        instantBook: cleanedData.availability?.instantBook,
-        keys: cleanedData.availability ? Object.keys(cleanedData.availability) : [],
-      });
-      console.log('  🏠 propertyType:', cleanedData.propertyType);
-      console.log('  🛏️ roomType:', cleanedData.roomType);
-      console.log('  🖼️ images:', Array.isArray(cleanedData.images) ? cleanedData.images.length : 'NO ES ARRAY');
-      console.log('  ⭐ amenities:', Array.isArray(cleanedData.amenities) ? cleanedData.amenities.length : 'NO ES ARRAY');
-      console.log('  👤 host:', (cleanedData as any).host ? {
-        id: (cleanedData as any).host.id,
-        name: (cleanedData as any).host.name,
-        email: (cleanedData as any).host.email,
-      } : 'NO EXISTE');
-
-      console.log('🚀 [FORM] Llamando a PropertyService.createProperty...');
       const response = await PropertyService.createProperty(cleanedData);
-      console.log('📥 [FORM] Respuesta recibida:', response);
 
       if (response.success && response.data) {
         toast.success('Propiedad creada exitosamente');
         router.push(`/admin/properties`);
       } else {
         const errorMessage = response.error?.message || 'Error al crear la propiedad';
-        console.error('❌ Error del backend:', response.error);
         toast.error(`Error: ${errorMessage}`);
       }
     } catch (error) {
-      console.error('❌ Error creando propiedad:', error);
+      console.error('Error creando propiedad');
       toast.error(error instanceof Error ? error.message : 'Error al crear la propiedad');
     } finally {
       setIsSaving(false);
@@ -603,7 +500,7 @@ export default function NewPropertyPage() {
         });
       }
     } catch (error) {
-      console.error('Error obteniendo coordenadas:', error);
+      console.error('Error obteniendo coordenadas');
       toast.error('Error al obtener coordenadas. Intenta nuevamente.');
     } finally {
       setIsGeocoding(false);
@@ -1092,7 +989,7 @@ export default function NewPropertyPage() {
           <Link href="/admin/properties">
             <Button type="button" variant="outline">Cancelar</Button>
           </Link>
-          <Button type="submit" disabled={isSaving} className="bg-[#FF385C] hover:bg-[#E31C5F]">
+          <Button type="submit" disabled={isSaving} className="bg-acento-200 hover:bg-acento-100">
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

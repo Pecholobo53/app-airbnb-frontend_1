@@ -79,7 +79,6 @@ export default function UserAvatar({
           alt={userName}
           className="object-cover"
           onError={(e) => {
-            console.warn('⚠️ [USER AVATAR] Error cargando imagen. Usando fallback.');
             setImageError(true);
           }}
           onLoad={() => {
@@ -87,7 +86,7 @@ export default function UserAvatar({
           }}
         />
       )}
-      <AvatarFallback className="bg-gradient-to-br from-[#FF385C] to-[#E31C5F] text-white font-semibold">
+      <AvatarFallback className="bg-gradient-to-br from-acento-200 to-acento-100 text-white font-semibold">
         {getInitials(user?.name)}
       </AvatarFallback>
     </Avatar>

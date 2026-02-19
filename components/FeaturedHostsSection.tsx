@@ -73,7 +73,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
 
 /**
@@ -94,7 +94,7 @@ export default function FeaturedHostsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <p className="text-sm font-semibold text-[#FF385C] uppercase tracking-widest mb-3">
+          <p className="text-sm font-semibold text-acento-200 uppercase tracking-widest mb-3">
             Personas reales, cuidado real
           </p>
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -138,7 +138,7 @@ export default function FeaturedHostsSection() {
               {/* Nombre y datos */}
               <div>
                 <h3 className="font-bold text-gray-900">{host.name}</h3>
-                <p className="text-xs text-[#FF385C] font-semibold">{host.title}</p>
+                <p className="text-xs text-acento-200 font-semibold">{host.title}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{host.location}</p>
               </div>
 

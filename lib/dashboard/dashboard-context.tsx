@@ -71,7 +71,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       const savedMode = localStorage.getItem(STORAGE_KEY) as DashboardMode;
       if (savedMode === 'guest' || savedMode === 'host') {
         setState(prev => ({ ...prev, mode: savedMode }));
-        console.log('🔄 [DASHBOARD] Modo cargado desde localStorage:', savedMode);
       }
     }
   }, []);
@@ -92,7 +91,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    console.log(`📊 [DASHBOARD] Cargando datos en modo: ${state.mode}`);
 
     try {
       if (state.mode === 'guest') {
@@ -105,7 +103,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
-      console.error('❌ [DASHBOARD] Error al cargar datos:', error);
+      console.error('❌ [DASHBOARD] Error al cargar datos');
       
       // Detectar errores de rate limiting
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -132,7 +130,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * Maneja errores parciales - muestra datos disponibles aunque algunas llamadas fallen
    */
   const loadGuestData = async (userId: string) => {
-    console.log('✈️ [DASHBOARD] Cargando datos de huésped...');
 
     const [statsRes, upcomingRes, pastRes] = await Promise.all([
       DashboardService.getGuestStats(userId),
@@ -147,11 +144,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (statsRes.success && statsRes.data) {
       setState(prev => ({ ...prev, guestStats: statsRes.data! }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Estadísticas de huésped cargadas');
     } else {
       const errorMsg = statsRes.error?.message || 'No se pudieron cargar las estadísticas';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando stats:', statsRes.error);
       
       // Valores por defecto para stats
       setState(prev => ({
@@ -174,22 +169,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (upcomingRes.success && upcomingRes.data) {
       setState(prev => ({ ...prev, upcomingBookings: upcomingRes.data! }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Próximos viajes cargados:', upcomingRes.data!.length);
     } else {
       const errorMsg = upcomingRes.error?.message || 'No se pudieron cargar los próximos viajes';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando próximos viajes:', upcomingRes.error);
       setState(prev => ({ ...prev, upcomingBookings: [] }));
     }
 
     if (pastRes.success && pastRes.data) {
       setState(prev => ({ ...prev, pastBookings: pastRes.data! }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Historial cargado:', pastRes.data!.length);
     } else {
       const errorMsg = pastRes.error?.message || 'No se pudo cargar el historial';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando historial:', pastRes.error);
       setState(prev => ({ ...prev, pastBookings: [] }));
     }
 
@@ -239,7 +230,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         // Si no hay datos
         if (is404) {
           // No mostrar error si los endpoints no están implementados en el backend
-          console.warn('⚠️ [DASHBOARD] Endpoints del dashboard no implementados en el backend. Mostrando valores por defecto.');
           // NO mostrar toast de error - el dashboard funcionará sin datos
         } else if (isConnectionError) {
           // Error de conexión es crítico, mostrar siempre
@@ -250,7 +240,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
     } else {
       setState(prev => ({ ...prev, error: null }));
-      console.log('✅ [DASHBOARD] Todos los datos de huésped cargados correctamente');
     }
   };
 
@@ -259,7 +248,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * Maneja errores parciales - muestra datos disponibles aunque algunas llamadas fallen
    */
   const loadHostData = async (userId: string) => {
-    console.log('🏡 [DASHBOARD] Cargando datos de anfitrión...');
 
     const [statsRes, pendingRes, bookingsRes, monthlyRes] = await Promise.all([
       DashboardService.getHostStats(userId),
@@ -275,11 +263,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (statsRes.success && statsRes.data) {
       setState(prev => ({ ...prev, hostStats: statsRes.data! }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Estadísticas de anfitrión cargadas');
     } else {
       const errorMsg = statsRes.error?.message || 'No se pudieron cargar las estadísticas';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando stats:', statsRes.error);
       
       // Valores por defecto para stats
       setState(prev => ({
@@ -306,11 +292,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (pendingRes.success && pendingRes.data) {
       setState(prev => ({ ...prev, pendingRequests: pendingRes.data! }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Solicitudes pendientes cargadas:', pendingRes.data!.length);
     } else {
       const errorMsg = pendingRes.error?.message || 'No se pudieron cargar las solicitudes pendientes';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando solicitudes pendientes:', pendingRes.error);
       setState(prev => ({ ...prev, pendingRequests: [] }));
     }
 
@@ -321,22 +305,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       );
       setState(prev => ({ ...prev, confirmedBookings: confirmed }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Reservas del anfitrión cargadas:', confirmed.length);
     } else {
       const errorMsg = bookingsRes.error?.message || 'No se pudieron cargar las reservas';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando reservas:', bookingsRes.error);
       setState(prev => ({ ...prev, confirmedBookings: [] }));
     }
 
     if (monthlyRes.success && monthlyRes.data) {
       setState(prev => ({ ...prev, monthlyData: monthlyRes.data! }));
       hasData = true;
-      console.log('✅ [DASHBOARD] Datos mensuales cargados:', monthlyRes.data!.length);
     } else {
       const errorMsg = monthlyRes.error?.message || 'No se pudieron cargar los datos mensuales';
       errors.push(errorMsg);
-      console.warn('⚠️ [DASHBOARD] Error cargando datos mensuales:', monthlyRes.error);
       setState(prev => ({ ...prev, monthlyData: [] }));
     }
 
@@ -367,7 +347,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         if (is404) {
           // No mostrar error si los endpoints no están implementados en el backend
           // El dashboard funcionará con valores por defecto (0) sin mostrar errores molestos
-          console.warn('⚠️ [DASHBOARD] Endpoints del dashboard no implementados en el backend. Mostrando valores por defecto.');
           // NO mostrar toast de error - el dashboard funcionará sin datos
         } else {
           toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
@@ -375,7 +354,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
     } else {
       setState(prev => ({ ...prev, error: null }));
-      console.log('✅ [DASHBOARD] Todos los datos de anfitrión cargados correctamente');
     }
   };
 
@@ -383,7 +361,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * CAMBIAR MODO
    */
   const switchMode = (newMode: DashboardMode) => {
-    console.log('🔄 [DASHBOARD] Cambiando modo:', state.mode, '→', newMode);
     setState(prev => ({ ...prev, mode: newMode }));
     
     // Guardar en localStorage
@@ -403,7 +380,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * REFRESCAR DATOS
    */
   const refreshData = async () => {
-    console.log('🔄 [DASHBOARD] Refrescando datos...');
     await loadDashboardData();
   };
 
@@ -411,7 +387,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * ACEPTAR RESERVA
    */
   const acceptBooking = async (bookingId: string): Promise<boolean> => {
-    console.log('✅ [DASHBOARD] Aceptando reserva:', bookingId);
     
     const response = await DashboardService.handleBookingAction(bookingId, 'accept');
     
@@ -430,7 +405,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * RECHAZAR RESERVA
    */
   const rejectBooking = async (bookingId: string): Promise<boolean> => {
-    console.log('❌ [DASHBOARD] Rechazando reserva:', bookingId);
     
     const response = await DashboardService.handleBookingAction(bookingId, 'reject');
     
@@ -449,7 +423,6 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
    * CANCELAR RESERVA
    */
   const cancelBooking = async (bookingId: string): Promise<boolean> => {
-    console.log('🚫 [DASHBOARD] Cancelando reserva:', bookingId);
     
     const response = await DashboardService.handleBookingAction(bookingId, 'cancel');
     

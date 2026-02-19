@@ -35,8 +35,7 @@ export default function HostSection({ host }: HostSectionProps) {
         joinedYear = format(date, 'yyyy');
       }
     }
-  } catch (error) {
-    console.warn('Error formateando fecha de unión:', error);
+  } catch {
   }
 
   return (
@@ -62,7 +61,7 @@ export default function HostSection({ host }: HostSectionProps) {
             />
             {isSuperhost && (
               <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md">
-                <Shield className="w-6 h-6 text-[#FF385C]" />
+                <Shield className="w-6 h-6 text-acento-200" />
               </div>
             )}
           </div>

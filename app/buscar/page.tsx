@@ -35,8 +35,6 @@ function SearchPageContent() {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
 
-    console.log('📍 [BUSCAR] Parámetros recibidos:', { location, checkIn, checkOut, adults, propertyType, amenities, minPrice, maxPrice });
-
     // Construir query
     const newQuery = {
       location: location || undefined,
@@ -92,24 +90,12 @@ function SearchPageContent() {
       (newFilters as any).category = category;
     }
 
-    // DEBUG: Log en consola (solo para desarrollo)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 [DEBUG] Parámetros de búsqueda:', {
-        params: { location, checkIn, checkOut, adults, propertyType, amenities, minPrice, maxPrice },
-        query: newQuery,
-        filters: newFilters,
-        resultsCount: results?.total || 0
-      });
-    }
-
     // Actualizar query y filtros
     updateQuery(newQuery);
     if (Object.keys(newFilters).length > 0) {
       updateFilters(newFilters);
     }
     
-    // Auto-buscar con los nuevos filtros directamente (solo si hay filtros)
-    console.log('🚀 [BUSCAR] Ejecutando búsqueda automática:', { query: newQuery, filters: newFilters });
     const filtersToPass = Object.keys(newFilters).length > 0 ? newFilters : undefined;
     performSearch(newQuery, filtersToPass);
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -77,17 +77,17 @@ export default function NotificationsMenu() {
   };
 
   const handleViewAll = () => {
-    router.push(ROUTES.DASHBOARD); // O crear página específica de notificaciones
+    router.push('/notificaciones');
   };
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="relative focus:outline-none focus:ring-2 focus:ring-[#FF385C] rounded-full p-2 hover:bg-gray-100 transition-colors">
+      <DropdownMenuTrigger className="relative focus:outline-none focus:ring-2 focus:ring-acento-200 rounded-full p-2 hover:bg-gray-100 transition-colors">
         <Bell className="w-5 h-5 text-gray-700" />
         
         {/* Badge de contador */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1.5 bg-[#FF385C] text-white text-xs font-semibold rounded-full animate-pulse">
+          <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1.5 bg-acento-200 text-white text-xs font-semibold rounded-full animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -102,7 +102,7 @@ export default function NotificationsMenu() {
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllAsRead}
-              className="text-xs text-[#FF385C] hover:text-[#E31C5F] font-medium"
+              className="text-xs text-acento-200 hover:text-acento-100 font-medium"
             >
               Marcar todas como leídas
             </button>
@@ -112,7 +112,7 @@ export default function NotificationsMenu() {
         {/* Loading State */}
         {loading && (
           <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF385C] mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-acento-200 mx-auto"></div>
             <p className="text-sm text-gray-500 mt-2">Cargando notificaciones...</p>
           </div>
         )}
@@ -202,7 +202,7 @@ export default function NotificationsMenu() {
             <div className="p-3 border-t border-gray-200">
               <button
                 onClick={handleViewAll}
-                className="w-full text-center text-sm text-[#FF385C] hover:text-[#E31C5F] font-medium"
+                className="w-full text-center text-sm text-acento-200 hover:text-acento-100 font-medium"
               >
                 Ver todas las notificaciones
               </button>

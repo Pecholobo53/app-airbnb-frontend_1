@@ -29,7 +29,6 @@ export const MOCK_USERS: User[] = [];
  * - API REST para obtener otros usuarios
  */
 export function findUserById(id: string): User | undefined {
-  console.warn('⚠️ [MOCK] findUserById() llamado pero los datos MOCK fueron eliminados. Usa la API REST o useAuth() en su lugar.');
   return undefined;
 }
 

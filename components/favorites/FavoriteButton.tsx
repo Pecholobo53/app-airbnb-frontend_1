@@ -162,7 +162,7 @@ export default function FavoriteButton({
           ${iconSizes[size]} 
           transition-all
           ${isFavorite 
-            ? 'fill-[#FF385C] text-[#FF385C] scale-110' 
+            ? 'fill-acento-200 text-acento-200 scale-110' 
             : 'text-gray-700'
           }
           ${isLoading ? 'animate-pulse' : ''}

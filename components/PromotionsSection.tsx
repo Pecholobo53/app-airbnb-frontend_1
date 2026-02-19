@@ -36,7 +36,6 @@ export default function PromotionsSection() {
         newSet.add(propertyId);
         return newSet;
       });
-      console.warn(`⚠️ [PROMOTIONS SECTION] Error cargando imagen de propiedad ${propertyId}`);
     }
   };
 
@@ -56,12 +55,12 @@ export default function PromotionsSection() {
         
         if (response.success && response.data) {
           // Filtrar propiedades destacadas si el backend no las filtra automáticamente
-          const featured = response.data.properties.filter(p => p.featured === true);
-          // Si no hay destacadas, usar las primeras 6
-          setFeaturedProperties(featured.length > 0 ? featured.slice(0, 6) : response.data.properties.slice(0, 6));
+          const properties = response.data?.properties ?? [];
+          const featured = properties.filter(p => p.featured === true);
+          setFeaturedProperties(featured.length > 0 ? featured.slice(0, 6) : properties.slice(0, 6));
         }
       } catch (error) {
-        console.error('Error cargando propiedades destacadas:', error);
+        console.error('Error cargando propiedades destacadas');
       } finally {
         setIsLoading(false);
       }
@@ -165,7 +164,6 @@ export default function PromotionsSection() {
                     
                     // Si no hay imagen válida, mostrar placeholder directamente
                     if (!isValidImage && !hasError) {
-                      console.warn(`⚠️ [PROMOTIONS] Propiedad ${property.id} sin imagen válida:`, originalImage);
                     }
                     
                     if (isBase64(imageSrc)) {
@@ -175,7 +173,6 @@ export default function PromotionsSection() {
                           alt={property.title}
                           className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500"
                           onError={() => {
-                            console.warn(`⚠️ [PROMOTIONS] Error cargando imagen Base64 de propiedad ${property.id}`);
                             handleImageError(property.id, isPlaceholder);
                           }}
                         />
@@ -189,7 +186,6 @@ export default function PromotionsSection() {
                         height={256}
                         className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500"
                         onError={() => {
-                          console.warn(`⚠️ [PROMOTIONS] Error cargando imagen de propiedad ${property.id}: ${imageSrc}`);
                           handleImageError(property.id, isPlaceholder);
                         }}
                         unoptimized={imageSrc.startsWith('http://localhost') || imageSrc.includes('localhost')}

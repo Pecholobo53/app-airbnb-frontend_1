@@ -113,7 +113,7 @@ export default function AdminUsersPage() {
       } else {
         // Manejar error de rate limiting
         const errorMessage = response.error?.message || 'Error al cargar usuarios';
-        if (response.error?.code === 'RATE_LIMIT' || errorMessage.toLowerCase().includes('demasiadas') || errorMessage.toLowerCase().includes('rate limit')) {
+        if ((response.error?.code as string) === 'RATE_LIMIT' || errorMessage.toLowerCase().includes('demasiadas') || errorMessage.toLowerCase().includes('rate limit')) {
           toast.error('Demasiadas peticiones. Espera unos segundos antes de intentar de nuevo.');
         } else {
           toast.error(errorMessage);
@@ -165,8 +165,8 @@ export default function AdminUsersPage() {
       return <ArrowUpDown className="w-4 h-4 ml-1 text-gray-400" />;
     }
     return sortDirection === 'asc' 
-      ? <ArrowUp className="w-4 h-4 ml-1 text-[#FF385C]" />
-      : <ArrowDown className="w-4 h-4 ml-1 text-[#FF385C]" />;
+      ? <ArrowUp className="w-4 h-4 ml-1 text-acento-200" />
+      : <ArrowDown className="w-4 h-4 ml-1 text-acento-200" />;
   };
 
   // Eliminar usuario
@@ -212,12 +212,12 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-1">Administración</p>
-          <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Gestión de Usuarios</h1>
+          <p className="text-xs font-bold text-admin-accent uppercase tracking-[0.15em] mb-1">Administración</p>
+          <h1 className="text-2xl md:text-3xl font-black text-texto-100 tracking-tight">Gestión de Usuarios</h1>
           <p className="text-[#64748b] text-sm mt-1">Administra las cuentas y permisos del sistema</p>
         </div>
         <Link href="/admin/users/new">
-          <button className="flex items-center gap-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-[#0ea5e9]/20">
+          <button className="flex items-center gap-2 bg-admin-accent hover:bg-admin-accent-hover text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-admin-accent/20">
             <UserPlus className="w-4 h-4" />
             Nuevo Usuario
           </button>
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
             placeholder="Buscar usuarios por nombre o email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-[#f8fafc] placeholder-[#475569] text-sm focus:outline-none focus:border-[#0ea5e9]/50 transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-texto-100 placeholder-[#475569] text-sm focus:outline-none focus:border-admin-accent/50 transition-colors"
           />
         </div>
       </div>
@@ -249,10 +249,10 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users List */}
-      <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+      <div className="rounded-2xl overflow-hidden overflow-x-auto" style={cardStyle}>
         {/* List header */}
         <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#f8fafc]">Lista de Usuarios</h2>
+          <h2 className="text-sm font-bold text-texto-100">Lista de Usuarios</h2>
           <span className="text-xs text-[#64748b]">
             {total > 0 ? `${total} usuario${total !== 1 ? 's' : ''}` : 'Sin usuarios'}
           </span>
@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
 
         {loading ? (
           <div className="py-16 flex flex-col items-center gap-3">
-            <Loader2 className="w-7 h-7 text-[#0ea5e9] animate-spin" />
+            <Loader2 className="w-7 h-7 text-admin-accent animate-spin" />
             <p className="text-xs text-[#475569]">Cargando usuarios...</p>
           </div>
         ) : users.length === 0 ? (
@@ -272,18 +272,18 @@ export default function AdminUsersPage() {
             {/* Sort header */}
             <div className="px-5 py-2.5 border-b border-[#1e293b]/40 grid grid-cols-12 gap-4 text-[11px] font-bold text-[#475569] uppercase tracking-[0.1em]">
               <div className="col-span-4 sm:col-span-3">
-                <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-[#0ea5e9] transition-colors">
+                <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-admin-accent transition-colors">
                   Usuario <SortIcon field="name" />
                 </button>
               </div>
               <div className="hidden sm:block sm:col-span-3">
-                <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-[#0ea5e9] transition-colors">
+                <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-admin-accent transition-colors">
                   Email <SortIcon field="email" />
                 </button>
               </div>
               <div className="col-span-3 sm:col-span-2">Rol</div>
               <div className="hidden sm:block sm:col-span-2">
-                <button onClick={() => handleSort('createdAt')} className="flex items-center gap-1 hover:text-[#0ea5e9] transition-colors">
+                <button onClick={() => handleSort('createdAt')} className="flex items-center gap-1 hover:text-admin-accent transition-colors">
                   Registro <SortIcon field="createdAt" />
                 </button>
               </div>
@@ -299,11 +299,11 @@ export default function AdminUsersPage() {
                   <div key={user.id} className="px-5 py-3.5 grid grid-cols-12 gap-4 items-center hover:bg-[#1e293b]/30 transition-colors">
                     {/* Avatar + Name */}
                     <div className="col-span-4 sm:col-span-3 flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-admin-accent to-admin-accent-hover flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                         {initials}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-[#f8fafc] truncate">{user.name}</p>
+                        <p className="text-[13px] font-semibold text-texto-100 truncate">{user.name}</p>
                         <p className="text-[11px] text-[#475569] sm:hidden truncate">{user.email}</p>
                       </div>
                     </div>
@@ -334,8 +334,9 @@ export default function AdminUsersPage() {
                     <div className="col-span-5 sm:col-span-2 flex items-center justify-end gap-1">
                       <button
                         onClick={() => router.push(`/admin/users/${user.id}`)}
-                        className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-[#0ea5e9]/20 text-[#64748b] hover:text-[#0ea5e9] flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-admin-accent/20 text-[#64748b] hover:text-admin-accent flex items-center justify-center transition-all"
                         title="Ver detalles"
+                        aria-label={`Ver detalles de ${user.name}`}
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
@@ -343,6 +344,7 @@ export default function AdminUsersPage() {
                         onClick={() => router.push(`/admin/users/${user.id}?edit=true`)}
                         className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-[#fbbf24]/20 text-[#64748b] hover:text-[#fbbf24] flex items-center justify-center transition-all"
                         title="Editar"
+                        aria-label={`Editar usuario ${user.name}`}
                       >
                         <Edit className="w-3.5 h-3.5" />
                       </button>
@@ -350,6 +352,7 @@ export default function AdminUsersPage() {
                         onClick={() => handleDeleteClick(user)}
                         className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-red-500/20 text-[#64748b] hover:text-red-400 flex items-center justify-center transition-all"
                         title="Eliminar"
+                        aria-label={`Eliminar usuario ${user.name}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -369,14 +372,14 @@ export default function AdminUsersPage() {
                   <button
                     onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
                     disabled={currentPage === 0}
-                    className="px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#1e293b] text-xs font-semibold text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-40 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#1e293b] text-xs font-semibold text-[#94a3b8] hover:text-texto-100 disabled:opacity-40 transition-colors"
                   >
                     Anterior
                   </button>
                   <button
                     onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
                     disabled={currentPage >= totalPages - 1}
-                    className="px-3 py-1.5 rounded-lg bg-[#0ea5e9] text-xs font-semibold text-white hover:bg-[#0284c7] disabled:opacity-40 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-admin-accent text-xs font-semibold text-white hover:bg-admin-accent-hover disabled:opacity-40 transition-colors"
                   >
                     Siguiente
                   </button>
@@ -389,19 +392,19 @@ export default function AdminUsersPage() {
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-[#0f172a] border border-[#1e293b] text-[#f8fafc]">
+        <DialogContent className="bg-[#0f172a] border border-[#1e293b] text-texto-100">
           <DialogHeader>
-            <DialogTitle className="text-[#f8fafc]">¿Eliminar usuario?</DialogTitle>
+            <DialogTitle className="text-texto-100">¿Eliminar usuario?</DialogTitle>
             <DialogDescription className="text-[#64748b]">
               Esta acción no se puede deshacer. Se eliminará permanentemente el usuario{' '}
-              <strong className="text-[#f8fafc]">{userToDelete?.name}</strong> ({userToDelete?.email}).
+              <strong className="text-texto-100">{userToDelete?.name}</strong> ({userToDelete?.email}).
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <button
               onClick={() => { setDeleteDialogOpen(false); setUserToDelete(null); }}
               disabled={deleting}
-              className="px-4 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-50 transition-colors"
+              className="px-4 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-texto-100 disabled:opacity-50 transition-colors"
             >
               Cancelar
             </button>

@@ -2,13 +2,14 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Star, Users, Eye, Flame, Clock, BadgeCheck, ArrowRight } from 'lucide-react';
 
 const stays = [
   {
     id: 1,
     image: 'https://images.pexels.com/photos/1438832/pexels-photo-1438832.jpeg?auto=compress&cs=tinysrgb&w=800',
-    badge: { label: 'Más reservada', color: 'bg-[#FF385C] text-white', icon: Flame },
+    badge: { label: 'Más reservada', color: 'bg-acento-200 text-white', icon: Flame },
     name: 'Villa Mediterránea con Piscina Infinita',
     location: 'Costa del Sol, Málaga',
     type: 'Villa completa',
@@ -65,7 +66,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
 
 /**
@@ -88,8 +89,8 @@ export default function FeaturedStaysSection() {
         >
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Flame className="w-5 h-5 text-[#FF385C]" />
-              <p className="text-sm font-bold text-[#FF385C] uppercase tracking-widest">
+              <Flame className="w-5 h-5 text-acento-200" />
+              <p className="text-sm font-bold text-acento-200 uppercase tracking-widest">
                 Reservadas esta semana
               </p>
             </div>
@@ -102,7 +103,7 @@ export default function FeaturedStaysSection() {
           </div>
           <Link
             href="/buscar"
-            className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-gray-900 underline underline-offset-4 hover:text-[#FF385C] transition-colors whitespace-nowrap"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-gray-900 underline underline-offset-4 hover:text-acento-200 transition-colors whitespace-nowrap"
           >
             Ver todas las estancias
             <ArrowRight className="w-4 h-4" />
@@ -124,15 +125,17 @@ export default function FeaturedStaysSection() {
                 <Link
                   href={`/buscar`}
                   className={`group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border ${
-                    stay.highlight ? 'border-[#FF385C]/30 ring-1 ring-[#FF385C]/20' : 'border-gray-100'
+                    stay.highlight ? 'border-acento-200/30 ring-1 ring-acento-200/20' : 'border-gray-100'
                   }`}
                 >
                   {/* Image */}
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
+                    <Image
                       src={stay.image}
                       alt={stay.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
 
@@ -147,7 +150,7 @@ export default function FeaturedStaysSection() {
                     {/* Discount badge */}
                     {stay.originalPrice > stay.pricePerNight && (
                       <div className="absolute top-3 right-3">
-                        <span className="inline-block px-2 py-1 bg-white text-xs font-bold text-[#FF385C] rounded-full shadow-sm">
+                        <span className="inline-block px-2 py-1 bg-white text-xs font-bold text-acento-200 rounded-full shadow-sm">
                           -{Math.round((1 - stay.pricePerNight / stay.originalPrice) * 100)}%
                         </span>
                       </div>
@@ -176,7 +179,7 @@ export default function FeaturedStaysSection() {
                     </div>
 
                     {/* Name */}
-                    <h3 className="font-bold text-gray-900 leading-snug mb-1 group-hover:text-[#FF385C] transition-colors">
+                    <h3 className="font-bold text-gray-900 leading-snug mb-1 group-hover:text-acento-200 transition-colors">
                       {stay.name}
                     </h3>
 
@@ -216,7 +219,7 @@ export default function FeaturedStaysSection() {
                           <span className="text-sm font-normal text-gray-500">/noche</span>
                         </span>
                       </div>
-                      <span className="inline-flex items-center gap-1 bg-[#FF385C] hover:bg-[#E31C5F] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors group-hover:shadow-md group-hover:shadow-[#FF385C]/25">
+                      <span className="inline-flex items-center gap-1 bg-acento-200 hover:bg-acento-100 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors group-hover:shadow-md group-hover:shadow-acento-200/25">
                         Ver disponibilidad
                         <ArrowRight className="w-4 h-4" />
                       </span>

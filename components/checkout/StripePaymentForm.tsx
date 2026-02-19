@@ -50,7 +50,6 @@ function getStripePromise() {
   const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
   
   if (!stripePublishableKey) {
-    console.warn('⚠️ [STRIPE] NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY no está configurada');
     stripePromise = Promise.resolve(null);
     return stripePromise;
   }
@@ -95,22 +94,10 @@ function PaymentFormInner({
     const isReady = !!(stripe && elements);
     setStripeReady(isReady);
     
-    if (isReady) {
-      console.log('✅ [STRIPE] Stripe y Elements están listos');
-    } else {
-      console.log('⏳ [STRIPE] Esperando Stripe...', { stripe: !!stripe, elements: !!elements });
-    }
   }, [stripe, elements]);
 
   // Manejar cambios en el elemento de tarjeta
   const handleCardChange = (event: any) => {
-    console.log('💳 [STRIPE] CardElement onChange:', {
-      complete: event.complete,
-      error: event.error?.message,
-      empty: event.empty,
-      brand: event.brand,
-    });
-
     if (event.error) {
       setPaymentError(event.error.message);
       setCardComplete(false);
@@ -147,11 +134,6 @@ function PaymentFormInner({
       // Convertir el nombre del país al código ISO de 2 caracteres que Stripe requiere
       const countryCode = getCountryCode(billingAddress.country);
       
-      console.log('🌍 [STRIPE] Conversión de país:', {
-        countryName: billingAddress.country,
-        countryCode,
-      });
-
       // Confirmar pago con Stripe
       const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
         clientSecret,
@@ -174,7 +156,6 @@ function PaymentFormInner({
 
       if (stripeError) {
         // Error de Stripe (tarjeta rechazada, etc.)
-        console.error('❌ [STRIPE] Error procesando pago:', stripeError);
         const errorMessage = stripeError.message || 'Error al procesar el pago';
         setPaymentError(errorMessage);
         onPaymentError(errorMessage);
@@ -185,11 +166,9 @@ function PaymentFormInner({
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
         // Pago exitoso
-        console.log('✅ [STRIPE] Pago procesado exitosamente:', paymentIntent.id);
         onPaymentSuccess(paymentIntent.id);
       } else {
         // Estado inesperado
-        console.warn('⚠️ [STRIPE] Estado inesperado del pago:', paymentIntent?.status);
         const errorMessage = 'El pago no se completó correctamente';
         setPaymentError(errorMessage);
         onPaymentError(errorMessage);
@@ -197,7 +176,7 @@ function PaymentFormInner({
         setIsProcessing(false);
       }
     } catch (error) {
-      console.error('❌ [STRIPE] Error inesperado:', error);
+      console.error('Error inesperado en pago');
       const errorMessage = error instanceof Error 
         ? error.message 
         : 'Error inesperado al procesar el pago';
@@ -220,20 +199,6 @@ function PaymentFormInner({
     billingAddress && 
     isValidClientSecret &&
     !isLoading;
-
-  // Log para debug
-  useEffect(() => {
-    console.log('🔍 [STRIPE FORM] Estado del formulario:', {
-      hasStripe: !!stripe,
-      hasElements: !!elements,
-      cardComplete,
-      hasBillingAddress: !!billingAddress,
-      isValidClientSecret,
-      isLoading,
-      canSubmit,
-      clientSecret: clientSecret ? `${clientSecret.substring(0, 20)}...` : 'null',
-    });
-  }, [stripe, elements, cardComplete, billingAddress, isValidClientSecret, isLoading, canSubmit, clientSecret]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -261,7 +226,7 @@ function PaymentFormInner({
             </label>
             <div 
               id="stripe-card-element-wrapper"
-              className="px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#FF385C] focus-within:border-transparent"
+              className="px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-acento-200 focus-within:border-transparent"
               style={{ 
                 minHeight: '48px',
                 position: 'relative',
@@ -291,7 +256,7 @@ function PaymentFormInner({
                 />
               ) : (
                 <div className="flex flex-col items-center gap-2 text-gray-500 py-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#FF385C]" />
+                  <Loader2 className="w-5 h-5 animate-spin text-acento-200" />
                   <span className="text-sm">
                     Cargando formulario de pago seguro...
                   </span>
@@ -328,7 +293,7 @@ function PaymentFormInner({
 
       {/* Resumen de pago con Total prominente */}
       {pricing && (
-        <div className="bg-gradient-to-r from-[#FF385C] to-[#E31C5F] rounded-xl p-5 text-white">
+        <div className="bg-gradient-to-r from-acento-200 to-acento-100 rounded-xl p-5 text-white">
           <h3 className="text-lg font-semibold mb-3">Resumen del pago</h3>
           
           {/* Desglose compacto */}
@@ -366,7 +331,7 @@ function PaymentFormInner({
         <Button
           type="submit"
           disabled={!canSubmit}
-          className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-4 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
+          className="w-full bg-acento-200 hover:bg-acento-100 text-white font-bold py-4 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
         >
           {isProcessing ? (
             <>
@@ -439,24 +404,12 @@ export default function StripePaymentForm(props: StripePaymentFormProps) {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    console.log('🔍 [STRIPE FORM] Validación de clientSecret:', {
-      hasClientSecret: !!props.clientSecret,
-      isValidClientSecret,
-      clientSecretPreview: props.clientSecret ? `${props.clientSecret.substring(0, 30)}...` : 'null',
-      clientSecretLength: props.clientSecret?.length || 0,
-    });
-
-    if (!isValidClientSecret) {
-      console.warn('⚠️ [STRIPE FORM] ClientSecret no válido - Stripe Elements puede no funcionar correctamente');
-    }
-  }, [props.clientSecret, isValidClientSecret]);
 
   // Ahora sí, los returns condicionales DESPUÉS de todos los hooks
   if (!mounted) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-[#FF385C]" />
+        <Loader2 className="w-6 h-6 animate-spin text-acento-200" />
       </div>
     );
   }
@@ -503,7 +456,7 @@ export default function StripePaymentForm(props: StripePaymentFormProps) {
   if (!promise) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 animate-spin text-[#FF385C]" />
+        <Loader2 className="w-6 h-6 animate-spin text-acento-200" />
         <span className="ml-2 text-gray-600">Inicializando Stripe...</span>
       </div>
     );

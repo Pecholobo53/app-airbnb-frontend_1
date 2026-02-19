@@ -215,6 +215,5 @@ export function getCountryCode(countryName: string): string {
   }
 
   // Si no se encuentra, retornar 'ES' como fallback (España es el país por defecto)
-  console.warn(`⚠️ País no encontrado en el mapa: "${countryName}". Usando "ES" como fallback.`);
   return 'ES';
 }

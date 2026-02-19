@@ -43,10 +43,10 @@ export default function ReviewsList({
         // Cargar reviews
         const reviewsResponse = await PropertyService.getPropertyReviews(propertyId, currentPage, reviewsPerPage);
         if (reviewsResponse.success && reviewsResponse.data) {
-          setReviews(reviewsResponse.data.reviews);
-          // Calcular stats desde las reviews
-          if (reviewsResponse.data.reviews.length > 0) {
-            const avgRating = reviewsResponse.data.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviewsResponse.data.reviews.length;
+          const reviews = reviewsResponse.data?.reviews ?? [];
+          setReviews(reviews as any);
+          if (reviews.length > 0) {
+            const avgRating = reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length;
             setStats({
               average: avgRating,
               total: reviewsResponse.data.total

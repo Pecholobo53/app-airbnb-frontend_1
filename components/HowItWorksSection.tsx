@@ -12,7 +12,7 @@ const steps = [
     description:
       'Explora nuestra colección de residencias exclusivas. Filtra por destino, fechas y número de huéspedes. Cada propiedad incluye galería completa, amenidades verificadas y reseñas auténticas.',
     color: 'from-rose-50 to-pink-50',
-    iconColor: 'text-[#FF385C]',
+    iconColor: 'text-acento-200',
   },
   {
     number: '02',
@@ -41,7 +41,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 28 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
 
 /**
@@ -62,7 +62,7 @@ export default function HowItWorksSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <p className="text-sm font-semibold text-[#FF385C] uppercase tracking-widest mb-3">
+          <p className="text-sm font-semibold text-acento-200 uppercase tracking-widest mb-3">
             Así de sencillo
           </p>
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -123,7 +123,7 @@ export default function HowItWorksSection() {
         >
           <Link
             href="/buscar"
-            className="inline-flex items-center gap-2 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold px-7 py-3.5 rounded-xl transition-colors shadow-md shadow-[#FF385C]/20"
+            className="inline-flex items-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-semibold px-7 py-3.5 rounded-xl transition-colors shadow-md shadow-acento-200/20"
           >
             Comenzar a explorar
           </Link>

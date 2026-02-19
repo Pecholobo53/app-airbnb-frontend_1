@@ -87,7 +87,7 @@ export default function PropertyMap({ location }: PropertyMapProps) {
             href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow text-sm font-medium text-gray-900 hover:text-[#FF385C]"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow text-sm font-medium text-gray-900 hover:text-acento-200"
           >
             <MapPin className="w-4 h-4" />
             Abrir en Google Maps

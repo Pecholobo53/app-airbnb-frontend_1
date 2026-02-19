@@ -109,7 +109,7 @@ export default function TestimonialsSection() {
   }, [isPaused]);
 
   return (
-    <section className="py-16 lg:py-24 bg-white overflow-hidden">
+    <section className="py-16 lg:py-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Encabezado */}
@@ -121,13 +121,13 @@ export default function TestimonialsSection() {
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
           <div>
-            <p className="text-sm font-semibold text-[#FF385C] uppercase tracking-wide mb-2">
+            <p className="text-sm font-semibold text-acento-200 uppercase tracking-wide mb-2">
               Experiencias reales
             </p>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#f1f5f9]">
               Lo que dicen quienes ya han disfrutado
             </h2>
-            <p className="text-gray-500 mt-2 max-w-xl">
+            <p className="text-[#94a3b8] mt-2 max-w-xl">
               Más de 2 millones de viajeros han confiado en nosotros. Estas son algunas de sus historias.
             </p>
           </div>
@@ -136,14 +136,14 @@ export default function TestimonialsSection() {
           <div className="hidden sm:flex gap-2 flex-shrink-0">
             <button
               onClick={() => scroll('left')}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-900 hover:bg-gray-50 transition-all"
+              className="w-10 h-10 rounded-full border border-[#1e293b] text-[#94a3b8] flex items-center justify-center hover:border-acento-200/50 hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-all"
               aria-label="Anterior"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => scroll('right')}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-gray-900 hover:bg-gray-50 transition-all"
+              className="w-10 h-10 rounded-full border border-[#1e293b] text-[#94a3b8] flex items-center justify-center hover:border-acento-200/50 hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-all"
               aria-label="Siguiente"
             >
               <ChevronRight className="w-5 h-5" />
@@ -170,12 +170,12 @@ export default function TestimonialsSection() {
               transition={{ duration: 0.45, delay: i * 0.08, ease: 'easeOut' }}
               className={`flex-none w-[320px] lg:w-[355px] snap-start rounded-2xl p-6 flex flex-col gap-4 border transition-all duration-300 ${
                 i === activeIndex
-                  ? 'bg-white border-gray-300 shadow-lg scale-[1.02]'
-                  : 'bg-gray-50 border-gray-100 shadow-sm'
+                  ? 'bg-[#0C0E1E] border-acento-200/30 shadow-lg shadow-acento-200/5 scale-[1.02]'
+                  : 'bg-[#090B18]/70 border-[#1e293b]/60 shadow-sm'
               }`}
             >
               {/* Quote icon */}
-              <Quote className="w-6 h-6 text-[#FF385C] opacity-50 flex-shrink-0" />
+              <Quote className="w-6 h-6 text-acento-200 opacity-50 flex-shrink-0" />
 
               {/* Estrellas */}
               <div className="flex gap-0.5">
@@ -185,25 +185,25 @@ export default function TestimonialsSection() {
               </div>
 
               {/* Testimonio */}
-              <p className="text-gray-700 text-sm leading-relaxed flex-1">
+              <p className="text-[#cbd5e1] text-sm leading-relaxed flex-1">
                 "{t.text}"
               </p>
 
               {/* Propiedad */}
-              <p className="text-xs text-[#FF385C] font-medium">
+              <p className="text-xs text-acento-200 font-medium">
                 {t.property}
               </p>
 
               {/* Autor */}
-              <div className="flex items-center gap-3 pt-2 border-t border-gray-200">
+              <div className="flex items-center gap-3 pt-2 border-t border-[#1e293b]/50">
                 <div
                   className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}
                 >
                   {t.avatar}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                  <p className="text-xs text-gray-500">{t.location} · {t.date}</p>
+                  <p className="text-sm font-semibold text-[#f1f5f9]">{t.name}</p>
+                  <p className="text-xs text-[#64748b]">{t.location} · {t.date}</p>
                 </div>
               </div>
             </motion.div>
@@ -219,7 +219,7 @@ export default function TestimonialsSection() {
               aria-label={`Testimonio ${i + 1}`}
               className={`rounded-full transition-all duration-400 ${
                 i === activeIndex
-                  ? 'w-6 h-2 bg-[#FF385C]'
+                  ? 'w-6 h-2 bg-acento-200'
                   : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
               }`}
             />

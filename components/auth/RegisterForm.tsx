@@ -14,10 +14,12 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useNotificationTriggers } from '@/hooks/useNotificationTriggers';
 
 export default function RegisterForm() {
   const { register: registerUser, login } = useAuth();
   const router = useRouter();
+  const { notifyWelcome } = useNotificationTriggers();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,19 +45,10 @@ export default function RegisterForm() {
   const acceptTerms = watch('acceptTerms');
 
   const onSubmit = async (data: RegisterFormData) => {
-    console.log('📝 [REGISTER FORM] onSubmit llamado con datos:', {
-      name: data.name,
-      email: data.email,
-      passwordLength: data.password.length,
-      acceptTerms: data.acceptTerms
-    });
-    
     setIsLoading(true);
     
     try {
-      console.log('📝 [REGISTER FORM] Llamando a registerUser()...');
       const success = await registerUser(data);
-      console.log('📝 [REGISTER FORM] Respuesta de registerUser():', success);
     
     if (success) {
       // Hacer login automático después del registro
@@ -80,11 +73,17 @@ export default function RegisterForm() {
               if (parsed.user && parsed.user.id) {
                 // Pequeño delay adicional para asegurar que React haya actualizado el estado
                 await new Promise(resolve => setTimeout(resolve, 50));
+                
+                // Enviar notificación de bienvenida al nuevo usuario
+                setTimeout(() => {
+                  notifyWelcome(15); // 15% de descuento de bienvenida
+                }, 1000);
+                
                 router.push('/dashboard');
                 return;
               }
             } catch (e) {
-              console.error('Error parseando sesión:', e);
+              console.error('Error parseando sesión');
             }
           }
           await new Promise(resolve => setTimeout(resolve, 50));
@@ -95,11 +94,10 @@ export default function RegisterForm() {
         router.push('/dashboard');
       }
       } else {
-        console.error('❌ [REGISTER FORM] Registro falló');
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('❌ [REGISTER FORM] Error inesperado durante el registro:', error);
+      console.error('Error inesperado durante el registro');
       setIsLoading(false);
     }
   };
@@ -127,7 +125,6 @@ export default function RegisterForm() {
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
-          name="email"
           type="email"
           placeholder="tu@email.com"
           autoComplete="off"
@@ -151,7 +148,6 @@ export default function RegisterForm() {
         <div className="relative">
           <Input
             id="password"
-            name="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="Mínimo 8 caracteres"
             autoComplete="new-password"
@@ -186,7 +182,6 @@ export default function RegisterForm() {
         <div className="relative">
           <Input
             id="confirmPassword"
-            name="confirmPassword"
             type={showConfirmPassword ? 'text' : 'password'}
             placeholder="Repite tu contraseña"
             autoComplete="new-password"
@@ -229,11 +224,11 @@ export default function RegisterForm() {
             className="text-sm leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
           >
             Acepto los{' '}
-            <Link href="/terminos" className="text-[#FF385C] hover:underline">
+            <Link href="/terminos" className="text-acento-200 hover:underline">
               términos y condiciones
             </Link>{' '}
             y la{' '}
-            <Link href="/privacidad" className="text-[#FF385C] hover:underline">
+            <Link href="/privacidad" className="text-acento-200 hover:underline">
               política de privacidad
             </Link>
           </label>
@@ -246,7 +241,7 @@ export default function RegisterForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold h-12"
+        className="w-full bg-acento-200 hover:bg-acento-100 text-white font-semibold h-12"
         disabled={isLoading}
       >
         {isLoading ? (

@@ -56,11 +56,9 @@ export default function ImageUpload({
       const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB máximo
       
       if (!isValidType) {
-        console.warn(`Archivo ${file.name} no es una imagen válida`);
         return false;
       }
       if (!isValidSize) {
-        console.warn(`Archivo ${file.name} es demasiado grande (máximo 5MB)`);
         return false;
       }
       return true;
@@ -73,7 +71,6 @@ export default function ImageUpload({
     // Verificar límite de imágenes
     const remainingSlots = maxImages - images.length;
     if (imageFiles.length > remainingSlots) {
-      console.warn(`Solo puedes agregar ${remainingSlots} imagen(es) más`);
       imageFiles.splice(remainingSlots);
     }
 
@@ -85,7 +82,7 @@ export default function ImageUpload({
       
       onImagesChange([...images, ...base64Images]);
     } catch (error) {
-      console.error('Error procesando imágenes:', error);
+      console.error('Error procesando imágenes');
     } finally {
       setIsUploading(false);
     }
@@ -157,7 +154,7 @@ export default function ImageUpload({
         className={cn(
           'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
           isDragging
-            ? 'border-[#FF385C] bg-[#FF385C]/5'
+            ? 'border-acento-200 bg-acento-200/5'
             : 'border-gray-300 hover:border-gray-400',
           isUploading && 'opacity-50 pointer-events-none'
         )}
@@ -174,18 +171,18 @@ export default function ImageUpload({
         <div className="flex flex-col items-center gap-4">
           {isUploading ? (
             <>
-              <div className="w-12 h-12 border-4 border-[#FF385C] border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-acento-200 border-t-transparent rounded-full animate-spin" />
               <p className="text-sm text-gray-600">Subiendo imágenes...</p>
             </>
           ) : (
             <>
               <div className={cn(
                 'w-16 h-16 rounded-full flex items-center justify-center',
-                isDragging ? 'bg-[#FF385C]/10' : 'bg-gray-100'
+                isDragging ? 'bg-acento-200/10' : 'bg-gray-100'
               )}>
                 <Upload className={cn(
                   'w-8 h-8',
-                  isDragging ? 'text-[#FF385C]' : 'text-gray-400'
+                  isDragging ? 'text-acento-200' : 'text-gray-400'
                 )} />
               </div>
               <div>

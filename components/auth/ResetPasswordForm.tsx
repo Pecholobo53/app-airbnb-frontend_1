@@ -102,7 +102,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         <div className="pt-4">
           <Link
             href="/login"
-            className="text-sm text-[#FF385C] hover:text-[#E31C5F] hover:underline"
+            className="text-sm text-acento-200 hover:text-acento-100 hover:underline"
           >
             Ir al login ahora →
           </Link>
@@ -192,7 +192,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold h-12"
+        className="w-full bg-acento-200 hover:bg-acento-100 text-white font-semibold h-12"
         disabled={isLoading || !token}
       >
         {isLoading ? (

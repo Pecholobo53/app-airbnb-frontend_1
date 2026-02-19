@@ -38,14 +38,13 @@ export default function SimilarProperties({ currentProperty }: SimilarProperties
           if (Array.isArray(properties)) {
             setSimilarProperties(properties);
           } else {
-            console.warn('⚠️ [SIMILAR PROPERTIES] Respuesta no tiene formato esperado:', response.data);
             setSimilarProperties([]);
           }
         } else {
           setSimilarProperties([]);
         }
       } catch (error) {
-        console.error('Error cargando propiedades similares:', error);
+        console.error('Error cargando propiedades similares');
       } finally {
         setIsLoading(false);
       }

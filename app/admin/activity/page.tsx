@@ -212,18 +212,18 @@ export default function ActivityPage() {
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/admin">
-            <button className="w-9 h-9 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-[#f8fafc] transition-colors">
+            <button className="w-9 h-9 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-texto-100 transition-colors" aria-label="Volver al dashboard">
               <ArrowLeft className="w-4 h-4" />
             </button>
           </Link>
           <div>
-            <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-0.5">Monitoreo</p>
-            <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Actividad del Sistema</h1>
+            <p className="text-xs font-bold text-admin-accent uppercase tracking-[0.15em] mb-0.5">Monitoreo</p>
+            <h1 className="text-2xl md:text-3xl font-black text-texto-100 tracking-tight">Actividad del Sistema</h1>
           </div>
         </div>
         <button
           onClick={loadLogs}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-texto-100 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           <span className="hidden sm:inline">Actualizar</span>
@@ -254,14 +254,14 @@ export default function ActivityPage() {
               placeholder="Buscar en logs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-[#f8fafc] placeholder-[#475569] text-sm focus:outline-none focus:border-[#0ea5e9]/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-texto-100 placeholder-[#475569] text-sm focus:outline-none focus:border-admin-accent/50 transition-colors"
             />
           </div>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="bg-[#1e293b]/60 border-[#1e293b] text-[#94a3b8] rounded-xl">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#0f172a] border-[#1e293b] text-[#f8fafc]">
+            <SelectContent className="bg-[#0f172a] border-[#1e293b] text-texto-100">
               <SelectItem value="all">Todos los tipos</SelectItem>
               <SelectItem value="user">Usuario</SelectItem>
               <SelectItem value="system">Sistema</SelectItem>
@@ -273,7 +273,7 @@ export default function ActivityPage() {
             <SelectTrigger className="bg-[#1e293b]/60 border-[#1e293b] text-[#94a3b8] rounded-xl">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#0f172a] border-[#1e293b] text-[#f8fafc]">
+            <SelectContent className="bg-[#0f172a] border-[#1e293b] text-texto-100">
               <SelectItem value="all">Todos los estados</SelectItem>
               <SelectItem value="success">Éxito</SelectItem>
               <SelectItem value="error">Error</SelectItem>
@@ -287,8 +287,8 @@ export default function ActivityPage() {
       {/* Timeline */}
       <div className="rounded-2xl overflow-hidden" style={cardStyle}>
         <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[#0ea5e9]" />
-          <h2 className="text-sm font-bold text-[#f8fafc]">Registros de Actividad</h2>
+          <Activity className="w-4 h-4 text-admin-accent" />
+          <h2 className="text-sm font-bold text-texto-100">Registros de Actividad</h2>
           <span className="ml-auto text-xs text-[#64748b]">{filteredLogs.length} registros</span>
         </div>
 
@@ -317,7 +317,7 @@ export default function ActivityPage() {
                       <div className="flex-1 rounded-xl p-3.5 border border-[#1e293b]/60 bg-[#0f172a]/50 hover:border-[#1e293b] transition-colors">
                         <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[13px] font-bold text-[#f8fafc]">{log.action}</span>
+                            <span className="text-[13px] font-bold text-texto-100">{log.action}</span>
                             {/* Type badge */}
                             <span
                               className="text-[10px] font-bold px-2 py-0.5 rounded-full"

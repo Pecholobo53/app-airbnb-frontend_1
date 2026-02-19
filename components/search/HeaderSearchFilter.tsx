@@ -173,7 +173,7 @@ export default function HeaderSearchFilter({ isOpen, onClose }: HeaderSearchFilt
           </Button>
           <Button
             onClick={handleApply}
-            className="w-full sm:flex-1 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold order-1 sm:order-2"
+            className="w-full sm:flex-1 bg-acento-200 hover:bg-acento-100 text-white font-semibold order-1 sm:order-2"
           >
             <Search className="w-4 h-4 mr-2" />
             Buscar

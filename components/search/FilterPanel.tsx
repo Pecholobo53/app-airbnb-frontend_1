@@ -48,7 +48,7 @@ export default function FilterPanel({ filters, onFiltersChange, onApply }: Filte
           <SlidersHorizontal className="h-4 w-4" />
           Filtros
           {activeFiltersCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-[#FF385C] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            <span className="absolute -top-2 -right-2 bg-acento-200 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
               {activeFiltersCount}
             </span>
           )}
@@ -127,7 +127,7 @@ export default function FilterPanel({ filters, onFiltersChange, onApply }: Filte
               Cancelar
             </Button>
             <Button
-              className="flex-1 bg-[#FF385C] hover:bg-[#E31C5F] text-white"
+              className="flex-1 bg-acento-200 hover:bg-acento-100 text-white"
               onClick={handleApply}
             >
               Aplicar filtros

@@ -83,12 +83,10 @@ function getAuthToken(): string | null {
     if (sessionStr) {
       const session = JSON.parse(sessionStr);
       if (session.accessToken) {
-        console.log('🔑 [PAYMENT SERVICE] Token encontrado en sessionStorage');
         return session.accessToken;
       }
     }
-  } catch (error) {
-    console.warn('⚠️ [PAYMENT SERVICE] Error leyendo sessionStorage:', error);
+  } catch {
   }
   
   // Fallback a localStorage (compatibilidad hacia atrás)
@@ -115,7 +113,6 @@ async function apiRequest<T>(
 
   const url = `${API_BASE_URL}${endpoint}`;
   
-  console.log(`📡 [PAYMENT SERVICE] ${options.method || 'GET'} ${url}`);
 
   try {
     const response = await fetch(url, {
@@ -131,7 +128,7 @@ async function apiRequest<T>(
       try {
         jsonData = await response.json();
       } catch (parseError) {
-        console.error('❌ [PAYMENT SERVICE] Error parseando JSON:', parseError);
+        console.error('❌ [PAYMENT SERVICE] Error parseando JSON');
         return {
           success: false,
           error: {
@@ -143,7 +140,6 @@ async function apiRequest<T>(
     } else {
       // Si no es JSON, leer como texto
       const text = await response.text();
-      console.warn('⚠️ [PAYMENT SERVICE] Respuesta no JSON:', text);
       return {
         success: false,
         error: {
@@ -192,7 +188,7 @@ async function apiRequest<T>(
       },
     };
   } catch (error) {
-    console.error('❌ [PAYMENT SERVICE] Error de red:', error);
+    console.error('❌ [PAYMENT SERVICE] Error de red');
     
     // Verificar si es error de red
     if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -245,27 +241,6 @@ export async function createPaymentIntent(
   bookingId: string,
   bookingData?: CreatePaymentIntentOptions
 ): Promise<ApiResponse<CreatePaymentIntentResponse>> {
-  console.log('💳 [PAYMENT SERVICE] Creando Payment Intent para reserva:', bookingId);
-  console.log('📦 [PAYMENT SERVICE] bookingData recibido:', bookingData ? {
-    hasPropertyId: !!bookingData.propertyId,
-    hasCheckIn: !!bookingData.checkIn,
-    hasCheckOut: !!bookingData.checkOut,
-    hasGuests: !!bookingData.guests,
-    hasGuestInfo: !!bookingData.guestInfo,
-    propertyId: bookingData.propertyId,
-    checkIn: bookingData.checkIn,
-    checkOut: bookingData.checkOut,
-    guests: bookingData.guests,
-  } : 'undefined');
-  
-  if (bookingData) {
-    console.log('📦 [PAYMENT SERVICE] Datos adicionales para crear reserva:', {
-      propertyId: bookingData.propertyId,
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut,
-      guests: bookingData.guests,
-    });
-  }
 
   if (!bookingId) {
     return {
@@ -297,27 +272,6 @@ export async function createPaymentIntent(
     guestInfo: bookingData.guestInfo,
   } : undefined;
 
-  console.log('🔍 [PAYMENT SERVICE] Preparando body:', {
-    hasBookingData: !!bookingData,
-    hasBody: !!body,
-    bodyContent: body ? {
-      propertyId: body.propertyId,
-      checkIn: body.checkIn,
-      checkOut: body.checkOut,
-      guests: body.guests,
-      hasGuestInfo: !!body.guestInfo,
-    } : 'null',
-  });
-
-  if (body) {
-    console.log('📤 [PAYMENT SERVICE] Enviando datos de reserva en el body para creación automática:', {
-      propertyId: body.propertyId,
-      checkIn: body.checkIn,
-      checkOut: body.checkOut,
-      guests: body.guests,
-      hasGuestInfo: !!body.guestInfo,
-    });
-  }
 
   const requestOptions: RequestInit = {
     method: 'POST',
@@ -325,7 +279,6 @@ export async function createPaymentIntent(
 
   if (body) {
     requestOptions.body = JSON.stringify(body);
-    console.log('📤 [PAYMENT SERVICE] Body serializado:', requestOptions.body);
   }
 
   return apiRequest<CreatePaymentIntentResponse>(
@@ -350,10 +303,6 @@ export async function confirmPayment(
   bookingId: string,
   paymentIntentId: string
 ): Promise<ApiResponse<{ booking: Booking }>> {
-  console.log('✅ [PAYMENT SERVICE] Confirmando pago:', {
-    bookingId,
-    paymentIntentId,
-  });
 
   if (!bookingId || !paymentIntentId) {
     return {

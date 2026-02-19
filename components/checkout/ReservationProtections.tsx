@@ -72,11 +72,11 @@ export default function ReservationProtections() {
       <div className="mt-6 pt-4 border-t border-gray-200">
         <p className="text-xs text-gray-600">
           Al continuar, aceptas los{' '}
-          <a href="#" className="text-[#FF385C] hover:underline">
+          <a href="#" className="text-acento-200 hover:underline">
             términos y condiciones
           </a>
           {' '}y las{' '}
-          <a href="#" className="text-[#FF385C] hover:underline">
+          <a href="#" className="text-acento-200 hover:underline">
             políticas de privacidad
           </a>
           .
@@ -96,8 +96,6 @@ export function ReservationProtectionsWithButton({
   disabled = false,
   isLoading = false,
 }: ReservationProtectionsWithButtonProps) {
-  console.log('🔍 ReservationProtectionsWithButton renderizado', { onConfirm: !!onConfirm, disabled, isLoading });
-
   return (
     <div className="mt-6 pt-6 border-t border-gray-200">
       <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">
@@ -155,11 +153,11 @@ export function ReservationProtectionsWithButton({
       <div className="mt-5 pt-4 border-t border-gray-100">
         <p className="text-xs text-gray-500 mb-4 leading-relaxed">
           Al confirmar, aceptas los{' '}
-          <a href="#" className="text-[#FF385C] hover:underline font-medium">
+          <a href="#" className="text-acento-200 hover:underline font-medium">
             términos y condiciones
           </a>
           {' '}y las{' '}
-          <a href="#" className="text-[#FF385C] hover:underline font-medium">
+          <a href="#" className="text-acento-200 hover:underline font-medium">
             políticas de privacidad
           </a>
           .
@@ -171,7 +169,7 @@ export function ReservationProtectionsWithButton({
             <button
               onClick={onConfirm}
               disabled={disabled || isLoading}
-              className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-[#FF385C]/20 active:scale-[0.98]"
+              className="w-full bg-acento-200 hover:bg-acento-100 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-acento-200/20 active:scale-[0.98]"
             >
               <Lock className="w-4 h-4" />
               {isLoading ? 'Procesando reserva...' : 'Confirmar y reservar'}

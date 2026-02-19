@@ -62,7 +62,6 @@ export default function AvailabilityCalendar({
   useEffect(() => {
     const loadBlockedDates = async () => {
       // MODO PERMISIVO: Siempre mostrar todas las fechas como disponibles
-      console.log('📅 [AVAILABILITY CALENDAR] Modo permisivo activado - todas las fechas aparecerán como disponibles');
       setBlockedDates([]);
       setIsLoading(false);
       return;
@@ -88,9 +87,7 @@ export default function AvailabilityCalendar({
       //     blocked = response.data.blockedDates || [];
       //     
       //     if (blocked.length === 0) {
-      //       console.log('📅 [AVAILABILITY CALENDAR] API no devuelve fechas bloqueadas - todas las fechas aparecerán como disponibles');
       //     } else {
-      //       console.log('📅 [AVAILABILITY CALENDAR] Fechas bloqueadas desde API:', blocked.length);
       //     }
       //     
       //     setBlockedDates(blocked.map(date => new Date(date)));
@@ -104,12 +101,10 @@ export default function AvailabilityCalendar({
       //       instantBook: response.data.instantBook || false,
       //     });
       //   } else {
-      //     console.log('📅 [AVAILABILITY CALENDAR] API no disponible - todas las fechas aparecerán como disponibles');
       //     setBlockedDates([]);
       //   }
       // } catch (error) {
-      //   console.error('Error cargando fechas bloqueadas:', error);
-      //   console.log('📅 [AVAILABILITY CALENDAR] Error en API - todas las fechas aparecerán como disponibles');
+      //   console.error('Error cargando fechas bloqueadas');
       //   setBlockedDates([]);
       // } finally {
       //   setIsLoading(false);
@@ -135,14 +130,12 @@ export default function AvailabilityCalendar({
     
     if (range?.from && range?.to) {
       // MODO PERMISIVO: Permitir selección sin validación
-      console.log('✅ [AVAILABILITY CALENDAR] Modo permisivo - selección permitida sin validación');
       onDateSelect(range.from, range.to);
       setIsOpen(false);
       return;
 
       // CÓDIGO ORIGINAL COMENTADO (descomentar para reactivar validaciones):
       // // Rango completo seleccionado - Validar disponibilidad en tiempo real
-      // console.log('🔍 [AVAILABILITY CALENDAR] Rango completo seleccionado, validando disponibilidad...');
       // setIsValidating(true);
       // 
       // try {
@@ -156,18 +149,12 @@ export default function AvailabilityCalendar({
       //     guests: 1, // Usar valor por defecto, se ajustará en PriceCalculator
       //   });
 
-      //   console.log('🔍 [AVAILABILITY CALENDAR] Respuesta de validación:', {
-      //     success: validationResponse.success,
-      //     available: validationResponse.data?.available,
-      //     message: validationResponse.data?.message,
-      //   });
 
       //   // Si el endpoint no existe (404), permitir continuar
       //   if (!validationResponse.success) {
       //     const errorCode = validationResponse.error?.code;
       //     if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
       //         validationResponse.error?.message?.includes('Ruta no encontrada')) {
-      //       console.warn('⚠️ [AVAILABILITY CALENDAR] Endpoint de validación no disponible, permitiendo selección');
       //       onDateSelect(range.from, range.to);
       //       setIsOpen(false);
       //       return;
@@ -179,7 +166,7 @@ export default function AvailabilityCalendar({
       //     const errorMessage = validationResponse.data?.message || 
       //                         validationResponse.data?.reason ||
       //                         'El rango de fechas seleccionado no está disponible';
-      //     console.error('❌ [AVAILABILITY CALENDAR] Fechas no disponibles:', errorMessage);
+      //     console.error('❌ [AVAILABILITY CALENDAR] Fechas no disponibles');
       //     toast.error(errorMessage);
       //     // Resetear selección
       //     setDateRange(range.from ? { from: range.from } : undefined);
@@ -188,11 +175,10 @@ export default function AvailabilityCalendar({
       //   }
 
       //   // Si están disponibles, permitir selección
-      //   console.log('✅ [AVAILABILITY CALENDAR] Fechas validadas como disponibles');
       //   onDateSelect(range.from, range.to);
       //   setIsOpen(false);
       // } catch (error) {
-      //   console.error('❌ [AVAILABILITY CALENDAR] Error validando fechas:', error);
+      //   console.error('❌ [AVAILABILITY CALENDAR] Error validando fechas');
       //   // En caso de error, permitir continuar (modo permisivo)
       //   // El PriceCalculator validará de nuevo antes de reservar
       //   onDateSelect(range.from, range.to);
@@ -280,11 +266,11 @@ export default function AvailabilityCalendar({
             day: cn(
               "h-9 w-9 p-0 font-normal aria-selected:opacity-100 text-gray-900 hover:bg-gray-100"
             ),
-            day_selected: "bg-[#FF385C] text-white hover:bg-[#E31C5F] focus:bg-[#FF385C]",
+            day_selected: "bg-acento-200 text-white hover:bg-acento-100 focus:bg-acento-200",
             day_today: "bg-gray-100 text-gray-900 font-semibold",
             day_disabled: "bg-red-50 text-red-400 line-through cursor-not-allowed opacity-60 hover:bg-red-50 hover:text-red-400",
             day_range_middle: "bg-blue-50 text-blue-700",
-            day_range_end: "bg-[#FF385C] text-white",
+            day_range_end: "bg-acento-200 text-white",
           }}
         />
         {(isLoading || isValidating) && (

@@ -67,7 +67,7 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
       {/* Capacidad */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex items-center gap-2 text-gray-700">
-          <Users className="w-5 h-5 text-[#FF385C]" />
+          <Users className="w-5 h-5 text-acento-200" />
           <span>
             {capacity.guests === 1
               ? 'Diseñado para 1 viajero'
@@ -75,7 +75,7 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
           </span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
-          <Home className="w-5 h-5 text-[#FF385C]" />
+          <Home className="w-5 h-5 text-acento-200" />
           <span>
             {capacity.bedrooms === 1
               ? '1 suite privada'
@@ -83,7 +83,7 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
           </span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
-          <Bed className="w-5 h-5 text-[#FF385C]" />
+          <Bed className="w-5 h-5 text-acento-200" />
           <span>
             {capacity.beds === 1
               ? '1 cama premium'
@@ -91,7 +91,7 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
           </span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
-          <Bath className="w-5 h-5 text-[#FF385C]" />
+          <Bath className="w-5 h-5 text-acento-200" />
           <span>
             {capacity.bathrooms === 1
               ? '1 baño de diseño exclusivo'

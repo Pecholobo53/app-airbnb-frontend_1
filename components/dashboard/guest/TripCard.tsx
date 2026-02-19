@@ -157,126 +157,126 @@ export default function TripCard({ booking, onViewDetails, onDelete }: TripCardP
             </div>
           </div>
 
-        {/* Info */}
-        <div className="flex-1 p-6">
-          <h3 className="font-semibold text-lg text-gray-900 mb-1">
-            {safeProperty.title || 'Propiedad sin título'}
-          </h3>
-          {safeProperty.location && (
-            <div className="flex items-center text-sm text-gray-500 mb-4">
-              <MapPin className="h-4 w-4 mr-1" />
-              {safeProperty.location.city || 'Ciudad no especificada'}, {safeProperty.location.country || 'País no especificado'}
-            </div>
-          )}
+          {/* Info */}
+          <div className="flex-1 p-6">
+            <h3 className="font-semibold text-lg text-gray-900 mb-1">
+              {safeProperty.title || 'Propiedad sin título'}
+            </h3>
+            {safeProperty.location && (
+              <div className="flex items-center text-sm text-gray-500 mb-4">
+                <MapPin className="h-4 w-4 mr-1" />
+                {safeProperty.location.city || 'Ciudad no especificada'}, {safeProperty.location.country || 'País no especificado'}
+              </div>
+            )}
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="flex items-center text-sm">
-              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-              <div>
-                <div className="font-medium">{format(checkInDate, 'dd MMM yyyy', { locale: es })}</div>
-                <div className="text-xs text-gray-500">Check-in</div>
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-              <div>
-                <div className="font-medium">{format(checkOutDate, 'dd MMM yyyy', { locale: es })}</div>
-                <div className="text-xs text-gray-500">Check-out</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Información de Pago */}
-          {paymentInfo && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2 text-sm mb-2">
-                <CreditCard className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-600 font-medium">Estado de pago:</span>
-                <span className={`font-semibold ${
-                  paymentInfo.status === 'paid' ? 'text-green-600' :
-                  paymentInfo.status === 'pending' ? 'text-yellow-600' :
-                  paymentInfo.status === 'failed' ? 'text-red-600' :
-                  'text-gray-600'
-                }`}>
-                  {paymentInfo.status === 'paid' ? 'Pagado' :
-                   paymentInfo.status === 'pending' ? 'Pendiente' :
-                   paymentInfo.status === 'failed' ? 'Fallido' :
-                   paymentInfo.status === 'refunded' ? 'Reembolsado' : paymentInfo.status}
-                </span>
-              </div>
-              {paidDate && (
-                <div className="text-xs text-gray-500 flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  Pagado el: {format(paidDate, 'dd MMM yyyy', { locale: es })}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center text-sm">
+                <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                <div>
+                  <div className="font-medium">{format(checkInDate, 'dd MMM yyyy', { locale: es })}</div>
+                  <div className="text-xs text-gray-500">Check-in</div>
                 </div>
-              )}
-              {paymentInfo.method && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Método: {paymentInfo.method}
+              </div>
+              <div className="flex items-center text-sm">
+                <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                <div>
+                  <div className="font-medium">{format(checkOutDate, 'dd MMM yyyy', { locale: es })}</div>
+                  <div className="text-xs text-gray-500">Check-out</div>
                 </div>
-              )}
+              </div>
             </div>
-          )}
 
-          {/* Fechas de Reserva */}
-          <div className="mb-4 space-y-1 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>Reserva creada: {format(createdDate, 'dd MMM yyyy', { locale: es })}</span>
-            </div>
-            {confirmedDate && (
+            {/* Información de Pago */}
+            {paymentInfo && (
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 text-sm mb-2">
+                  <CreditCard className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600 font-medium">Estado de pago:</span>
+                  <span className={`font-semibold ${
+                    paymentInfo.status === 'paid' ? 'text-green-600' :
+                    paymentInfo.status === 'pending' ? 'text-yellow-600' :
+                    paymentInfo.status === 'failed' ? 'text-red-600' :
+                    'text-gray-600'
+                  }`}>
+                    {paymentInfo.status === 'paid' ? 'Pagado' :
+                     paymentInfo.status === 'pending' ? 'Pendiente' :
+                     paymentInfo.status === 'failed' ? 'Fallido' :
+                     paymentInfo.status === 'refunded' ? 'Reembolsado' : paymentInfo.status}
+                  </span>
+                </div>
+                {paidDate && (
+                  <div className="text-xs text-gray-500 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Pagado el: {format(paidDate, 'dd MMM yyyy', { locale: es })}
+                  </div>
+                )}
+                {paymentInfo.method && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Método: {paymentInfo.method}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Fechas de Reserva */}
+            <div className="mb-4 space-y-1 text-xs text-gray-500">
               <div className="flex items-center gap-1">
-                <CheckCircle className="w-3 h-3 text-green-600" />
-                <span>Confirmada: {format(confirmedDate, 'dd MMM yyyy', { locale: es })}</span>
+                <Clock className="w-3 h-3" />
+                <span>Reserva creada: {format(createdDate, 'dd MMM yyyy', { locale: es })}</span>
               </div>
-            )}
-          </div>
-
-          {/* Montos */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <div className="text-sm text-gray-500">
-                  {nights} {nights === 1 ? 'noche' : 'noches'}
-                  {totalGuests > 0 && ` • ${totalGuests} ${totalGuests === 1 ? 'huésped' : 'huéspedes'}`}
+              {confirmedDate && (
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>Confirmada: {format(confirmedDate, 'dd MMM yyyy', { locale: es })}</span>
                 </div>
-                <div className="text-lg font-bold text-gray-900">
-                  {formatPrice(pricing.total, currency)}
-                </div>
-              </div>
-              {onViewDetails && (
-                <Button onClick={onViewDetails} variant="outline" size="sm">
-                  Ver detalles
-                </Button>
               )}
             </div>
-            {/* Desglose de precios si está disponible */}
-            {(pricing.nightsTotal || pricing.cleaningFee || pricing.serviceFee) && (
-              <div className="text-xs text-gray-500 space-y-0.5 mt-2 pt-2 border-t border-gray-200">
-                {pricing.nightsTotal && (
-                  <div className="flex justify-between">
-                    <span>Alojamiento ({nights} {nights === 1 ? 'noche' : 'noches'}):</span>
-                    <span>{formatPrice(pricing.nightsTotal, currency)}</span>
+
+            {/* Montos */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <div className="text-sm text-gray-500">
+                    {nights} {nights === 1 ? 'noche' : 'noches'}
+                    {totalGuests > 0 && ` • ${totalGuests} ${totalGuests === 1 ? 'huésped' : 'huéspedes'}`}
                   </div>
-                )}
-                {pricing.cleaningFee > 0 && (
-                  <div className="flex justify-between">
-                    <span>Tarifa de limpieza:</span>
-                    <span>{formatPrice(pricing.cleaningFee, currency)}</span>
+                  <div className="text-lg font-bold text-gray-900">
+                    {formatPrice(pricing.total, currency)}
                   </div>
-                )}
-                {pricing.serviceFee > 0 && (
-                  <div className="flex justify-between">
-                    <span>Tarifa de servicio:</span>
-                    <span>{formatPrice(pricing.serviceFee, currency)}</span>
-                  </div>
+                </div>
+                {onViewDetails && (
+                  <Button onClick={onViewDetails} variant="outline" size="sm">
+                    Ver detalles
+                  </Button>
                 )}
               </div>
-            )}
+              {/* Desglose de precios si está disponible */}
+              {(pricing.nightsTotal || pricing.cleaningFee || pricing.serviceFee) && (
+                <div className="text-xs text-gray-500 space-y-0.5 mt-2 pt-2 border-t border-gray-200">
+                  {pricing.nightsTotal && (
+                    <div className="flex justify-between">
+                      <span>Alojamiento ({nights} {nights === 1 ? 'noche' : 'noches'}):</span>
+                      <span>{formatPrice(pricing.nightsTotal, currency)}</span>
+                    </div>
+                  )}
+                  {pricing.cleaningFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>Tarifa de limpieza:</span>
+                      <span>{formatPrice(pricing.cleaningFee, currency)}</span>
+                    </div>
+                  )}
+                  {pricing.serviceFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>Tarifa de servicio:</span>
+                      <span>{formatPrice(pricing.serviceFee, currency)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }

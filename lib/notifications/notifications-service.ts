@@ -18,8 +18,7 @@ function getAuthToken(): string | null {
         return session.accessToken;
       }
     }
-  } catch (error) {
-    console.warn('⚠️ [NOTIFICATIONS SERVICE] Error leyendo sessionStorage:', error);
+  } catch {
   }
   return localStorage.getItem('token') || localStorage.getItem('authToken');
 }
@@ -40,7 +39,6 @@ async function apiRequest<T>(
 
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`🔔 [NOTIFICATIONS SERVICE] ${options.method || 'GET'} ${url}`);
 
     const response = await fetch(url, {
       ...options,
@@ -126,7 +124,7 @@ async function apiRequest<T>(
       data: data,
     };
   } catch (error) {
-    console.error(`❌ [NOTIFICATIONS SERVICE] Error en ${endpoint}:`, error);
+    console.error(`❌ [NOTIFICATIONS SERVICE] Error en ${endpoint}`);
     return {
       success: false,
       error: {
@@ -163,7 +161,6 @@ export class NotificationsService {
   ): Promise<ApiResponse<NotificationsResponse>> {
     const { page = 1, limit = 20, read } = options;
     
-    console.log('🔔 [NOTIFICATIONS SERVICE] Obteniendo notificaciones', { page, limit, read });
     
     let queryParams = `page=${page}&limit=${limit}`;
     if (read !== undefined) {
@@ -192,7 +189,6 @@ export class NotificationsService {
     const unreadCount = data?.unreadCount ?? notificationsWithDates.filter((n: Notification) => !n.read).length;
     const total = data?.total ?? notificationsWithDates.length;
     
-    console.log(`✅ [NOTIFICATIONS SERVICE] Encontradas ${notificationsWithDates.length} notificaciones (${unreadCount} no leídas)`);
     
     return {
       success: true,
@@ -212,7 +208,6 @@ export class NotificationsService {
    * @returns Contador de notificaciones no leídas
    */
   static async getUnreadCount(): Promise<ApiResponse<{ unreadCount: number }>> {
-    console.log('🔔 [NOTIFICATIONS SERVICE] Obteniendo contador de no leídas');
     
     const response = await apiRequest<{ unreadCount: number }>(
       '/api/notifications/unread-count'
@@ -223,7 +218,6 @@ export class NotificationsService {
     }
     
     const unreadCount = (response.data as any)?.unreadCount ?? 0;
-    console.log(`✅ [NOTIFICATIONS SERVICE] Contador de no leídas: ${unreadCount}`);
     
     return {
       success: true,
@@ -240,7 +234,6 @@ export class NotificationsService {
    * @returns Notificación actualizada
    */
   static async markAsRead(notificationId: string): Promise<ApiResponse<Notification>> {
-    console.log('🔔 [NOTIFICATIONS SERVICE] Marcando como leída:', notificationId);
     
     const response = await apiRequest<{ notification: Notification }>(
       `/api/notifications/${notificationId}/read`,
@@ -257,7 +250,6 @@ export class NotificationsService {
       createdAt: notification.createdAt ? new Date(notification.createdAt) : new Date(),
     };
     
-    console.log('✅ [NOTIFICATIONS SERVICE] Notificación marcada como leída');
     return {
       success: true,
       data: notificationWithDate,
@@ -272,7 +264,6 @@ export class NotificationsService {
    * @returns Número de notificaciones marcadas como leídas
    */
   static async markAllAsRead(): Promise<ApiResponse<{ count: number }>> {
-    console.log('🔔 [NOTIFICATIONS SERVICE] Marcando todas como leídas');
     
     const response = await apiRequest<{ count: number }>(
       '/api/notifications/mark-all-read',
@@ -284,7 +275,6 @@ export class NotificationsService {
     }
     
     const count = (response.data as any)?.count ?? 0;
-    console.log(`✅ [NOTIFICATIONS SERVICE] ${count} notificaciones marcadas como leídas`);
     
     return {
       success: true,
@@ -301,7 +291,6 @@ export class NotificationsService {
    * @returns Éxito de la operación
    */
   static async deleteNotification(notificationId: string): Promise<ApiResponse<void>> {
-    console.log('🔔 [NOTIFICATIONS SERVICE] Eliminando notificación:', notificationId);
     
     const response = await apiRequest<void>(
       `/api/notifications/${notificationId}`,
@@ -312,7 +301,6 @@ export class NotificationsService {
       return response;
     }
     
-    console.log('✅ [NOTIFICATIONS SERVICE] Notificación eliminada');
     return { success: true };
   }
 }

@@ -80,7 +80,7 @@ export default function ConfirmationModal({
           <div className="space-y-3">
             <button
               onClick={handleViewBooking}
-              className="w-full px-4 py-3 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3 bg-acento-200 hover:bg-acento-100 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <CheckCircle className="w-4 h-4" />
               Ver mi reserva

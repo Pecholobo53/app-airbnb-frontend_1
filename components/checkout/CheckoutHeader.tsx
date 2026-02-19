@@ -25,7 +25,7 @@ export default function CheckoutHeader({
       <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
         <Link
           href={ROUTES.HOME}
-          className="hover:text-[#FF385C] transition-colors flex items-center gap-1"
+          className="hover:text-acento-200 transition-colors flex items-center gap-1"
         >
           <Home className="w-4 h-4" />
           <span>Inicio</span>
@@ -35,7 +35,7 @@ export default function CheckoutHeader({
           <>
             <Link
               href={`/propiedad/${propertyId}`}
-              className="hover:text-[#FF385C] transition-colors"
+              className="hover:text-acento-200 transition-colors"
             >
               {propertyTitle || 'Propiedad'}
             </Link>

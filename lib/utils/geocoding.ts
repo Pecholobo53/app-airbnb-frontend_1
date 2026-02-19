@@ -20,8 +20,6 @@ async function searchNominatim(query: string): Promise<any> {
   const encodedAddress = encodeURIComponent(query.trim());
   const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=3&addressdetails=1`;
   
-  console.log('🔍 [GEOCODING] Buscando:', query);
-  console.log('📡 [GEOCODING] URL:', url);
 
   const response = await fetch(url, {
     headers: {
@@ -31,12 +29,10 @@ async function searchNominatim(query: string): Promise<any> {
   });
 
   if (!response.ok) {
-    console.error('❌ [GEOCODING] Error HTTP:', response.status, response.statusText);
     return null;
   }
 
   const data = await response.json();
-  console.log('📥 [GEOCODING] Resultados encontrados:', data?.length || 0);
   
   return data;
 }
@@ -54,7 +50,6 @@ async function searchNominatim(query: string): Promise<any> {
  */
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   if (!address || address.trim() === '') {
-    console.warn('⚠️ [GEOCODING] Dirección vacía');
     return null;
   }
 
@@ -78,12 +73,10 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
       }
     }
 
-    console.log('🔄 [GEOCODING] Intentando', addressVariations.length, 'variaciones de la dirección');
 
     // Intentar cada variación
     for (let i = 0; i < addressVariations.length; i++) {
       const variation = addressVariations[i];
-      console.log(`📋 [GEOCODING] Intento ${i + 1}/${addressVariations.length}: "${variation}"`);
 
       const data = await searchNominatim(variation);
 
@@ -109,11 +102,7 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
         // Validar que las coordenadas sean válidas
         if (!isNaN(coordinates.lat) && !isNaN(coordinates.lng) && 
             coordinates.lat !== 0 && coordinates.lng !== 0) {
-          console.log('✅ [GEOCODING] Coordenadas encontradas:', coordinates);
-          console.log('📍 [GEOCODING] Ubicación:', coordinates.displayName);
           return coordinates;
-        } else {
-          console.warn('⚠️ [GEOCODING] Coordenadas inválidas en resultado:', bestResult);
         }
       }
 
@@ -123,12 +112,11 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
       }
     }
 
-    console.warn('⚠️ [GEOCODING] No se encontraron resultados para ninguna variación de:', address);
     return null;
   } catch (error) {
-    console.error('❌ [GEOCODING] Error al obtener coordenadas:', error);
+    console.error('❌ [GEOCODING] Error al obtener coordenadas');
     if (error instanceof Error) {
-      console.error('❌ [GEOCODING] Mensaje de error:', error.message);
+      console.error('❌ [GEOCODING] Mensaje de error');
     }
     return null;
   }

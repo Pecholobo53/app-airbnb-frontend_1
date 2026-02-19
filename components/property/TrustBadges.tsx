@@ -54,7 +54,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const } },
 };
 
 /**
@@ -91,7 +91,7 @@ export default function TrustBadges() {
           >
             {/* Icono */}
             <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center">
-              <badge.icon className="w-5 h-5 text-[#FF385C]" />
+              <badge.icon className="w-5 h-5 text-acento-200" />
             </div>
 
             {/* Texto */}

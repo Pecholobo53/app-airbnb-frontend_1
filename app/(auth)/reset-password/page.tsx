@@ -31,8 +31,8 @@ function ResetPasswordContent() {
     return (
       <div className="space-y-6">
         <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-[#FF385C]/10 flex items-center justify-center">
-            <KeyRound className="w-8 h-8 text-[#FF385C] animate-pulse" />
+          <div className="w-16 h-16 rounded-full bg-acento-200/10 flex items-center justify-center">
+            <KeyRound className="w-8 h-8 text-acento-200 animate-pulse" />
           </div>
         </div>
         <div className="text-center">
@@ -66,7 +66,7 @@ function ResetPasswordContent() {
 
         <div className="space-y-3">
           <Link href="/recuperar-password">
-            <Button className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white">
+            <Button className="w-full bg-acento-200 hover:bg-acento-100 text-white">
               Solicitar nuevo link
             </Button>
           </Link>
@@ -89,8 +89,8 @@ function ResetPasswordContent() {
     <div className="space-y-6">
       {/* Icon Header */}
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-[#FF385C]/10 flex items-center justify-center">
-          <KeyRound className="w-8 h-8 text-[#FF385C]" />
+        <div className="w-16 h-16 rounded-full bg-acento-200/10 flex items-center justify-center">
+          <KeyRound className="w-8 h-8 text-acento-200" />
         </div>
       </div>
 
@@ -105,8 +105,8 @@ export default function ResetPasswordPage() {
     <Suspense fallback={
       <div className="space-y-6">
         <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-[#FF385C]/10 flex items-center justify-center">
-            <KeyRound className="w-8 h-8 text-[#FF385C] animate-pulse" />
+          <div className="w-16 h-16 rounded-full bg-acento-200/10 flex items-center justify-center">
+            <KeyRound className="w-8 h-8 text-acento-200 animate-pulse" />
           </div>
         </div>
         <div className="text-center">

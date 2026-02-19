@@ -61,12 +61,6 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
   : ''; // URL vacía = relativa, pasa por el proxy de Next.js
 
-// Log temporal para verificar que la variable se carga correctamente
-if (typeof window !== 'undefined') {
-  console.log('🔍 [DASHBOARD SERVICE] API_BASE_URL configurada:', API_BASE_URL || '(proxy local)');
-  console.log('🔍 [DASHBOARD SERVICE] NODE_ENV:', process.env.NODE_ENV);
-}
-
 /**
  * Helper para obtener el userId del usuario autenticado desde sessionStorage
  */
@@ -82,7 +76,7 @@ function getCurrentUserId(): string | null {
       }
     }
   } catch (error) {
-    console.error('❌ [DASHBOARD SERVICE] Error obteniendo userId:', error);
+    console.error('❌ [DASHBOARD SERVICE] Error obteniendo userId');
   }
   
   return null;
@@ -102,7 +96,6 @@ async function getAllUserBookings(): Promise<Booking[]> {
     );
 
     if (!response.success || !response.data) {
-      console.warn('⚠️ [DASHBOARD SERVICE] No se pudieron obtener reservas');
       return [];
     }
 
@@ -113,7 +106,7 @@ async function getAllUserBookings(): Promise<Booking[]> {
 
     return bookings;
   } catch (error) {
-    console.error('❌ [DASHBOARD SERVICE] Error obteniendo todas las reservas:', error);
+    console.error('❌ [DASHBOARD SERVICE] Error obteniendo todas las reservas');
     return [];
   }
 }
@@ -134,12 +127,6 @@ async function apiRequest<T>(
       ? sessionStorage.getItem('airbnb_session') 
       : null;
     
-    console.log('🔑 [DASHBOARD SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
-    
-    // Log completo de la sesión para debugging
-    if (session) {
-      console.log('📝 [DASHBOARD SERVICE] Contenido RAW de sesión (primeros 500 chars):', session.substring(0, 500));
-    }
     
     let token = null;
     if (session) {
@@ -149,32 +136,16 @@ async function apiRequest<T>(
         token = parsed.token || parsed.accessToken;
         
         // Log detallado de la estructura
-        console.log('🔑 [DASHBOARD SERVICE] Estructura de sesión:', {
-          hasToken: !!parsed.token,
-          hasAccessToken: !!parsed.accessToken,
-          tokenLength: token ? token.length : 0,
-          keys: Object.keys(parsed),
-          user: parsed.user ? { id: parsed.user.id, name: parsed.user.name } : null
-        });
         
         if (token) {
-          console.log('✅ [DASHBOARD SERVICE] Token extraído:', `${token.substring(0, 30)}...`);
         } else {
-          console.error('❌ [DASHBOARD SERVICE] NO HAY TOKEN en la sesión');
-          console.error('❌ [DASHBOARD SERVICE] Claves disponibles:', Object.keys(parsed));
           // Intentar buscar en otras ubicaciones
           if (parsed.data?.token) token = parsed.data.token;
           if (parsed.data?.accessToken) token = parsed.data.accessToken;
-          if (token) {
-            console.log('✅ [DASHBOARD SERVICE] Token encontrado en parsed.data:', `${token.substring(0, 30)}...`);
-          }
         }
       } catch (parseError) {
-        console.error('❌ [DASHBOARD SERVICE] Error parseando sesión:', parseError);
+        console.error('❌ [DASHBOARD SERVICE] Error parseando sesión');
       }
-    } else {
-      console.error('❌ [DASHBOARD SERVICE] No hay sesión en sessionStorage');
-      console.error('❌ [DASHBOARD SERVICE] Verifica que el usuario esté logueado');
     }
 
     const headers: Record<string, string> = {
@@ -187,23 +158,12 @@ async function apiRequest<T>(
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('✅ [DASHBOARD SERVICE] Header Authorization agregado');
     } else {
-      console.warn('⚠️ [DASHBOARD SERVICE] NO HAY TOKEN - Request sin autenticación');
-      console.warn('⚠️ [DASHBOARD SERVICE] El backend rechazará esta petición con 401 Unauthorized');
       // Nota: No retornamos error aquí porque el backend debe manejar la autenticación
       // Esto permite que el backend retorne mensajes de error más específicos
     }
 
-    console.log('📤 [DASHBOARD SERVICE] Enviando request a:', url);
-    console.log('📤 [DASHBOARD SERVICE] Método:', options.method || 'GET');
-    console.log('📤 [DASHBOARD SERVICE] Headers:', { 
-      'Content-Type': 'application/json',
-      'Authorization': token ? 'Bearer ***' : 'NO TOKEN'
-    });
 
-    console.log('🌐 [DASHBOARD SERVICE] Haciendo fetch a:', url);
-    console.log('🌐 [DASHBOARD SERVICE] Con headers:', JSON.stringify(headers, null, 2));
     
     let response: Response;
     try {
@@ -213,30 +173,14 @@ async function apiRequest<T>(
         mode: 'cors', // Modo CORS explícito
         // Nota: No usamos credentials: 'include' porque usamos Authorization header
       });
-      console.log('✅ [DASHBOARD SERVICE] Fetch exitoso, status:', response.status);
     } catch (fetchError) {
-      console.error('❌ [DASHBOARD SERVICE] Error en fetch:', fetchError);
-      console.error('❌ [DASHBOARD SERVICE] Tipo de error:', (fetchError as Error).name);
-      console.error('❌ [DASHBOARD SERVICE] Mensaje:', (fetchError as Error).message);
+      console.error('❌ [DASHBOARD SERVICE] Error en fetch');
+      console.error('❌ [DASHBOARD SERVICE] Tipo de error');
+      console.error('❌ [DASHBOARD SERVICE] Mensaje');
       throw fetchError;
     }
 
-    console.log('📥 [DASHBOARD SERVICE] Response:', {
-      status: response.status,
-      ok: response.ok,
-      hasToken: !!token,
-      statusText: response.statusText
-    });
     
-    // Logging especial para errores de autenticación
-    if (response.status === 401) {
-      console.error('🔒 [DASHBOARD SERVICE] Error 401 Unauthorized:', {
-        hasToken: !!token,
-        tokenPreview: token ? `${token.substring(0, 20)}...` : 'NO TOKEN',
-        endpoint: url
-      });
-    }
-
     // Manejo seguro de JSON - verificar content-type primero
     let data: any;
     const contentType = response.headers.get('content-type');
@@ -245,7 +189,7 @@ async function apiRequest<T>(
       try {
         data = await response.json();
       } catch (jsonError) {
-        console.error('❌ [DASHBOARD SERVICE] Error parseando JSON:', jsonError);
+        console.error('❌ [DASHBOARD SERVICE] Error parseando JSON');
         return {
           success: false,
           error: {
@@ -258,11 +202,6 @@ async function apiRequest<T>(
       // Si no es JSON, intentar leer como texto para debugging
       try {
         const text = await response.text();
-        console.error('❌ [DASHBOARD SERVICE] Respuesta no es JSON:', {
-          contentType,
-          preview: text.substring(0, 200),
-          status: response.status
-        });
         
         // Determinar código de error basado en status HTTP
         let errorCode = 'INVALID_RESPONSE';
@@ -284,7 +223,7 @@ async function apiRequest<T>(
           },
         };
       } catch (textError) {
-        console.error('❌ [DASHBOARD SERVICE] Error leyendo respuesta:', textError);
+        console.error('❌ [DASHBOARD SERVICE] Error leyendo respuesta');
         return {
           success: false,
           error: {
@@ -296,10 +235,6 @@ async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      console.error('❌ [DASHBOARD SERVICE] Error:', {
-        status: response.status,
-        error: data.error || data.message,
-      });
       
       // Determinar código de error basado en status HTTP
       let errorCode = 'NETWORK_ERROR';
@@ -319,12 +254,8 @@ async function apiRequest<T>(
       let errorMessage = data.error?.message || data.message || 'Error en la petición';
       if (response.status === 404) {
         errorMessage = 'Ruta no encontrada';
-        console.warn('⚠️ [DASHBOARD SERVICE] Endpoint no encontrado (404):', url);
-        console.warn('💡 [DASHBOARD SERVICE] Verifica que el backend tenga este endpoint implementado');
       } else if (response.status === 401) {
         errorMessage = 'No tienes autorización para acceder a esta información. Por favor, inicia sesión nuevamente.';
-        console.warn('⚠️ [DASHBOARD SERVICE] Error de autenticación (401):', url);
-        console.warn('💡 [DASHBOARD SERVICE] Verifica que tengas una sesión activa y que el token sea válido');
       } else if (response.status === 403) {
         errorMessage = 'No tienes permisos para realizar esta acción.';
       } else if (response.status >= 500) {
@@ -371,7 +302,7 @@ async function apiRequest<T>(
       data: processedData,
     };
   } catch (error) {
-    console.error('❌ [DASHBOARD SERVICE] Error en API request:', error);
+    console.error('❌ [DASHBOARD SERVICE] Error en API request');
     
     // Detectar tipo específico de error
     let errorCode = 'NETWORK_ERROR';
@@ -399,12 +330,7 @@ async function apiRequest<T>(
       errorMessage = error.message;
     }
     
-    console.error('🔍 [DASHBOARD SERVICE] Detalles del error:', {
-      errorType: error instanceof TypeError ? 'TypeError' : error instanceof Error ? 'Error' : typeof error,
-      errorMessage: error instanceof Error ? error.message : String(error),
-      apiUrl: API_BASE_URL,
-      endpoint: endpoint
-    });
+    console.error('🔍 [DASHBOARD SERVICE] Detalles del error');
     
     return {
       success: false,
@@ -427,7 +353,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getGuestStats(guestId: string): Promise<DashboardResponse<GuestStats>> {
-    console.log('📊 [DASHBOARD SERVICE] Calculando stats de huésped desde reservas:', guestId);
     
     try {
       // Intentar primero el endpoint (por si el backend lo implementa en el futuro)
@@ -436,12 +361,10 @@ export class DashboardService {
       });
       
       if (endpointResponse.success && endpointResponse.data) {
-        console.log('✅ [DASHBOARD SERVICE] Stats obtenidas del endpoint');
         return endpointResponse;
       }
       
       // Si el endpoint no existe (404) o falla, calcular desde reservas
-      console.log('💡 [DASHBOARD SERVICE] Endpoint no disponible, calculando desde reservas');
       
       const allBookings = await getAllUserBookings();
       const guestBookings = allBookings.filter(b => b.guestId === guestId);
@@ -504,7 +427,7 @@ export class DashboardService {
         data: stats,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error calculando stats de huésped:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error calculando stats de huésped');
       return {
         success: false,
         error: {
@@ -525,7 +448,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getHostStats(hostId: string): Promise<DashboardResponse<HostStats>> {
-    console.log('🏡 [DASHBOARD SERVICE] Calculando stats de anfitrión desde reservas:', hostId);
     
     try {
       // Intentar primero el endpoint (por si el backend lo implementa en el futuro)
@@ -534,12 +456,10 @@ export class DashboardService {
       });
       
       if (endpointResponse.success && endpointResponse.data) {
-        console.log('✅ [DASHBOARD SERVICE] Stats obtenidas del endpoint');
         return endpointResponse;
       }
       
       // Si el endpoint no existe (404) o falla, calcular desde reservas
-      console.log('💡 [DASHBOARD SERVICE] Endpoint no disponible, calculando desde reservas');
       
       const allBookings = await getAllUserBookings();
       const hostBookings = allBookings.filter(b => b.hostId === hostId);
@@ -625,7 +545,7 @@ export class DashboardService {
         data: stats,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error calculando stats de anfitrión:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error calculando stats de anfitrión');
       return {
         success: false,
         error: {
@@ -646,7 +566,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getUpcomingTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
-    console.log('✈️ [DASHBOARD SERVICE] Obteniendo próximos viajes:', guestId);
     
     try {
       // Obtener todas las reservas confirmadas
@@ -656,7 +575,6 @@ export class DashboardService {
       );
       
       if (!response.success || !response.data) {
-        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
         return {
           success: false,
           error: response.error || {
@@ -680,14 +598,13 @@ export class DashboardService {
         return booking.guestId === guestId && checkIn > now;
       });
       
-      console.log(`✅ [DASHBOARD SERVICE] Encontrados ${upcomingTrips.length} próximos viajes`);
       
       return {
         success: true,
         data: upcomingTrips,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo próximos viajes:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo próximos viajes');
       return {
         success: false,
         error: {
@@ -708,7 +625,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getPastTrips(guestId: string): Promise<DashboardResponse<Booking[]>> {
-    console.log('📚 [DASHBOARD SERVICE] Obteniendo historial:', guestId);
     
     try {
       // Obtener reservas completadas
@@ -718,7 +634,6 @@ export class DashboardService {
       );
       
       if (!response.success || !response.data) {
-        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
         return {
           success: false,
           error: response.error || {
@@ -742,14 +657,13 @@ export class DashboardService {
         return booking.guestId === guestId && checkOut < now;
       });
       
-      console.log(`✅ [DASHBOARD SERVICE] Encontrados ${pastTrips.length} viajes pasados`);
       
       return {
         success: true,
         data: pastTrips,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo historial:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo historial');
       return {
         success: false,
         error: {
@@ -770,7 +684,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getAllUserBookings(guestId: string): Promise<DashboardResponse<Booking[]>> {
-    console.log('📋 [DASHBOARD SERVICE] Obteniendo todas las reservas del usuario:', guestId);
 
     try {
       // Agregar timestamp para evitar caché del navegador
@@ -781,7 +694,6 @@ export class DashboardService {
       );
 
       if (!response.success || !response.data) {
-        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
         
         // Mejorar mensaje de error según el código
         let errorMessage = 'Error al cargar reservas';
@@ -810,23 +722,7 @@ export class DashboardService {
         ? response.data
         : (response.data as any).bookings || [];
 
-      console.log(`📦 [DASHBOARD SERVICE] Total de reservas recibidas: ${allBookings.length}`);
-      console.log(`🔍 [DASHBOARD SERVICE] Buscando reservas para guestId: ${guestId}`);
       
-      // Log de todas las reservas para debugging
-      if (allBookings.length > 0) {
-        console.log('📋 [DASHBOARD SERVICE] Reservas recibidas (primeras 5):', 
-          allBookings.slice(0, 5).map((b: any) => ({
-            id: b.id,
-            guestId: b.guestId,
-            propertyId: b.propertyId,
-            status: b.status,
-            checkIn: b.checkIn,
-            match: b.guestId === guestId
-          }))
-        );
-      }
-
       // Filtrar por guestId (comparación flexible para manejar strings y ObjectIds)
       // También verificar userId por si el backend usa ese campo
       const userBookings = allBookings.filter((b: any) => {
@@ -842,21 +738,10 @@ export class DashboardService {
         
         if (!matches && allBookings.length <= 10) {
           // Solo loggear si hay pocas reservas para no saturar la consola
-          console.log(`⚠️ [DASHBOARD SERVICE] Reserva no coincide:`, {
-            bookingId: booking.id,
-            bookingGuestId: booking.guestId,
-            bookingUserId: (booking as any).userId,
-            bookingUserIdStr: bookingUserIdStr,
-            userGuestId: userGuestIdStr,
-            match: matches,
-            hasGuestId: !!booking.guestId,
-            hasUserId: !!(booking as any).userId
-          });
         }
         return matches;
       });
       
-      console.log(`✅ [DASHBOARD SERVICE] Reservas filtradas para el usuario: ${userBookings.length} de ${allBookings.length}`);
 
       // Ordenar por fecha de check-in (más recientes primero)
       userBookings.sort((a: Booking, b: Booking) => {
@@ -880,11 +765,10 @@ export class DashboardService {
         return normalized;
       });
 
-      console.log(`✅ [DASHBOARD SERVICE] Encontradas ${normalizedBookings.length} reservas del usuario`);
 
       return { success: true, data: normalizedBookings };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo todas las reservas:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo todas las reservas');
       
       // Determinar tipo de error
       let errorCode = 'NETWORK_ERROR';
@@ -921,7 +805,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getPendingRequests(hostId: string): Promise<DashboardResponse<Booking[]>> {
-    console.log('⏳ [DASHBOARD SERVICE] Obteniendo solicitudes pendientes:', hostId);
     
     try {
       // Obtener reservas pendientes
@@ -931,7 +814,6 @@ export class DashboardService {
       );
       
       if (!response.success || !response.data) {
-        console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas:', response.error);
         return {
           success: false,
           error: response.error || {
@@ -951,14 +833,13 @@ export class DashboardService {
         return booking.hostId === hostId;
       });
       
-      console.log(`✅ [DASHBOARD SERVICE] Encontradas ${pendingRequests.length} solicitudes pendientes`);
       
       return {
         success: true,
         data: pendingRequests,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo solicitudes pendientes:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo solicitudes pendientes');
       return {
         success: false,
         error: {
@@ -979,7 +860,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getHostBookings(hostId: string): Promise<DashboardResponse<Booking[]>> {
-    console.log('🗓️ [DASHBOARD SERVICE] Obteniendo reservas del anfitrión:', hostId);
     
     try {
       // Obtener todas las reservas
@@ -988,14 +868,13 @@ export class DashboardService {
       // Filtrar por hostId
       const hostBookings = allBookings.filter(b => b.hostId === hostId);
       
-      console.log(`✅ [DASHBOARD SERVICE] Encontradas ${hostBookings.length} reservas del anfitrión`);
       
       return {
         success: true,
         data: hostBookings,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas del anfitrión:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error obteniendo reservas del anfitrión');
       return {
         success: false,
         error: {
@@ -1016,7 +895,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getMonthlyData(userId: string, mode: 'guest' | 'host'): Promise<DashboardResponse<MonthlyData[]>> {
-    console.log('📈 [DASHBOARD SERVICE] Calculando datos mensuales desde reservas:', { userId, mode });
     
     try {
       // Intentar primero el endpoint (por si el backend lo implementa en el futuro)
@@ -1026,12 +904,10 @@ export class DashboardService {
       );
       
       if (endpointResponse.success && endpointResponse.data) {
-        console.log('✅ [DASHBOARD SERVICE] Datos mensuales obtenidos del endpoint');
         return endpointResponse;
       }
       
       // Si el endpoint no existe (404) o falla, calcular desde reservas
-      console.log('💡 [DASHBOARD SERVICE] Endpoint no disponible, calculando desde reservas');
       
       const allBookings = await getAllUserBookings();
       
@@ -1087,14 +963,13 @@ export class DashboardService {
           return dateB.getTime() - dateA.getTime();
         });
       
-      console.log(`✅ [DASHBOARD SERVICE] Calculados datos de ${monthlyData.length} meses`);
       
       return {
         success: true,
         data: monthlyData,
       };
     } catch (error) {
-      console.error('❌ [DASHBOARD SERVICE] Error calculando datos mensuales:', error);
+      console.error('❌ [DASHBOARD SERVICE] Error calculando datos mensuales');
       return {
         success: false,
         error: {
@@ -1112,7 +987,6 @@ export class DashboardService {
    * Autenticación: JWT requerido (Bearer token)
    */
   static async getBookingById(bookingId: string): Promise<DashboardResponse<Booking>> {
-    console.log('🔍 [DASHBOARD SERVICE] Obteniendo reserva:', bookingId);
     
     return apiRequest<Booking>(`/api/bookings/${bookingId}`, {
       method: 'GET',
@@ -1132,7 +1006,6 @@ export class DashboardService {
     bookingId: string,
     action: BookingAction
   ): Promise<DashboardResponse<Booking>> {
-    console.log(`🎬 [DASHBOARD SERVICE] Acción "${action}" en reserva:`, bookingId);
 
     let endpoint = '';
     switch (action) {
@@ -1181,7 +1054,6 @@ export class DashboardService {
     guests: { adults: number; children: number; infants: number },
     pricing: { basePrice: number; nightsTotal: number; cleaningFee: number; serviceFee: number; total: number }
   ): Promise<DashboardResponse<Booking>> {
-    console.log('📅 [DASHBOARD SERVICE] Creando reserva:', { guestId, propertyId, checkIn, checkOut });
     
     return apiRequest<Booking>('/api/bookings', {
       method: 'POST',

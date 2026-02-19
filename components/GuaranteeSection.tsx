@@ -53,7 +53,7 @@ export default function GuaranteeSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
         >
-          <p className="text-sm font-semibold text-[#FF385C] uppercase tracking-widest mb-3">
+          <p className="text-sm font-semibold text-acento-200 uppercase tracking-widest mb-3">
             La diferencia que se siente
           </p>
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
@@ -85,8 +85,8 @@ export default function GuaranteeSection() {
               className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 lg:p-8 hover:bg-white/10 transition-colors"
             >
               {/* Icono */}
-              <div className="w-12 h-12 rounded-xl bg-[#FF385C]/20 flex items-center justify-center mb-5">
-                <pillar.icon className="w-6 h-6 text-[#FF385C]" />
+              <div className="w-12 h-12 rounded-xl bg-acento-200/20 flex items-center justify-center mb-5">
+                <pillar.icon className="w-6 h-6 text-acento-200" />
               </div>
 
               {/* Texto */}
@@ -98,7 +98,7 @@ export default function GuaranteeSection() {
               </p>
 
               {/* Highlight pill */}
-              <span className="inline-block px-3 py-1 bg-[#FF385C]/15 text-[#FF385C] text-xs font-semibold rounded-full">
+              <span className="inline-block px-3 py-1 bg-acento-200/15 text-acento-200 text-xs font-semibold rounded-full">
                 {pillar.highlight}
               </span>
             </motion.div>
@@ -115,7 +115,7 @@ export default function GuaranteeSection() {
         >
           <Link
             href="/buscar"
-            className="inline-flex items-center gap-2 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold px-8 py-4 rounded-xl transition-colors shadow-lg shadow-[#FF385C]/25"
+            className="inline-flex items-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-semibold px-8 py-4 rounded-xl transition-colors shadow-lg shadow-acento-200/25"
           >
             Descubrir propiedades disponibles
           </Link>

@@ -16,8 +16,27 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Ofertas Especiales - Airbnb',
-  description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos de Airbnb',
+  title: {
+    default: 'Airbnb - Alojamientos únicos y experiencias',
+    template: '%s | Airbnb',
+  },
+  description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos de Airbnb. Reserva casas, apartamentos y experiencias en todo el mundo.',
+  openGraph: {
+    type: 'website',
+    locale: 'es_ES',
+    siteName: 'Airbnb',
+    title: 'Airbnb - Alojamientos únicos y experiencias',
+    description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos de Airbnb.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Airbnb - Alojamientos únicos y experiencias',
+    description: 'Descubre las mejores promociones y ofertas exclusivas en alojamientos únicos.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport = {

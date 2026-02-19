@@ -128,7 +128,7 @@ export default function PasswordRecoveryForm() {
             onClick={handleResendEmail}
             disabled={!canResend}
             variant="outline"
-            className="w-full border-[#FF385C] text-[#FF385C] hover:bg-[#FF385C] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full border-acento-200 text-acento-200 hover:bg-acento-200 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isResending ? (
               <>
@@ -152,7 +152,7 @@ export default function PasswordRecoveryForm() {
         <div className="pt-2">
           <Link
             href="/login"
-            className="text-sm text-[#FF385C] hover:text-[#E31C5F] hover:underline"
+            className="text-sm text-acento-200 hover:text-acento-100 hover:underline"
           >
             ← Volver a iniciar sesión
           </Link>
@@ -197,7 +197,7 @@ export default function PasswordRecoveryForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold h-12"
+        className="w-full bg-acento-200 hover:bg-acento-100 text-white font-semibold h-12"
         disabled={isLoading}
       >
         {isLoading ? (

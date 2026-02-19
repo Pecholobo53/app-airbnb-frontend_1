@@ -21,12 +21,12 @@ const Slider = React.forwardRef<
       {...props}
     >
       <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-gray-200">
-        <SliderPrimitive.Range className="absolute h-full bg-[#FF385C]" />
+        <SliderPrimitive.Range className="absolute h-full bg-acento-200" />
       </SliderPrimitive.Track>
       {/* Radix UI crea automáticamente los thumbs basándose en el array value */}
-      <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-[#FF385C] bg-white shadow-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF385C] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-grab active:cursor-grabbing" />
+      <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-acento-200 bg-white shadow-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acento-200 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-grab active:cursor-grabbing" />
       {/* Si hay un segundo valor en el array, Radix UI creará automáticamente otro thumb */}
-      <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-[#FF385C] bg-white shadow-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF385C] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-grab active:cursor-grabbing" />
+      <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-acento-200 bg-white shadow-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acento-200 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-grab active:cursor-grabbing" />
     </SliderPrimitive.Root>
   );
 });

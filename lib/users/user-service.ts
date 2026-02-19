@@ -59,7 +59,6 @@ async function apiRequest<T>(
       ? sessionStorage.getItem('airbnb_session') 
       : null;
     
-    console.log('🔑 [USER SERVICE] Sesión en sessionStorage:', session ? 'Encontrada' : 'No encontrada');
     
     let token = null;
     if (session) {
@@ -67,13 +66,8 @@ async function apiRequest<T>(
         const parsed = JSON.parse(session);
         // Buscar token en ambos campos (el backend puede usar 'token' o 'accessToken')
         token = parsed.token || parsed.accessToken;
-        console.log('🔑 [USER SERVICE] Token extraído:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
-        console.log('🔑 [USER SERVICE] Estructura de sesión:', Object.keys(parsed));
-        if (parsed.user) {
-          console.log('👤 [USER SERVICE] Usuario en sesión:', parsed.user.name);
-        }
       } catch (parseError) {
-        console.error('❌ [USER SERVICE] Error parseando sesión:', parseError);
+        console.error('❌ [USER SERVICE] Error parseando sesión');
       }
     }
 
@@ -84,25 +78,14 @@ async function apiRequest<T>(
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('✅ [USER SERVICE] Header Authorization agregado');
-    } else {
-      console.warn('⚠️ [USER SERVICE] NO HAY TOKEN - Request sin autenticación');
     }
 
-    console.log('📤 [USER SERVICE] Enviando request a:', url);
-    console.log('📤 [USER SERVICE] Método:', options.method || 'GET');
-    console.log('📤 [USER SERVICE] Headers:', { 
-      'Content-Type': 'application/json',
-      'Authorization': token ? 'Bearer ***' : 'NO TOKEN'
-    });
 
     const response = await fetch(url, {
       ...options,
       headers,
     });
 
-    console.log('📥 [USER SERVICE] Response status:', response.status);
-    console.log('📥 [USER SERVICE] Response ok:', response.ok);
 
     // Verificar si la respuesta es JSON válida
     let data;
@@ -114,7 +97,6 @@ async function apiRequest<T>(
       } else {
         // Si no es JSON, intentar leer como texto para logging
         const text = await response.text();
-        console.warn('⚠️ [USER SERVICE] Response no es JSON:', text.substring(0, 100));
         return {
           success: false,
           error: {
@@ -124,7 +106,7 @@ async function apiRequest<T>(
         };
       }
     } catch (jsonError) {
-      console.error('❌ [USER SERVICE] Error parseando respuesta:', jsonError);
+      console.error('❌ [USER SERVICE] Error parseando respuesta');
       return {
         success: false,
         error: {
@@ -135,12 +117,6 @@ async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      console.error('❌ [USER SERVICE] Error en response:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: data.error || data.message,
-        fullResponse: data,
-      });
       
       // Determinar código de error basado en status HTTP
       let errorCode = 'NETWORK_ERROR';
@@ -176,13 +152,12 @@ async function apiRequest<T>(
       };
     }
 
-    console.log('✅ [USER SERVICE] Request exitoso');
     return {
       success: true,
       data: data.data || data,
     };
   } catch (error) {
-    console.error('❌ [USER SERVICE] Error en API request:', error);
+    console.error('❌ [USER SERVICE] Error en API request');
     
     // Manejar errores específicos
     if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -217,25 +192,21 @@ export class UserService {
    * @returns Usuario encontrado o error
    */
   static async getUserById(userId: string): Promise<AuthResponse<User>> {
-    console.log('🔍 [USER SERVICE] Obteniendo usuario:', userId);
     
     const response = await apiRequest<User>(`/api/users/${userId}`, {
       method: 'GET',
     });
 
     if (response.success) {
-      console.log('✅ [USER SERVICE] Usuario obtenido');
       
       // MANEJO DE ESTRUCTURA ANIDADA
       let userData: User;
       if (response.data && (response.data as any).user) {
         // Backend devuelve: { success: true, data: { user: {...} } }
         userData = (response.data as any).user;
-        console.log('📦 [USER SERVICE] Estructura anidada detectada (data.user)');
       } else {
         // Backend devuelve: { success: true, data: {...} }
         userData = response.data as User;
-        console.log('📦 [USER SERVICE] Estructura plana (data)');
       }
       
       // Convertir fechas de string a Date
@@ -246,10 +217,7 @@ export class UserService {
         
         // Actualizar response.data con los datos correctos
         response.data = userData;
-        console.log('✅ [USER SERVICE] Usuario procesado:', userData.name);
       }
-    } else {
-      console.error('❌ [USER SERVICE] Error obteniendo usuario:', response.error?.message);
     }
 
     return response;
@@ -269,7 +237,6 @@ export class UserService {
     limit: number = 20,
     offset: number = 0
   ): Promise<AuthResponse<{ users: User[]; total: number }>> {
-    console.log('📋 [USER SERVICE] Listando usuarios:', { limit, offset });
     
     const params = new URLSearchParams({
       limit: limit.toString(),
@@ -284,7 +251,6 @@ export class UserService {
     );
 
     if (response.success && response.data) {
-      console.log('✅ [USER SERVICE] Usuarios listados:', response.data.users.length);
       
       // Convertir fechas de string a Date para cada usuario
       response.data.users = response.data.users.map(user => ({
@@ -293,8 +259,6 @@ export class UserService {
         updatedAt: new Date(user.updatedAt),
         favorites: user.favorites || [],
       }));
-    } else {
-      console.error('❌ [USER SERVICE] Error listando usuarios:', response.error?.message);
     }
 
     return response;
@@ -316,7 +280,6 @@ export class UserService {
     limit: number = 20,
     offset: number = 0
   ): Promise<AuthResponse<{ users: User[]; total: number }>> {
-    console.log('🔍 [USER SERVICE] Buscando usuarios:', query);
     
     const params = new URLSearchParams({
       search: query,
@@ -332,7 +295,6 @@ export class UserService {
     );
 
     if (response.success && response.data) {
-      console.log('✅ [USER SERVICE] Usuarios encontrados:', response.data.users.length);
       
       // Convertir fechas de string a Date para cada usuario
       response.data.users = response.data.users.map(user => ({
@@ -341,8 +303,6 @@ export class UserService {
         updatedAt: new Date(user.updatedAt),
         favorites: user.favorites || [],
       }));
-    } else {
-      console.error('❌ [USER SERVICE] Error buscando usuarios:', response.error?.message);
     }
 
     return response;
@@ -363,7 +323,6 @@ export class UserService {
     userId: string,
     data: Partial<User>
   ): Promise<AuthResponse<User>> {
-    console.log('📝 [USER SERVICE] Actualizando usuario (PUT):', userId);
     
     const response = await apiRequest<User>(`/api/users/${userId}`, {
       method: 'PUT',
@@ -371,14 +330,10 @@ export class UserService {
     });
 
     if (response.success && response.data) {
-      console.log('✅ [USER SERVICE] Usuario actualizado:', response.data.name);
-      
       // Convertir fechas de string a Date
       response.data.createdAt = new Date(response.data.createdAt);
       response.data.updatedAt = new Date(response.data.updatedAt);
       response.data.favorites = response.data.favorites || [];
-    } else {
-      console.error('❌ [USER SERVICE] Error actualizando usuario:', response.error?.message);
     }
 
     return response;
@@ -399,7 +354,6 @@ export class UserService {
     userId: string,
     data: Partial<User>
   ): Promise<AuthResponse<User>> {
-    console.log('📝 [USER SERVICE] Actualizando usuario (PATCH):', userId);
     
     const response = await apiRequest<User>(`/api/users/${userId}`, {
       method: 'PATCH',
@@ -407,14 +361,10 @@ export class UserService {
     });
 
     if (response.success && response.data) {
-      console.log('✅ [USER SERVICE] Usuario actualizado:', response.data.name);
-      
       // Convertir fechas de string a Date
       response.data.createdAt = new Date(response.data.createdAt);
       response.data.updatedAt = new Date(response.data.updatedAt);
       response.data.favorites = response.data.favorites || [];
-    } else {
-      console.error('❌ [USER SERVICE] Error actualizando usuario:', response.error?.message);
     }
 
     return response;
@@ -430,17 +380,10 @@ export class UserService {
    * @returns Confirmación de eliminación o error
    */
   static async deleteUser(userId: string): Promise<AuthResponse<void>> {
-    console.log('🗑️ [USER SERVICE] Eliminando usuario:', userId);
     
     const response = await apiRequest<void>(`/api/users/${userId}`, {
       method: 'DELETE',
     });
-
-    if (response.success) {
-      console.log('✅ [USER SERVICE] Usuario eliminado exitosamente');
-    } else {
-      console.error('❌ [USER SERVICE] Error eliminando usuario:', response.error?.message);
-    }
 
     return response;
   }
@@ -462,7 +405,6 @@ export class UserService {
     phone?: string;
     role?: 'admin' | 'user';
   }): Promise<AuthResponse<User>> {
-    console.log('➕ [USER SERVICE] Creando nuevo usuario:', data.email);
     
     const response = await apiRequest<User>(`/api/users`, {
       method: 'POST',
@@ -470,14 +412,10 @@ export class UserService {
     });
 
     if (response.success && response.data) {
-      console.log('✅ [USER SERVICE] Usuario creado:', response.data.name);
-      
       // Convertir fechas de string a Date
       response.data.createdAt = new Date(response.data.createdAt);
       response.data.updatedAt = new Date(response.data.updatedAt);
       response.data.favorites = response.data.favorites || [];
-    } else {
-      console.error('❌ [USER SERVICE] Error creando usuario:', response.error?.message);
     }
 
     return response;
@@ -499,7 +437,6 @@ export class UserService {
     regularUsers: number;
     newThisMonth: number;
   }>> {
-    console.log('📊 [USER SERVICE] Obteniendo estadísticas de usuarios');
     
     try {
       // Intentar obtener del endpoint de stats si existe
@@ -515,24 +452,19 @@ export class UserService {
       });
 
       if (statsResponse.success && statsResponse.data) {
-        console.log('✅ [USER SERVICE] Estadísticas obtenidas del endpoint /api/users/stats');
         return statsResponse;
       } else {
         // Si el endpoint existe pero falla, verificar si es rate limiting
         if (statsResponse.error?.code === 'RATE_LIMIT' || statsResponse.error?.code === '429') {
-          console.warn('⚠️ [USER SERVICE] Rate limiting en endpoint de stats');
           return statsResponse; // Retornar el error directamente
         }
-        console.log('⚠️ [USER SERVICE] Endpoint de stats no disponible o falló, intentando calcular desde lista');
       }
-    } catch (error) {
-      console.log('⚠️ [USER SERVICE] Endpoint de stats no disponible, calculando desde lista');
+    } catch {
     }
 
     // Si no existe el endpoint, calcular desde la lista de usuarios
     // Usar un límite más razonable para evitar rate limiting
     try {
-      console.log('📋 [USER SERVICE] Obteniendo lista de usuarios para calcular estadísticas...');
       
       // Obtener usuarios en lotes más pequeños para evitar rate limiting
       // Primero intentar con un límite pequeño
@@ -545,7 +477,6 @@ export class UserService {
         // Si hay más usuarios, intentar obtener el total real
         let allUsers = users;
         if (total > 100 && users.length === 100) {
-          console.log(`📋 [USER SERVICE] Hay ${total} usuarios totales, pero solo obteniendo muestra de 100 para evitar rate limiting`);
           // No obtener todos para evitar rate limiting
           // Usar la muestra para calcular proporciones
         }
@@ -561,14 +492,6 @@ export class UserService {
         };
         
         // Log para debugging: ver qué roles se están recibiendo
-        console.log('🔍 [USER SERVICE] Roles encontrados en usuarios:', 
-          allUsers.map(u => ({ 
-            id: u.id?.substring(0, 8), 
-            email: u.email, 
-            role: u.role,
-            normalizedRole: normalizeRole(u.role)
-          }))
-        );
         
         const stats = {
           total: total, // Usar el total del backend si está disponible
@@ -586,7 +509,6 @@ export class UserService {
           newThisMonth: allUsers.filter(u => new Date(u.createdAt) >= startOfMonth).length,
         };
         
-        console.log('📊 [USER SERVICE] Estadísticas calculadas (antes de ajuste proporcional):', stats);
         
         // Si tenemos una muestra, ajustar proporcionalmente (solo si el total es mayor)
         if (total > allUsers.length && allUsers.length > 0) {
@@ -596,10 +518,8 @@ export class UserService {
           stats.admins = Math.round(stats.admins * ratio);
           stats.regularUsers = Math.round(stats.regularUsers * ratio);
           stats.newThisMonth = Math.round(stats.newThisMonth * ratio);
-          console.log('📊 [USER SERVICE] Estadísticas ajustadas proporcionalmente desde muestra');
         }
         
-        console.log('✅ [USER SERVICE] Estadísticas calculadas:', stats);
         
         return {
           success: true,
@@ -610,7 +530,6 @@ export class UserService {
         if (listResponse.error?.code === 'RATE_LIMIT' || 
             listResponse.error?.code === '429' ||
             listResponse.error?.message?.toLowerCase().includes('demasiadas')) {
-          console.error('❌ [USER SERVICE] Rate limiting al obtener lista de usuarios');
           return {
             success: false,
             error: {
@@ -620,7 +539,6 @@ export class UserService {
           };
         }
         
-        console.error('❌ [USER SERVICE] Error obteniendo lista de usuarios:', listResponse.error);
         return {
           success: false,
           error: {
@@ -630,7 +548,7 @@ export class UserService {
         };
       }
     } catch (error) {
-      console.error('❌ [USER SERVICE] Error calculando estadísticas:', error);
+      console.error('❌ [USER SERVICE] Error calculando estadísticas');
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       
       return {
@@ -649,14 +567,11 @@ export class UserService {
    */
   static debugGetToken(): string | null {
     if (typeof window === 'undefined') {
-      console.log('❌ [DEBUG] No hay window (SSR)');
       return null;
     }
     
     const session = sessionStorage.getItem('airbnb_session');
     if (!session) {
-      console.log('❌ [DEBUG] No hay sesión en sessionStorage');
-      console.log('💡 [DEBUG] Necesitas iniciar sesión primero en /login');
       return null;
     }
     
@@ -664,19 +579,10 @@ export class UserService {
       const parsed = JSON.parse(session);
       const token = parsed.accessToken;
       
-      console.log('✅ [DEBUG] Sesión encontrada');
-      console.log('🔑 [DEBUG] Token:', token ? `${token.substring(0, 30)}...` : 'NO HAY TOKEN');
-      console.log('👤 [DEBUG] Usuario:', parsed.user?.name || 'No disponible');
-      console.log('📅 [DEBUG] Expira:', parsed.expiresAt ? new Date(parsed.expiresAt).toLocaleString('es-ES') : 'No disponible');
-      
-      if (!token) {
-        console.warn('⚠️ [DEBUG] La sesión existe pero NO tiene accessToken');
-        console.log('📋 [DEBUG] Estructura completa:', parsed);
-      }
       
       return token;
     } catch (error) {
-      console.error('❌ [DEBUG] Error parseando sesión:', error);
+      console.error('❌ [DEBUG] Error parseando sesión');
       return null;
     }
   }

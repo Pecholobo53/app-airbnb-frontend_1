@@ -84,8 +84,7 @@ function getAuthToken(): string | null {
         return session.token;
       }
     }
-  } catch (error) {
-    console.warn('⚠️ [FAVORITES SERVICE] Error leyendo sessionStorage:', error);
+  } catch {
   }
   
   return null;
@@ -111,7 +110,6 @@ async function apiRequest<T>(
 
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`📡 [FAVORITES SERVICE] ${options.method || 'GET'} ${url}`);
     
     const response = await fetch(url, {
       ...options,
@@ -158,8 +156,6 @@ async function apiRequest<T>(
           if (data.message?.toLowerCase().includes('ruta no encontrada') || 
               data.message?.toLowerCase().includes('route not found')) {
             errorMessage = 'El endpoint de favoritos no está disponible en el backend. Por favor, contacta con soporte.';
-            console.error('❌ [FAVORITES SERVICE] Endpoint no encontrado (404):', url);
-            console.error('💡 [FAVORITES SERVICE] Verifica que el backend tenga el endpoint implementado:', endpoint);
           } else {
             errorMessage = data.message || 'Recurso no encontrado.';
           }
@@ -215,7 +211,7 @@ async function apiRequest<T>(
       data: data,
     };
   } catch (error) {
-    console.error(`❌ [FAVORITES SERVICE] Error en ${endpoint}:`, error);
+    console.error(`❌ [FAVORITES SERVICE] Error en ${endpoint}`);
     return {
       success: false,
       error: {
@@ -257,7 +253,6 @@ export class FavoritesService {
     page: number = 1,
     limit: number = 20
   ): Promise<ApiResponse<Favorite[]>> {
-    console.log('❤️ [FAVORITES SERVICE] Obteniendo favoritos', { page, limit });
 
     const response = await apiRequest<FavoritesListResponse>(
       `/api/favorites?page=${page}&limit=${limit}`
@@ -278,7 +273,6 @@ export class FavoritesService {
         }))
       : [];
 
-    console.log(`✅ [FAVORITES SERVICE] Encontrados ${favoritesWithDates.length} favoritos`);
 
     return {
       success: true,
@@ -300,7 +294,6 @@ export class FavoritesService {
     page: number = 1,
     limit: number = 20
   ): Promise<ApiResponse<FavoriteProperty[]>> {
-    console.log('❤️ [FAVORITES SERVICE] Obteniendo propiedades favoritas completas', { page, limit });
 
     // Obtener favoritos
     const favoritesResponse = await this.getFavorites(page, limit);
@@ -315,7 +308,6 @@ export class FavoritesService {
     const favorites = favoritesResponse.data;
 
     if (favorites.length === 0) {
-      console.log('✅ [FAVORITES SERVICE] No hay favoritos');
       return {
         success: true,
         data: [],
@@ -336,11 +328,9 @@ export class FavoritesService {
             favoritedAt: favorite.addedAt,
             favoriteId: favorite.id,
           });
-        } else {
-          console.warn(`⚠️ [FAVORITES SERVICE] Propiedad ${favorite.propertyId} no encontrada`);
         }
       } catch (error) {
-        console.error(`❌ [FAVORITES SERVICE] Error cargando propiedad ${favorite.propertyId}:`, error);
+        console.error(`❌ [FAVORITES SERVICE] Error cargando propiedad ${favorite.propertyId}`);
       }
     }
 
@@ -349,7 +339,6 @@ export class FavoritesService {
       b.favoritedAt.getTime() - a.favoritedAt.getTime()
     );
 
-    console.log(`✅ [FAVORITES SERVICE] Cargadas ${favoriteProperties.length} propiedades favoritas`);
 
     return {
       success: true,
@@ -367,7 +356,6 @@ export class FavoritesService {
    * @returns Favorito creado
    */
   static async addFavorite(propertyId: string): Promise<ApiResponse<Favorite>> {
-    console.log('❤️ [FAVORITES SERVICE] Añadiendo favorito:', propertyId);
 
     const response = await apiRequest<{ favorite: Favorite }>(
       '/api/favorites',
@@ -393,7 +381,6 @@ export class FavoritesService {
       addedAt: favorite.addedAt ? new Date(favorite.addedAt) : new Date(),
     };
 
-    console.log('✅ [FAVORITES SERVICE] Favorito añadido:', favoriteWithDate.id);
 
     return {
       success: true,
@@ -411,7 +398,6 @@ export class FavoritesService {
    * @returns Éxito de la operación
    */
   static async removeFavorite(propertyId: string): Promise<ApiResponse<void>> {
-    console.log('❤️ [FAVORITES SERVICE] Eliminando favorito:', propertyId);
 
     const response = await apiRequest<void>(
       `/api/favorites/${propertyId}`,
@@ -427,7 +413,6 @@ export class FavoritesService {
       };
     }
 
-    console.log('✅ [FAVORITES SERVICE] Favorito eliminado');
 
     return {
       success: true,
@@ -444,7 +429,6 @@ export class FavoritesService {
    * @returns true si está en favoritos, false si no
    */
   static async isFavorited(propertyId: string): Promise<ApiResponse<boolean>> {
-    console.log('❤️ [FAVORITES SERVICE] Verificando si es favorito:', propertyId);
 
     const response = await apiRequest<{ favorite: Favorite }>(
       `/api/favorites/${propertyId}`

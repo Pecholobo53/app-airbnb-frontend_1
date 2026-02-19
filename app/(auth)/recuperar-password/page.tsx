@@ -14,8 +14,8 @@ export default function RecuperarPasswordPage() {
     <div className="space-y-6">
       {/* Icon Header */}
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-[#FF385C]/10 flex items-center justify-center">
-          <KeyRound className="w-8 h-8 text-[#FF385C]" />
+        <div className="w-16 h-16 rounded-full bg-acento-200/10 flex items-center justify-center">
+          <KeyRound className="w-8 h-8 text-acento-200" />
         </div>
       </div>
 

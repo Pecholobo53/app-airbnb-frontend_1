@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight, MapPin, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight, MapPin, Phone, Mail, ShieldCheck, Sparkles, Gift, Bell, Zap, CheckCircle2, Users, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { subscribeNewsletter, getSubscriptionStatus } from '@/lib/newsletter/newsletter-service';
 
 const links = {
   soporte: [
@@ -32,44 +34,313 @@ const socials = [
   { icon: Youtube, label: 'YouTube', href: '#' },
 ];
 
+const benefits = [
+  { icon: Gift, label: 'Descuentos de hasta 40%' },
+  { icon: Bell, label: 'Alertas antes que nadie' },
+  { icon: Zap, label: 'Ofertas flash exclusivas' },
+];
+
 /**
  * Footer — Diseño premium con jerarquía tipográfica clara y paleta rica.
- * Incluye franja newsletter, columnas de enlaces con hover accent, legales.
+ * Incluye franja newsletter animada, columnas de enlaces con hover accent, legales.
  */
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('newsletter_last_email');
+    if (saved && getSubscriptionStatus(saved)) {
+      setSubscribed(true);
+      setSuccessMessage('¡Ya estás suscrito!');
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || isLoading) return;
+
+    setError('');
+    setIsLoading(true);
+
+    const result = await subscribeNewsletter(email);
+
+    setIsLoading(false);
+
+    if (result.success) {
+      localStorage.setItem('newsletter_last_email', email.trim().toLowerCase());
+      setSuccessMessage(result.message);
+      setSubscribed(true);
+    } else {
+      setError(result.message);
+    }
+  };
+
   return (
     <footer className="bg-[#0D0D0D] text-white">
 
-      {/* Newsletter strip */}
-      <div className="border-b border-white/8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-1">
-                Ofertas exclusivas, solo para suscriptores
-              </h3>
-              <p className="text-sm text-gray-400">
-                Recibe primero las mejores estancias antes de que se publiquen al público.
-              </p>
-            </div>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="flex w-full md:w-auto gap-2"
+      {/* ══════════ NEWSLETTER — Full impact section ══════════ */}
+      <div className="relative overflow-hidden border-b border-white/8">
+
+        {/* Ambient gradient BG */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#200810] via-[#0D0D0D] to-[#080d1a]" />
+
+        {/* Animated blob 1 */}
+        <motion.div
+          className="absolute -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(255,56,92,0.22) 0%, transparent 70%)' }}
+          animate={{ scale: [1, 1.18, 1], x: [0, 30, 0], y: [0, -15, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Animated blob 2 */}
+        <motion.div
+          className="absolute -bottom-24 -right-16 w-[480px] h-[480px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(255,56,92,0.14) 0%, transparent 65%)' }}
+          animate={{ scale: [1.15, 1, 1.15], x: [0, -20, 0], y: [0, 12, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Subtle grid */}
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,56,92,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,56,92,0.6) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        {/* Floating particles */}
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-acento-200 pointer-events-none"
+            style={{
+              left: `${15 + i * 14}%`,
+              top: `${20 + (i % 3) * 25}%`,
+              opacity: 0.4 + (i % 3) * 0.2,
+            }}
+            animate={{
+              y: [0, -18, 0],
+              opacity: [0.3, 0.7, 0.3],
+            }}
+            transition={{
+              duration: 3 + i * 0.7,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: i * 0.4,
+            }}
+          />
+        ))}
+
+        {/* Content */}
+        <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+
+          {/* Top badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-widest mb-6"
+            style={{
+              background: 'rgba(255,56,92,0.12)',
+              borderColor: 'rgba(255,56,92,0.35)',
+              color: '#FF385C',
+            }}
+          >
+            <motion.span
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <input
-                type="email"
-                placeholder="tu@email.com"
-                className="flex-1 md:w-64 bg-white/8 border border-white/12 text-white placeholder-gray-500 text-sm px-4 py-2.5 rounded-xl focus:outline-none focus:border-[#FF385C]/60 transition-colors"
-              />
-              <button
-                type="submit"
-                className="flex items-center gap-2 bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+              <Sparkles className="w-3.5 h-3.5" />
+            </motion.span>
+            Acceso anticipado exclusivo
+          </motion.div>
+
+          {/* Heading */}
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.55, delay: 0.1 }}
+            className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3"
+          >
+            Estancias irrepetibles,{' '}
+            <span
+              className="relative inline-block"
+              style={{
+                background: 'linear-gradient(135deg, #FF385C 0%, #ff7e95 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              solo para ti
+            </span>
+          </motion.h3>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-gray-400 text-sm sm:text-base mb-8 max-w-md mx-auto leading-relaxed"
+          >
+            Suscríbete y recibe ofertas exclusivas antes de que se publiquen.
+            Sin spam, solo alojamientos de élite.
+          </motion.p>
+
+          {/* Benefit pills */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{
+              visible: { transition: { staggerChildren: 0.1, delayChildren: 0.3 } },
+            }}
+            className="flex flex-wrap justify-center gap-2 mb-8"
+          >
+            {benefits.map(({ icon: Icon, label }) => (
+              <motion.span
+                key={label}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.85, y: 8 },
+                  visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 20 } },
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-300 border border-white/10 bg-white/5"
               >
-                Suscribirme
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
+                <Icon className="w-3.5 h-3.5 text-acento-200" />
+                {label}
+              </motion.span>
+            ))}
+          </motion.div>
+
+          {/* Form / Success */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+          >
+            <AnimatePresence mode="wait">
+              {subscribed ? (
+                <motion.div
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl border"
+                  style={{ background: 'rgba(52,211,153,0.1)', borderColor: 'rgba(52,211,153,0.3)' }}
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.1 }}
+                  >
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  </motion.div>
+                  <div className="text-left">
+                    <p className="text-sm font-bold text-emerald-400">¡Ya eres parte del club!</p>
+                    <p className="text-xs text-gray-400">{successMessage || 'Revisa tu email para confirmarlo.'}</p>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key="form"
+                  onSubmit={handleSubmit}
+                  className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+                >
+                  {/* Input with glow on focus */}
+                  <div className="relative flex-1">
+                    <motion.div
+                      className="absolute -inset-0.5 rounded-xl pointer-events-none"
+                      animate={{
+                        opacity: focused ? 1 : 0,
+                        boxShadow: focused ? '0 0 20px rgba(255,56,92,0.35)' : '0 0 0px rgba(255,56,92,0)',
+                      }}
+                      transition={{ duration: 0.3 }}
+                    />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onFocus={() => setFocused(true)}
+                      onBlur={() => setFocused(false)}
+                      placeholder="tu@email.com"
+                      required
+                      className="relative w-full bg-white/8 border border-white/12 text-white placeholder-gray-500 text-sm px-4 py-3.5 rounded-xl focus:outline-none focus:border-acento-200/50 transition-colors"
+                    />
+                  </div>
+                  {/* CTA button with pulse glow */}
+                  <div className="relative">
+                    <motion.div
+                      className="absolute inset-0 rounded-xl bg-acento-200 blur-md opacity-50 pointer-events-none"
+                      animate={{ opacity: [0.35, 0.6, 0.35], scale: [1, 1.05, 1] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <motion.button
+                      type="submit"
+                      disabled={isLoading}
+                      whileHover={isLoading ? {} : { scale: 1.04 }}
+                      whileTap={isLoading ? {} : { scale: 0.97 }}
+                      className="relative flex items-center justify-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-acento-200/25 w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Suscribiendo...
+                        </>
+                      ) : (
+                        <>
+                          Suscribirme gratis
+                          <motion.span
+                            animate={{ x: [0, 3, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </motion.span>
+                        </>
+                      )}
+                    </motion.button>
+                  </div>
+
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-2 text-xs text-red-400 sm:col-span-2 justify-center mt-1"
+                    >
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                      {error}
+                    </motion.div>
+                  )}
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Social proof */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="flex items-center justify-center gap-2 mt-5 text-xs text-gray-500"
+          >
+            <div className="flex -space-x-2">
+              {['bg-acento-200', 'bg-admin-accent', 'bg-emerald-500', 'bg-amber-500'].map((bg, i) => (
+                <div key={i} className={`w-6 h-6 rounded-full ${bg} border-2 border-[#0D0D0D] flex items-center justify-center text-[9px] font-bold text-white`}>
+                  {['A', 'M', 'J', 'S'][i]}
+                </div>
+              ))}
+            </div>
+            <span>
+              <span className="text-white font-semibold">+52.000 viajeros</span> ya suscritos · Sin spam · Cancela cuando quieras
+            </span>
+          </motion.div>
+
         </div>
       </div>
 
@@ -81,7 +352,7 @@ export default function Footer() {
           <div className="col-span-2 space-y-5">
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#FF385C] to-[#E31C5F] rounded-xl flex items-center justify-center shadow-lg shadow-[#FF385C]/30">
+              <div className="w-10 h-10 bg-gradient-to-br from-acento-200 to-acento-100 rounded-xl flex items-center justify-center shadow-lg shadow-acento-200/30">
                 <Heart className="w-5 h-5 text-white fill-current" />
               </div>
               <span className="text-2xl font-black tracking-tight">StayLux</span>
@@ -125,7 +396,7 @@ export default function Footer() {
             ] as const
           ).map((col) => (
             <div key={col.title}>
-              <h4 className="text-xs font-bold text-[#FF385C] uppercase tracking-[0.18em] mb-5">
+              <h4 className="text-xs font-bold text-acento-200 uppercase tracking-[0.18em] mb-5">
                 {col.title}
               </h4>
               <ul className="space-y-3">
@@ -166,7 +437,7 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#FF385C] hover:border-[#FF385C] transition-all duration-200"
+                  className="w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-acento-200 hover:border-acento-200 transition-all duration-200"
                 >
                   <Icon className="w-4 h-4" />
                 </Link>

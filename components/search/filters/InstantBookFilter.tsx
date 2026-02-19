@@ -24,7 +24,7 @@ export default function InstantBookFilter({ value = false, onChange }: InstantBo
         />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-[#FF385C]" />
+            <Zap className="h-4 w-4 text-acento-200" />
             <span className="font-medium text-sm text-gray-900">Reserva instantánea</span>
           </div>
           <p className="text-xs text-gray-500 mt-1">

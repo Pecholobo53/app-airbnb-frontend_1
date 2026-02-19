@@ -191,7 +191,7 @@ export default function EditPropertyPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-[#FF385C]" />
+        <Loader2 className="w-8 h-8 animate-spin text-acento-200" />
       </div>
     );
   }
@@ -674,7 +674,7 @@ export default function EditPropertyPage() {
           <Link href="/admin/properties">
             <Button type="button" variant="outline">Cancelar</Button>
           </Link>
-          <Button type="submit" disabled={isSaving} className="bg-[#FF385C] hover:bg-[#E31C5F]">
+          <Button type="submit" disabled={isSaving} className="bg-acento-200 hover:bg-acento-100">
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -39,7 +39,6 @@ function DashboardContent() {
 
     // Verificar desde el contexto
     if (user && isAdmin(user)) {
-      console.log('🔄 [DASHBOARD] Usuario es admin, redirigiendo a /admin');
       router.push('/admin');
       return;
     }
@@ -50,13 +49,12 @@ function DashboardContent() {
       if (session) {
         const parsed = JSON.parse(session);
         if (parsed.user && isAdmin(parsed.user)) {
-          console.log('🔄 [DASHBOARD] Usuario es admin (desde sessionStorage), redirigiendo a /admin');
           router.push('/admin');
           return;
         }
       }
     } catch (error) {
-      console.error('❌ [DASHBOARD] Error verificando rol:', error);
+      console.error('Error verificando rol');
     }
   }, [isLoading, isAuthenticated, user, router]);
 

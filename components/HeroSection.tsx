@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Gem } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -9,7 +10,7 @@ const fadeUp = {
   visible: (delay: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: 'easeOut', delay },
+    transition: { duration: 0.6, ease: 'easeOut' as const, delay },
   }),
 };
 
@@ -17,7 +18,7 @@ const fadeIn = {
   hidden: { opacity: 0 },
   visible: (delay: number = 0) => ({
     opacity: 1,
-    transition: { duration: 0.7, ease: 'easeOut', delay },
+    transition: { duration: 0.7, ease: 'easeOut' as const, delay },
   }),
 };
 
@@ -111,10 +112,13 @@ export default function HeroSection() {
             className="relative"
           >
             <div className="relative">
-              <img
+              <Image
                 src="https://images.pexels.com/photos/1371360/pexels-photo-1371360.jpeg?auto=compress&cs=tinysrgb&w=800"
                 alt="Residencia de lujo seleccionada"
+                width={800}
+                height={500}
                 className="w-full h-[500px] object-cover rounded-3xl shadow-2xl"
+                priority
               />
 
               {/* Floating Card */}

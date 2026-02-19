@@ -57,7 +57,7 @@ export default function FavoritesList({ favorites, isLoading }: FavoritesListPro
           </p>
           <a
             href="/buscar"
-            className="inline-block px-6 py-3 bg-[#FF385C] text-white font-semibold rounded-lg hover:bg-[#E31C5F] transition-colors"
+            className="inline-block px-6 py-3 bg-acento-200 text-white font-semibold rounded-lg hover:bg-acento-100 transition-colors"
           >
             Explorar propiedades
           </a>

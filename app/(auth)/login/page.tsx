@@ -45,7 +45,7 @@ export default function LoginPage() {
           ¿No tienes cuenta?{' '}
           <Link
             href="/registro"
-            className="font-semibold text-[#FF385C] hover:text-[#E31C5F] hover:underline"
+            className="font-semibold text-acento-200 hover:text-acento-100 hover:underline"
           >
             Regístrate gratis
           </Link>

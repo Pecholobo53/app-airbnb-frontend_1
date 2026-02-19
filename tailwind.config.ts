@@ -23,6 +23,11 @@ const config: Config = {
           100: 'rgb(var(--acento-100-rgb) / <alpha-value>)',
           200: 'rgb(var(--acento-200-rgb) / <alpha-value>)',
         },
+        'admin-accent': {
+          DEFAULT: '#0ea5e9',
+          hover: '#0284c7',
+          light: 'rgba(14, 165, 233, 0.12)',
+        },
         'texto': {
           100: 'rgb(var(--texto-100-rgb) / <alpha-value>)',
           200: 'rgb(var(--texto-200-rgb) / <alpha-value>)',

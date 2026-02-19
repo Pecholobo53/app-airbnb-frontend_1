@@ -64,7 +64,7 @@ export default function StickyBookingBar({ property, onReserve }: StickyBookingB
             {/* CTA */}
             <button
               onClick={onReserve}
-              className="bg-[#FF385C] hover:bg-[#E31C5F] active:scale-95 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-150 text-sm shadow-lg"
+              className="bg-acento-200 hover:bg-acento-100 active:scale-95 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-150 text-sm shadow-lg"
             >
               Reservar ahora
             </button>

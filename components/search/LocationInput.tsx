@@ -142,8 +142,7 @@ export default function LocationInput({ value = '', onChange }: LocationInputPro
             setSuggestions([...response.data, ...uniqueLocal].slice(0, 10));
           }
           // Si el backend falla, ya tenemos las locales mostradas
-        } catch (error) {
-          console.log('📍 Usando sugerencias locales (backend no disponible)');
+        } catch {
         }
         setIsLoading(false);
       }, 200);

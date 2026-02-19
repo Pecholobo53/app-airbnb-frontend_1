@@ -36,7 +36,7 @@ export default function CheckoutProgress({ currentStep }: CheckoutProgressProps)
         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
           {/* Barra de progreso (rellena) */}
           <div
-            className="h-full bg-[#FF385C] transition-all duration-500 ease-out"
+            className="h-full bg-acento-200 transition-all duration-500 ease-out"
             style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
           />
         </div>
@@ -56,9 +56,9 @@ export default function CheckoutProgress({ currentStep }: CheckoutProgressProps)
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${
                     isCompleted
-                      ? 'bg-[#FF385C] text-white'
+                      ? 'bg-acento-200 text-white'
                       : isCurrent
-                      ? 'bg-[#FF385C] text-white ring-4 ring-red-100'
+                      ? 'bg-acento-200 text-white ring-4 ring-red-100'
                       : 'bg-gray-200 text-gray-500'
                   }`}
                 >
@@ -85,7 +85,7 @@ export default function CheckoutProgress({ currentStep }: CheckoutProgressProps)
                 <span
                   className={`mt-2 text-sm font-medium ${
                     isCompleted || isCurrent
-                      ? 'text-[#FF385C]'
+                      ? 'text-acento-200'
                       : 'text-gray-500'
                   }`}
                 >

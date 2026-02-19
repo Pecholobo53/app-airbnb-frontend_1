@@ -40,7 +40,7 @@ export default function PropertyDetailError({ error, reset }: ErrorProps) {
           <Button
             onClick={reset}
             variant="default"
-            className="bg-[#FF385C] hover:bg-[#E31C5F]"
+            className="bg-acento-200 hover:bg-acento-100"
           >
             Intentar de nuevo
           </Button>

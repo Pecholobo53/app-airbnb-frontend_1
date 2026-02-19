@@ -14,6 +14,9 @@ import PriceCalculator from '@/components/property/PriceCalculator';
 import PropertyMap from '@/components/property/PropertyMap';
 import PropertyRules from '@/components/property/PropertyRules';
 import SimilarProperties from '@/components/property/SimilarProperties';
+import TrustBadges from '@/components/property/TrustBadges';
+import PropertyFAQs from '@/components/property/PropertyFAQs';
+import StickyBookingBar from '@/components/property/StickyBookingBar';
 import Footer from '@/components/Footer';
 
 /**
@@ -38,23 +41,9 @@ export default function PropertyDetailPage() {
       try {
         const response = await PropertyService.getPropertyById(propertyId);
         
-        console.log('🔍 [PROPERTY DETAIL] Response recibida:', {
-          success: response.success,
-          hasData: !!response.data,
-          dataType: typeof response.data,
-          dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
-          error: response.error,
-          fullResponse: JSON.stringify(response, null, 2),
-        });
-        
         if (response.success && response.data) {
           // Validar que response.data sea un objeto válido
           if (typeof response.data !== 'object' || response.data === null || Array.isArray(response.data)) {
-            console.error('❌ [PROPERTY DETAIL] response.data no es un objeto válido:', {
-              type: typeof response.data,
-              isArray: Array.isArray(response.data),
-              value: response.data,
-            });
             setError('Error: La respuesta del servidor no tiene el formato esperado. Por favor, intenta de nuevo.');
             setIsLoading(false);
             return;
@@ -62,13 +51,7 @@ export default function PropertyDetailPage() {
           
           // Validar que al menos tenga un ID
           if (!response.data.id) {
-            console.error('❌ [PROPERTY DETAIL] La propiedad no tiene ID:', {
-              data: response.data,
-              dataKeys: Object.keys(response.data),
-            });
-            // Intentar usar el propertyId de la URL como fallback
             if (propertyId) {
-              console.warn('⚠️ [PROPERTY DETAIL] Usando propertyId de la URL como fallback:', propertyId);
               response.data.id = propertyId;
             } else {
               setError('Error: La propiedad recibida no tiene un ID válido. Por favor, intenta de nuevo.');
@@ -146,20 +129,6 @@ export default function PropertyDetailPage() {
             }
           };
           
-          console.log('✅ [PROPERTY DETAIL] Propiedad normalizada:', {
-            id: normalizedProperty.id,
-            title: normalizedProperty.title,
-            hasRating: !!normalizedProperty.rating,
-            hasAmenities: Array.isArray(normalizedProperty.amenities),
-            hasImages: Array.isArray(normalizedProperty.images),
-            imagesCount: Array.isArray(normalizedProperty.images) ? normalizedProperty.images.length : 0,
-            imagesPreview: Array.isArray(normalizedProperty.images) && normalizedProperty.images.length > 0 
-              ? normalizedProperty.images[0].substring(0, 50) + '...' 
-              : 'No hay imágenes',
-            hasLocation: !!normalizedProperty.location,
-            hasHost: !!normalizedProperty.host,
-          });
-          
           setProperty(normalizedProperty);
         } else {
           // Mensajes de error más descriptivos para el usuario
@@ -179,7 +148,7 @@ export default function PropertyDetailPage() {
           setError(errorMessage);
         }
       } catch (err) {
-        console.error('Error cargando propiedad:', err);
+        console.error('Error cargando propiedad');
         const errorMessage = err instanceof Error 
           ? `Error al cargar la propiedad: ${err.message}`
           : 'Error inesperado al cargar la propiedad. Por favor, intenta de nuevo.';
@@ -272,7 +241,7 @@ export default function PropertyDetailPage() {
           </h2>
           <a
             href="/buscar"
-            className="text-[#FF385C] hover:underline"
+            className="text-acento-200 hover:underline"
           >
             Volver a la búsqueda
           </a>
@@ -283,11 +252,6 @@ export default function PropertyDetailPage() {
   
   // Validar que property exista y tenga ID (después de normalización debería tenerlo siempre)
   if (!property || !property.id) {
-    console.error('❌ [PROPERTY DETAIL] Property inválida:', {
-      hasProperty: !!property,
-      hasId: property?.id ? true : false,
-      propertyKeys: property ? Object.keys(property) : [],
-    });
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -299,7 +263,7 @@ export default function PropertyDetailPage() {
           </p>
           <a
             href="/buscar"
-            className="text-[#FF385C] hover:underline"
+            className="text-acento-200 hover:underline"
           >
             Volver a la búsqueda
           </a>
@@ -348,10 +312,16 @@ export default function PropertyDetailPage() {
 
             {/* Reglas */}
             <PropertyRules property={property} />
+
+            {/* Garantías y Seguridad */}
+            <TrustBadges />
+
+            {/* FAQ — resuelve objeciones antes del checkout */}
+            <PropertyFAQs />
           </div>
 
           {/* Columna Lateral - Calculadora de Precio (1/3) */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1" id="price-calculator">
             <div className="sticky top-8">
               <PriceCalculator property={property} />
             </div>
@@ -361,6 +331,21 @@ export default function PropertyDetailPage() {
         {/* Propiedades Similares (Full Width) */}
         <SimilarProperties currentProperty={property} />
       </div>
+
+      {/* Sticky Booking Bar — solo visible en móvil al hacer scroll */}
+      <StickyBookingBar
+        property={property}
+        onReserve={() => {
+          // Hace scroll suave hasta la calculadora de precios en desktop,
+          // o abre el calendario en móvil
+          const calculator = document.getElementById('price-calculator');
+          if (calculator) {
+            calculator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+      />
 
       {/* Footer */}
       <Footer />

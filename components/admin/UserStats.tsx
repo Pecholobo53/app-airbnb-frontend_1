@@ -29,26 +29,15 @@ export function UserStats() {
     setError(null);
     
     try {
-      console.log('📊 [USER STATS] Iniciando carga de estadísticas...');
-      
-      // Usar caché para evitar múltiples peticiones
       const response = await requestCache.getOrFetch(
         'user-stats',
         () => {
-          console.log('📤 [USER STATS] Ejecutando petición a API...');
           return UserService.getUserStats();
         },
         5 * 60 * 1000 // 5 minutos de caché
       );
       
-      console.log('📥 [USER STATS] Respuesta recibida:', {
-        success: response.success,
-        hasData: !!response.data,
-        error: response.error,
-      });
-      
       if (response.success && response.data) {
-        console.log('✅ [USER STATS] Estadísticas cargadas exitosamente:', response.data);
         setStats(response.data);
         if (showToast) {
           toast.success('Estadísticas actualizadas');
@@ -56,18 +45,12 @@ export function UserStats() {
       } else {
         // Manejar errores de rate limiting
         const errorMessage = response.error?.message || 'Error al cargar estadísticas';
-        const errorCode = response.error?.code || 'UNKNOWN_ERROR';
+        const errorCode = (response.error?.code || 'UNKNOWN_ERROR') as string;
         const isRateLimit = errorCode === 'RATE_LIMIT' || 
                            errorCode === '429' ||
                            errorMessage.toLowerCase().includes('demasiadas') ||
                            errorMessage.toLowerCase().includes('rate limit') ||
                            errorMessage.toLowerCase().includes('429');
-        
-        console.error('❌ [USER STATS] Error cargando estadísticas:', {
-          code: errorCode,
-          message: errorMessage,
-          isRateLimit,
-        });
         
         if (isRateLimit) {
           const rateLimitMessage = 'Demasiadas peticiones. Espera unos segundos antes de intentar de nuevo.';
@@ -87,7 +70,7 @@ export function UserStats() {
         }
       }
     } catch (error) {
-      console.error('❌ [USER STATS] Excepción al cargar estadísticas:', error);
+      console.error('Excepción al cargar estadísticas');
       const errorMessage = error instanceof Error ? error.message : 'Error al cargar estadísticas';
       const finalMessage = `Error inesperado: ${errorMessage}`;
       setError(finalMessage);
@@ -162,7 +145,7 @@ export function UserStats() {
           <button
             onClick={handleRetry}
             disabled={isRetrying || loading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc] text-xs font-semibold transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-[#94a3b8] hover:text-texto-100 text-xs font-semibold transition-colors disabled:opacity-50"
           >
             {isRetrying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
             {isRetrying ? 'Reintentando...' : 'Reintentar'}
@@ -179,7 +162,7 @@ export function UserStats() {
         <button
           onClick={handleRetry}
           disabled={isRetrying || loading}
-          className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc] text-xs font-semibold transition-colors"
+          className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#1e293b] text-[#94a3b8] hover:text-texto-100 text-xs font-semibold transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Reintentar
@@ -187,6 +170,8 @@ export function UserStats() {
       </div>
     );
   }
+
+  if (!stats) return null;
 
   const statCards = [
     { title: 'Total Usuarios', value: stats.total, icon: Users, accent: '#0ea5e9', accentBg: 'rgba(14,165,233,0.12)' },
@@ -215,7 +200,7 @@ export function UserStats() {
                 <Icon className="w-5 h-5" style={{ color: stat.accent }} />
               </div>
             </div>
-            <div className="text-2xl font-black text-[#f8fafc] mb-1">{stat.value}</div>
+            <div className="text-2xl font-black text-texto-100 mb-1">{stat.value}</div>
             <div className="text-[12px] font-medium text-[#64748b]">{stat.title}</div>
           </div>
         );

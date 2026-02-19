@@ -127,7 +127,6 @@ export default function PaymentSection({
   };
 
   const handleBillingAddressSubmit = (address: BillingAddress) => {
-    console.log('📍 PaymentSection: BillingAddress recibido', address);
     setBillingAddress(address);
   };
 
@@ -157,19 +156,7 @@ export default function PaymentSection({
         cvv: cvv,
         billingAddress: billingAddress,
       };
-      console.log('💾 PaymentSection: Guardando paymentInfo', paymentData);
-      // Llamar onSubmit para guardar los datos
       onSubmit(paymentData);
-    } else {
-      console.log('⚠️ PaymentSection: Formulario no válido', {
-        isFormValid,
-        isLoading,
-        hasBillingAddress: !!billingAddress,
-        cardNumber: cardNumber.replace(/\s/g, '').length,
-        cardHolder: cardHolder.length,
-        expiryDate: expiryDate.length,
-        cvv: cvv.length,
-      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFormValid, billingAddress, cardNumber, cardHolder, expiryDate, cvv, isLoading]);
@@ -214,7 +201,7 @@ export default function PaymentSection({
                 placeholder="1234 5678 9012 3456"
                 maxLength={19}
                 autoComplete="cc-number"
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none pr-10 ${
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none pr-10 ${
                   cardNumberValid === false ? 'border-red-300 bg-red-50' :
                   cardNumberValid === true ? 'border-green-300 bg-green-50' :
                   'border-gray-300'
@@ -261,7 +248,7 @@ export default function PaymentSection({
               }}
               placeholder="Nombre como aparece en la tarjeta"
               autoComplete="cc-name"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none ${
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none ${
                 cardHolderValid === false ? 'border-red-300 bg-red-50' :
                 cardHolderValid === true ? 'border-green-300 bg-green-50' :
                 'border-gray-300'
@@ -291,7 +278,7 @@ export default function PaymentSection({
                   placeholder="MM/YY"
                   maxLength={5}
                   autoComplete="cc-exp"
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none pr-10 ${
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none pr-10 ${
                     expiryValid?.expired ? 'border-red-300 bg-red-50' :
                     expiryValid?.valid === false ? 'border-red-300 bg-red-50' :
                     expiryValid?.valid === true ? 'border-green-300 bg-green-50' :
@@ -332,7 +319,7 @@ export default function PaymentSection({
                   placeholder={cardType === 'amex' ? '1234' : '123'}
                   autoComplete="cc-csc"
                   maxLength={4}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FF385C] focus:border-transparent outline-none pr-10 ${
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none pr-10 ${
                     cvvValid === false ? 'border-red-300 bg-red-50' :
                     cvvValid === true ? 'border-green-300 bg-green-50' :
                     'border-gray-300'
@@ -370,7 +357,7 @@ export default function PaymentSection({
 
       {/* Resumen de pago con Total prominente */}
       {pricing && (
-        <div className="bg-gradient-to-r from-[#FF385C] to-[#E31C5F] rounded-xl p-5 text-white">
+        <div className="bg-gradient-to-r from-acento-200 to-acento-100 rounded-xl p-5 text-white">
           <h3 className="text-lg font-semibold mb-3">Resumen del pago</h3>
           
           {/* Desglose compacto */}

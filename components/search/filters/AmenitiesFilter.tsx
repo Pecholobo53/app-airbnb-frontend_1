@@ -46,7 +46,7 @@ export default function AmenitiesFilter({ value = [], onChange }: AmenitiesFilte
             key={amenity.value}
             className={`flex items-center gap-3 cursor-pointer border rounded-lg p-3 transition-colors bg-white ${
               value.includes(amenity.value)
-                ? 'border-[#FF385C] bg-[#FFF5F7]'
+                ? 'border-acento-200 bg-[#FFF5F7]'
                 : 'border-gray-200 hover:border-gray-300'
             }`}
           >

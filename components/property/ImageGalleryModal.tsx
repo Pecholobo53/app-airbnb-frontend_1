@@ -47,7 +47,6 @@ export default function ImageGalleryModal({
         newSet.add(index);
         return newSet;
       });
-      console.warn(`⚠️ [IMAGE GALLERY MODAL] Error cargando imagen ${index} de ${title}`);
     }
   };
 
@@ -214,9 +213,6 @@ export default function ImageGalleryModal({
                   false,
                   false,
                   idx
-                )}
-                  true,
-                  false // Lazy loading para thumbnails
                 )}
               </button>
             ))}

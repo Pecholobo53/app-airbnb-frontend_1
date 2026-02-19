@@ -52,7 +52,7 @@ export default function SearchBar({ query, onQueryChange, onSearch, compact = fa
         <div className="p-3 md:pr-2 flex justify-center md:justify-start">
           <Button
             onClick={onSearch}
-            className="bg-[#FF385C] hover:bg-[#E31C5F] text-white rounded-full h-12 md:h-14 w-full md:w-14 p-0 flex items-center justify-center gap-2"
+            className="bg-acento-200 hover:bg-acento-100 text-white rounded-full h-12 md:h-14 w-full md:w-14 p-0 flex items-center justify-center gap-2"
           >
             <Search className="h-5 w-5" />
             <span className="md:hidden font-semibold">Buscar</span>

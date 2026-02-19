@@ -75,7 +75,7 @@ export default function HomeFAQSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
         >
-          <p className="text-xs font-bold text-[#FF385C] uppercase tracking-[0.2em] mb-4">
+          <p className="text-xs font-bold text-acento-200 uppercase tracking-[0.2em] mb-4">
             Todo lo que necesitas saber
           </p>
           <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
@@ -105,7 +105,7 @@ export default function HomeFAQSection() {
                 transition={{ duration: 0.4, delay: i * 0.06, ease: 'easeOut' }}
                 className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
                   isOpen
-                    ? 'border-[#FF385C]/40 bg-white/5'
+                    ? 'border-acento-200/40 bg-white/5'
                     : 'border-white/8 bg-white/3 hover:border-white/15 hover:bg-white/5'
                 }`}
               >
@@ -122,7 +122,7 @@ export default function HomeFAQSection() {
                   </span>
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                     isOpen
-                      ? 'bg-[#FF385C] rotate-0'
+                      ? 'bg-acento-200 rotate-0'
                       : 'bg-white/10 group-hover:bg-white/20'
                   }`}>
                     {isOpen
@@ -168,7 +168,7 @@ export default function HomeFAQSection() {
           </p>
           <Link
             href="#"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-white border border-white/20 hover:border-[#FF385C] hover:text-[#FF385C] px-6 py-3 rounded-xl transition-all duration-200"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white border border-white/20 hover:border-acento-200 hover:text-acento-200 px-6 py-3 rounded-xl transition-all duration-200"
           >
             Hablar con el equipo
           </Link>

@@ -25,9 +25,7 @@ export async function generateStaticParams() {
         }));
       }
     }
-  } catch (error) {
-    // Backend no disponible durante build - normal en desarrollo
-    console.log('[generateStaticParams] Backend no disponible durante build, usando rutas dinámicas');
+  } catch {
   }
   
   // Retornar array vacío para permitir rutas dinámicas

@@ -81,24 +81,14 @@ function getAuthToken(): string | null {
       // Buscar token en ambos campos (el backend puede usar 'token' o 'accessToken')
       const token = session.token || session.accessToken;
       if (token) {
-        console.log('🔑 [BOOKING SERVICE] Token encontrado en sessionStorage:', `${token.substring(0, 20)}...`);
         return token;
-      } else {
-        console.warn('⚠️ [BOOKING SERVICE] Sesión encontrada pero SIN token');
-        console.warn('⚠️ [BOOKING SERVICE] Claves en sesión:', Object.keys(session));
       }
-    } else {
-      console.warn('⚠️ [BOOKING SERVICE] No hay sesión en sessionStorage');
     }
-  } catch (error) {
-    console.warn('⚠️ [BOOKING SERVICE] Error leyendo sessionStorage:', error);
+  } catch {
   }
   
   // Fallback a localStorage (compatibilidad hacia atrás)
   const localToken = localStorage.getItem('token') || localStorage.getItem('authToken');
-  if (localToken) {
-    console.log('🔑 [BOOKING SERVICE] Token encontrado en localStorage');
-  }
   return localToken;
 }
 
@@ -122,8 +112,6 @@ async function apiRequest<T>(
 
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`📡 [BOOKING SERVICE] ${options.method || 'GET'} ${url}`);
-    console.log(`🔑 [BOOKING SERVICE] Token en headers:`, token ? 'Bearer ***' : 'NO HAY TOKEN');
     
     const response = await fetch(url, {
       ...options,
@@ -136,12 +124,6 @@ async function apiRequest<T>(
     
     // Log detallado de la respuesta para debugging
     if (endpoint.includes('/validate')) {
-      console.log('📋 [BOOKING SERVICE] Respuesta de validación:', {
-        status: response.status,
-        ok: response.ok,
-        data: data,
-        endpoint: endpoint,
-      });
     }
 
     if (!response.ok) {
@@ -214,7 +196,7 @@ async function apiRequest<T>(
       data: data,
     };
   } catch (error) {
-    console.error(`❌ [BOOKING SERVICE] Error en ${endpoint}:`, error);
+    console.error(`❌ [BOOKING SERVICE] Error en ${endpoint}`);
     return {
       success: false,
       error: {
@@ -234,7 +216,6 @@ async function apiRequest<T>(
 export async function validateBooking(
   request: BookingValidationRequest
 ): Promise<ApiResponse<BookingValidationResponse>> {
-  console.log('🔍 [BOOKING SERVICE] Validando reserva:', request);
   
   return apiRequest<BookingValidationResponse>('/api/bookings/validate', {
     method: 'POST',
@@ -265,12 +246,6 @@ export async function validateBooking(
 export async function createBooking(
   request: CreateBookingRequest
 ): Promise<ApiResponse<{ booking: Booking }>> {
-  console.log('📝 [BOOKING SERVICE] Creando reserva:', {
-    propertyId: request.propertyId,
-    checkIn: request.checkIn,
-    checkOut: request.checkOut,
-    guests: request.guests,
-  });
 
   // Validar que tenemos token
   const token = getAuthToken();
@@ -342,7 +317,6 @@ export async function updateBooking(
   bookingId: string,
   updates: UpdateBookingRequest
 ): Promise<ApiResponse<{ booking: Booking }>> {
-  console.log('📝 [BOOKING SERVICE] Actualizando reserva:', bookingId, updates);
 
   // Validar que tenemos token
   const token = getAuthToken();
@@ -385,7 +359,6 @@ export async function cancelBooking(
 export async function deleteBooking(
   bookingId: string
 ): Promise<ApiResponse<{ message: string }>> {
-  console.log('🗑️ [BOOKING SERVICE] Eliminando reserva:', bookingId);
   
   // Validar que tenemos token
   const token = getAuthToken();
@@ -412,7 +385,6 @@ export async function deleteBooking(
  * un endpoint para obtener borradores o se puede hacer con getUserBookings('pending')
  */
 export async function cleanupOldDrafts(): Promise<ApiResponse<{ cleaned: number }>> {
-  console.log('🧹 [BOOKING SERVICE] Limpiando borradores antiguos...');
 
   try {
     // Obtener todas las reservas en borrador
@@ -436,20 +408,18 @@ export async function cleanupOldDrafts(): Promise<ApiResponse<{ cleaned: number 
     for (const booking of response.data.bookings) {
       const createdAt = new Date(booking.createdAt);
       if (createdAt < twentyFourHoursAgo && booking.status === 'pending') {
-        console.log(`🗑️ [BOOKING SERVICE] Eliminando borrador antiguo: ${booking.id}`);
         await cancelBooking(booking.id);
         cleaned++;
       }
     }
 
-    console.log(`✅ [BOOKING SERVICE] Limpieza completada: ${cleaned} borradores eliminados`);
 
     return {
       success: true,
       data: { cleaned },
     };
   } catch (error) {
-    console.error('❌ [BOOKING SERVICE] Error en limpieza de borradores:', error);
+    console.error('❌ [BOOKING SERVICE] Error en limpieza de borradores');
     return {
       success: false,
       error: {

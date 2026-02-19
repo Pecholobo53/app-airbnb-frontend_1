@@ -76,12 +76,6 @@ export default function AdminUserDetailPage() {
         if (response.success && response.data) {
           setUser(response.data);
           const userRole = response.data.role || (response.data.email === 'armandito@gmail.com' ? 'admin' : 'user');
-          console.log('👤 [EDIT USER] Usuario cargado:', {
-            name: response.data.name,
-            email: response.data.email,
-            role: response.data.role,
-            userRole,
-          });
           reset({
             name: response.data.name,
             email: response.data.email,
@@ -93,7 +87,7 @@ export default function AdminUserDetailPage() {
           router.push('/admin/users');
         }
       } catch (error) {
-        console.error('Error loading user:', error);
+        console.error('Error loading user');
         toast.error('Error al cargar usuario');
         router.push('/admin/users');
       } finally {
@@ -112,13 +106,6 @@ export default function AdminUserDetailPage() {
 
     setSaving(true);
     try {
-      console.log('💾 [EDIT USER] Guardando cambios:', {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        role: data.role,
-      });
-      
       // Intentar con PATCH primero (actualización parcial)
       const response = await UserService.patchUser(userId, {
         name: data.name,
@@ -139,7 +126,7 @@ export default function AdminUserDetailPage() {
         toast.error(response.error?.message || 'Error al actualizar usuario');
       }
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('Error updating user');
       toast.error('Error al actualizar usuario');
     } finally {
       setSaving(false);
@@ -165,7 +152,7 @@ export default function AdminUserDetailPage() {
         toast.error(response.error?.message || 'Error al eliminar usuario');
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Error deleting user');
       toast.error('Error al eliminar usuario');
     } finally {
       setDeleting(false);
@@ -177,7 +164,7 @@ export default function AdminUserDetailPage() {
     return (
       <div className="p-6 md:p-8">
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-[#FF385C] animate-spin" />
+          <Loader2 className="w-8 h-8 text-acento-200 animate-spin" />
         </div>
       </div>
     );
@@ -275,7 +262,6 @@ export default function AdminUserDetailPage() {
                     <Select
                       value={role || user?.role || 'user'}
                       onValueChange={(value) => {
-                        console.log('🔐 [EDIT USER] Cambiando rol a:', value);
                         setValue('role', value as 'admin' | 'user', { shouldValidate: true });
                       }}
                     >

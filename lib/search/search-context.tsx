@@ -53,8 +53,6 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     // Si hay customFilters, reemplazar completamente los filtros (no mergear)
     const filtersToUse = customFilters !== undefined ? customFilters : state.filters;
     
-    console.log('🚀 [CONTEXT] performSearch con query:', queryToUse);
-    console.log('🔍 [CONTEXT] performSearch con filters:', filtersToUse);
 
     try {
       const response = await PropertyService.searchProperties({
@@ -74,7 +72,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
                                  (filtersToUse as any)?.category === 'mountain';
         
         if (isMountainFilter) {
-          const montanaProperties = response.data.properties.filter(property => {
+          const montanaProperties = (response.data?.properties ?? []).filter(property => {
             const city = (property.location?.city || '').toLowerCase().trim();
             const title = (property.title || '').toLowerCase().trim();
             const region = (property.location?.region || '').toLowerCase().trim();
@@ -110,9 +108,6 @@ export function SearchProvider({ children }: { children: ReactNode }) {
               total: montanaProperties.length,
               hasMore: false,
             };
-            console.log(`🏔️ [CONTEXT] Filtro Montaña: ${montanaProperties.length} propiedades de Galicia encontradas`);
-          } else {
-            console.log(`🏔️ [CONTEXT] Filtro Montaña: No se encontraron propiedades de Galicia`);
           }
         }
         
@@ -145,7 +140,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           const exclusions = exclusionKeywords[roomType] || [];
           
           if (keywords.length > 0) {
-            const filteredProperties = response.data.properties.filter(property => {
+            const filteredProperties = (response.data?.properties ?? []).filter(property => {
               // Obtener título y descripción
               const title = (property.title || '').toLowerCase();
               const description = (property.description || '').toLowerCase();
@@ -182,7 +177,6 @@ export function SearchProvider({ children }: { children: ReactNode }) {
               hasMore: false, // No cargar más si filtramos en frontend
             };
             
-            console.log(`🔍 [CONTEXT] Filtrado por título: ${filteredProperties.length} de ${response.data.properties.length} propiedades`);
           }
         }
         
@@ -194,14 +188,12 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           const uniqueProperties = filteredResults.properties.filter(property => {
             // Primero verificar por ID (duplicado exacto)
             if (seenIds.has(property.id)) {
-              console.warn(`⚠️ [CONTEXT] Propiedad duplicada por ID eliminada: ${property.id} - ${property.title}`);
               return false;
             }
             
             // Luego verificar por título + ubicación (duplicados visuales)
             const titleLocationKey = `${(property.title || '').toLowerCase().trim()}|${(property.location?.city || '').toLowerCase().trim()}|${(property.location?.country || '').toLowerCase().trim()}`;
             if (seenTitleLocation.has(titleLocationKey)) {
-              console.warn(`⚠️ [CONTEXT] Propiedad duplicada por título+ubicación eliminada: ${property.id} - ${property.title} (${property.location?.city})`);
               return false;
             }
             
@@ -211,7 +203,6 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           });
           
           if (uniqueProperties.length !== filteredResults.properties.length) {
-            console.log(`🔍 [CONTEXT] Eliminados ${filteredResults.properties.length - uniqueProperties.length} duplicados (por ID o título+ubicación)`);
             filteredResults = {
               ...filteredResults,
               properties: uniqueProperties,
@@ -235,7 +226,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         throw new Error(response.error?.message || 'Error en la búsqueda');
       }
     } catch (error) {
-      console.error('Error en búsqueda:', error);
+      console.error('Error en búsqueda');
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -270,14 +261,12 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         const newProperties = response.data!.properties.filter(property => {
           // Verificar por ID
           if (existingIds.has(property.id)) {
-            console.warn(`⚠️ [CONTEXT] Propiedad duplicada por ID en loadMore eliminada: ${property.id} - ${property.title}`);
             return false;
           }
           
           // Verificar por título+ubicación
           const titleLocationKey = `${(property.title || '').toLowerCase().trim()}|${(property.location?.city || '').toLowerCase().trim()}|${(property.location?.country || '').toLowerCase().trim()}`;
           if (existingTitleLocation.has(titleLocationKey)) {
-            console.warn(`⚠️ [CONTEXT] Propiedad duplicada por título+ubicación en loadMore eliminada: ${property.id} - ${property.title} (${property.location?.city})`);
             return false;
           }
           
@@ -296,7 +285,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         }));
       }
     } catch (error) {
-      console.error('Error al cargar más:', error);
+      console.error('Error al cargar más');
       setState(prev => ({ ...prev, isLoading: false }));
       toast.error('Error al cargar más resultados');
     }

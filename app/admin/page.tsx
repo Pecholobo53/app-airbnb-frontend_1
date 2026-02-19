@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { Users, Shield, Activity, Building2, ArrowRight, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { UserStats } from '@/components/admin/UserStats';
+import { AdminCommandCenter } from '@/components/admin/AdminCommandCenter';
 import { useEffect } from 'react';
 
 export default function AdminDashboardPage() {
@@ -63,10 +64,10 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <TrendingUp className="w-4 h-4 text-[#0ea5e9]" />
-          <span className="text-xs font-semibold text-[#0ea5e9] uppercase tracking-[0.15em]">Panel de control</span>
+          <TrendingUp className="w-4 h-4 text-admin-accent" />
+          <span className="text-xs font-semibold text-admin-accent uppercase tracking-[0.15em]">Panel de control</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-black text-texto-100 tracking-tight">
           {greeting}, {user?.name?.split(' ')[0] || 'Administrador'}
         </h1>
         <p className="text-[#64748b] mt-1 text-sm">
@@ -74,10 +75,19 @@ export default function AdminDashboardPage() {
         </p>
       </div>
 
+      {/* Command Center */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-base font-bold text-texto-100">Command Center</h2>
+          <div className="h-px flex-1 bg-[#1e293b]" />
+        </div>
+        <AdminCommandCenter />
+      </div>
+
       {/* User Statistics */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-base font-bold text-[#f8fafc]">Estadísticas de Usuarios</h2>
+          <h2 className="text-base font-bold text-texto-100">Estadísticas de Usuarios</h2>
           <div className="h-px flex-1 bg-[#1e293b]" />
         </div>
         <UserStats />
@@ -86,7 +96,7 @@ export default function AdminDashboardPage() {
       {/* Modules grid */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-base font-bold text-[#f8fafc]">Módulos del sistema</h2>
+          <h2 className="text-base font-bold text-texto-100">Módulos del sistema</h2>
           <div className="h-px flex-1 bg-[#1e293b]" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -122,7 +132,7 @@ export default function AdminDashboardPage() {
                     className="w-4 h-4 text-[#475569] group-hover:text-[#94a3b8] group-hover:translate-x-0.5 transition-all duration-200"
                   />
                 </div>
-                <h3 className="text-[15px] font-bold text-[#f8fafc] mb-1">{mod.title}</h3>
+                <h3 className="text-[15px] font-bold text-texto-100 mb-1">{mod.title}</h3>
                 <p className="text-[13px] text-[#64748b] leading-relaxed">{mod.description}</p>
                 <div
                   className="mt-4 text-[12px] font-semibold"

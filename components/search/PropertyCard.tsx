@@ -53,7 +53,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         newSet.add(currentImageIndex);
         return newSet;
       });
-      console.warn(`⚠️ [PROPERTY CARD] Error cargando imagen ${currentImageIndex} de propiedad ${property.id}`);
     }
   };
 
@@ -132,7 +131,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
             {property.featured && (
-              <span className="px-2 py-1 bg-[#FF385C] text-white text-xs font-semibold rounded-md">
+              <span className="px-2 py-1 bg-acento-200 text-white text-xs font-semibold rounded-md">
                 Destacado
               </span>
             )}
@@ -163,10 +162,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <div className="flex items-center gap-1 flex-shrink-0">
               <Star className="h-4 w-4 fill-current text-gray-900" />
               <span className="text-sm font-semibold">
-                {property.rating.overall.toFixed(1)}
+                {property.rating?.overall?.toFixed(1) ?? '0.0'}
               </span>
               <span className="text-xs text-gray-500">
-                ({property.rating.reviewCount})
+                ({property.rating?.reviewCount ?? 0})
               </span>
             </div>
           </div>

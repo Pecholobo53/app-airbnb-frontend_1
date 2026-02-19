@@ -31,7 +31,7 @@ export default function BedroomsFilter({ value, onChange }: BedroomsFilterProps)
             key={option.label}
             variant={value === option.value ? 'default' : 'outline'}
             onClick={() => onChange(option.value)}
-            className={value === option.value ? 'bg-[#FF385C] hover:bg-[#E31C5F]' : ''}
+            className={value === option.value ? 'bg-acento-200 hover:bg-acento-100' : ''}
           >
             {option.label}
           </Button>

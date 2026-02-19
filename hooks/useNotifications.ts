@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Notification, GetNotificationsOptions } from '@/types/notifications';
-import { NotificationsService } from '@/lib/notifications/notifications-service';
+import { LocalNotificationService } from '@/lib/notifications/local-notifications';
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -19,7 +19,8 @@ interface UseNotificationsReturn {
 /**
  * Hook personalizado para gestionar notificaciones
  * 
- * Proporciona estado y funciones para cargar, marcar y refrescar notificaciones.
+ * Usa el sistema local de notificaciones (localStorage).
+ * Cuando el backend esté disponible, se puede activar USE_BACKEND en notification-context.tsx
  */
 export function useNotifications(
   userId: string | null,
@@ -42,21 +43,22 @@ export function useNotifications(
     setError(null);
 
     try {
-      // Convertir GetNotificationsOptions a formato de API
-      const apiOptions: { page?: number; limit?: number; read?: boolean } = {};
-      if (options.limit) apiOptions.limit = options.limit;
-      if (options.unreadOnly !== undefined) apiOptions.read = !options.unreadOnly;
+      // Cargar desde localStorage
+      let localNotifications = LocalNotificationService.getNotifications(userId);
       
-      const response = await NotificationsService.getNotifications(apiOptions);
-      
-      if (response.success && response.data) {
-        setNotifications(response.data.notifications);
-        setUnreadCount(response.data.unreadCount);
-      } else {
-        setError(response.error?.message || 'Error al cargar notificaciones');
-        setNotifications([]);
-        setUnreadCount(0);
+      // Aplicar filtros
+      if (options.unreadOnly) {
+        localNotifications = localNotifications.filter(n => !n.read);
       }
+      if (options.type) {
+        localNotifications = localNotifications.filter(n => n.type === options.type);
+      }
+      if (options.limit) {
+        localNotifications = localNotifications.slice(0, options.limit);
+      }
+
+      setNotifications(localNotifications);
+      setUnreadCount(LocalNotificationService.getUnreadCount(userId));
     } catch (err) {
       console.error('Error cargando notificaciones:', err);
       setError('Error al cargar notificaciones');
@@ -68,30 +70,28 @@ export function useNotifications(
   }, [userId, options.limit, options.unreadOnly, options.type]);
 
   const markAsRead = useCallback(async (id: string) => {
+    if (!userId) return;
+    
     try {
-      const response = await NotificationsService.markAsRead(id);
-      if (response.success) {
-        // Actualizar estado local
-        setNotifications(prev =>
-          prev.map(n => n.id === id ? { ...n, read: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      LocalNotificationService.markAsRead(userId, id);
+      // Actualizar estado local
+      setNotifications(prev =>
+        prev.map(n => n.id === id ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Error marcando como leída:', err);
     }
-  }, []);
+  }, [userId]);
 
   const markAllAsRead = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const response = await NotificationsService.markAllAsRead();
-      if (response.success) {
-        // Actualizar estado local
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        setUnreadCount(0);
-      }
+      LocalNotificationService.markAllAsRead(userId);
+      // Actualizar estado local
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
     } catch (err) {
       console.error('Error marcando todas como leídas:', err);
     }
@@ -105,6 +105,20 @@ export function useNotifications(
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);
+
+  // Escuchar cambios en localStorage (para sincronizar entre tabs)
+  useEffect(() => {
+    if (!userId) return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `airbnb_notifications_${userId}`) {
+        loadNotifications();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [userId, loadNotifications]);
 
   return {
     notifications,

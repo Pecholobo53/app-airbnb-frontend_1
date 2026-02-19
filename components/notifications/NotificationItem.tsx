@@ -6,7 +6,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import NotificationIcon from './NotificationIcon';
 import { useRouter } from 'next/navigation';
-import { NotificationsService } from '@/lib/notifications/notifications-service';
+import { LocalNotificationService } from '@/lib/notifications/local-notifications';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -21,11 +22,12 @@ interface NotificationItemProps {
  */
 export default function NotificationItem({ notification, onRead }: NotificationItemProps) {
   const router = useRouter();
+  const { user } = useAuth();
 
   const handleClick = async () => {
     // Marcar como leída si no lo está
-    if (!notification.read) {
-      await NotificationsService.markAsRead(notification.id);
+    if (!notification.read && user?.id) {
+      LocalNotificationService.markAsRead(user.id, notification.id);
       onRead?.();
     }
 
@@ -52,7 +54,7 @@ export default function NotificationItem({ notification, onRead }: NotificationI
           router.push('/dashboard'); // O página de mensajes si existe
           break;
         case 'security_alert':
-          router.push('/configuracion');
+          router.push('/perfil');
           break;
         case 'promotion':
           router.push('/buscar');
@@ -103,7 +105,7 @@ export default function NotificationItem({ notification, onRead }: NotificationI
         </div>
         
         {/* Timestamp */}
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs text-gray-500 mt-2">
           {timeAgo}
         </p>
       </div>

@@ -31,7 +31,7 @@ export default function RatingFilter({ value, onChange }: RatingFilterProps) {
             key={option.label}
             variant={value === option.value ? 'default' : 'outline'}
             onClick={() => onChange(option.value)}
-            className={`gap-1 ${value === option.value ? 'bg-[#FF385C] hover:bg-[#E31C5F]' : ''}`}
+            className={`gap-1 ${value === option.value ? 'bg-acento-200 hover:bg-acento-100' : ''}`}
           >
             <Star className="h-3 w-3 fill-current" />
             {option.label}

@@ -20,6 +20,7 @@ import {
 import { Plus, Search, Eye, Edit, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * Página de Administración de Propiedades
@@ -89,13 +90,13 @@ export default function AdminPropertiesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-1">Inventario</p>
-          <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Gestión de Propiedades</h1>
+          <p className="text-xs font-bold text-admin-accent uppercase tracking-[0.15em] mb-1">Inventario</p>
+          <h1 className="text-2xl md:text-3xl font-black text-texto-100 tracking-tight">Gestión de Propiedades</h1>
           <p className="text-[#64748b] text-sm mt-1">Administra todas las propiedades del sistema</p>
         </div>
         <button
           onClick={() => router.push('/admin/properties/new')}
-          className="flex items-center gap-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-[#0ea5e9]/20 self-start sm:self-auto"
+          className="flex items-center gap-2 bg-admin-accent hover:bg-admin-accent-hover text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-admin-accent/20 self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           Nueva Propiedad
@@ -111,12 +112,12 @@ export default function AdminPropertiesPage() {
               placeholder="Buscar por ubicación, título..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-[#f8fafc] placeholder-[#475569] text-sm focus:outline-none focus:border-[#0ea5e9]/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-texto-100 placeholder-[#475569] text-sm focus:outline-none focus:border-admin-accent/50 transition-colors"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2.5 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] transition-colors flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-texto-100 transition-colors flex items-center gap-2"
           >
             <Search className="w-4 h-4" />
             Buscar
@@ -127,7 +128,7 @@ export default function AdminPropertiesPage() {
       {/* Properties Grid */}
       <div className="rounded-2xl overflow-hidden" style={cardStyle}>
         <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#f8fafc]">Propiedades</h2>
+          <h2 className="text-sm font-bold text-texto-100">Propiedades</h2>
           <span className="text-xs text-[#64748b]">
             {total > 0 ? `${total} encontradas` : 'Sin propiedades'}
           </span>
@@ -150,7 +151,7 @@ export default function AdminPropertiesPage() {
             <p className="text-[#64748b] text-sm mb-4">No se encontraron propiedades</p>
             <button
               onClick={() => router.push('/admin/properties/new')}
-              className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] transition-colors"
+              className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-texto-100 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Crear Primera Propiedad
@@ -162,30 +163,33 @@ export default function AdminPropertiesPage() {
               {properties.map((property) => (
                 <div
                   key={property.id}
-                  className="group relative rounded-2xl overflow-hidden border border-[#1e293b]/60 hover:border-[#0ea5e9]/30 transition-all duration-300"
+                  className="group relative rounded-2xl overflow-hidden border border-[#1e293b]/60 hover:border-admin-accent/30 transition-all duration-300"
                   style={{ background: 'rgba(15, 23, 42, 0.6)' }}
                 >
                   {/* Image */}
                   <div className="relative aspect-video overflow-hidden">
-                    <img
+                    <Image
                       src={property.images?.[0] || '/placeholder.jpg'}
                       alt={property.title || 'Propiedad'}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     {/* Hover controls */}
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                       <Link
                         href={`/propiedad/${property.id}`}
-                        className="w-10 h-10 rounded-xl bg-[#0ea5e9] flex items-center justify-center text-white hover:bg-[#0284c7] transition-colors shadow-lg"
+                        className="w-10 h-10 rounded-xl bg-admin-accent flex items-center justify-center text-white hover:bg-admin-accent-hover transition-colors shadow-lg"
                         title="Ver propiedad"
+                        aria-label={`Ver propiedad ${property.title || ''}`}
                       >
                         <Eye className="w-4 h-4" />
                       </Link>
                       <Link
                         href={`/admin/properties/${property.id}/edit`}
-                        className="w-10 h-10 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-[#f8fafc] transition-colors shadow-lg"
+                        className="w-10 h-10 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-texto-100 transition-colors shadow-lg"
                         title="Editar"
+                        aria-label={`Editar propiedad ${property.title || ''}`}
                       >
                         <Edit className="w-4 h-4" />
                       </Link>
@@ -200,7 +204,7 @@ export default function AdminPropertiesPage() {
 
                   {/* Info */}
                   <div className="p-4">
-                    <h3 className="text-[13px] font-bold text-[#f8fafc] truncate mb-1">
+                    <h3 className="text-[13px] font-bold text-texto-100 truncate mb-1">
                       {property.title || 'Sin título'}
                     </h3>
                     <p className="text-[12px] text-[#64748b] mb-3">
@@ -209,14 +213,14 @@ export default function AdminPropertiesPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <span className="text-yellow-400 text-[11px]">★</span>
-                        <span className="text-[12px] font-semibold text-[#f8fafc]">
+                        <span className="text-[12px] font-semibold text-texto-100">
                           {property.rating?.overall?.toFixed(1) || '0.0'}
                         </span>
                         <span className="text-[11px] text-[#475569]">
                           ({property.rating?.reviewCount || 0})
                         </span>
                       </div>
-                      <span className="text-[13px] font-bold text-[#0ea5e9]">
+                      <span className="text-[13px] font-bold text-admin-accent">
                         {formatPrice(property.pricing?.basePrice || 0, property.pricing?.currency || 'EUR')}
                         <span className="text-[10px] font-normal text-[#475569]">/noche</span>
                       </span>
@@ -236,14 +240,14 @@ export default function AdminPropertiesPage() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#1e293b] text-xs font-semibold text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-40 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#1e293b] text-xs font-semibold text-[#94a3b8] hover:text-texto-100 disabled:opacity-40 transition-colors"
                   >
                     Anterior
                   </button>
                   <button
                     onClick={() => setCurrentPage(prev => prev + 1)}
                     disabled={currentPage * perPage >= total}
-                    className="px-3 py-1.5 rounded-lg bg-[#0ea5e9] text-xs font-semibold text-white hover:bg-[#0284c7] disabled:opacity-40 transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-admin-accent text-xs font-semibold text-white hover:bg-admin-accent-hover disabled:opacity-40 transition-colors"
                   >
                     Siguiente
                   </button>

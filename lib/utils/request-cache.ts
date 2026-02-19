@@ -28,19 +28,16 @@ class RequestCache {
     // Verificar si hay una petición pendiente
     const pending = this.pendingRequests.get(key);
     if (pending) {
-      console.log(`⏳ [CACHE] Esperando petición pendiente para: ${key}`);
       return pending;
     }
 
     // Verificar caché
     const cached = this.cache.get(key);
     if (cached && Date.now() < cached.expiresAt) {
-      console.log(`✅ [CACHE] Datos encontrados en caché: ${key}`);
       return cached.data;
     }
 
     // Ejecutar petición
-    console.log(`📤 [CACHE] Ejecutando petición: ${key}`);
     const promise = fetchFn()
       .then((data) => {
         // Solo guardar en caché si la respuesta es exitosa
@@ -53,9 +50,6 @@ class RequestCache {
               timestamp: Date.now(),
               expiresAt: Date.now() + ttl,
             });
-            console.log(`✅ [CACHE] Datos guardados en caché: ${key}`);
-          } else {
-            console.log(`⚠️ [CACHE] Respuesta no exitosa, no se guarda en caché: ${key}`);
           }
         } else {
           // Si no tiene estructura de respuesta, guardar directamente
@@ -70,7 +64,7 @@ class RequestCache {
         return data;
       })
       .catch((error) => {
-        console.error(`❌ [CACHE] Error en petición ${key}:`, error);
+        console.error(`❌ [CACHE] Error en petición ${key}`);
         // Remover de peticiones pendientes en caso de error
         this.pendingRequests.delete(key);
         throw error;
@@ -87,7 +81,6 @@ class RequestCache {
    */
   invalidate(key: string): void {
     this.cache.delete(key);
-    console.log(`🗑️ [CACHE] Caché invalidado: ${key}`);
   }
 
   /**
@@ -96,7 +89,6 @@ class RequestCache {
   clear(): void {
     this.cache.clear();
     this.pendingRequests.clear();
-    console.log(`🗑️ [CACHE] Caché limpiado completamente`);
   }
 
   /**

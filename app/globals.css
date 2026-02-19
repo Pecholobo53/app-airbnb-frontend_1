@@ -3,29 +3,29 @@
 @tailwind utilities;
 
 :root {
-  /* Airbnb Custom Colors */
+  /* Luxury Dark Palette — Premium Midnight Blue */
   --primario-100: #d4eaf7;
   --primario-200: #b6ccd8;
   --primario-300: #3b3c3d;
   --acento-100: #71c4ef;
-  --acento-200: #00668c;
-  --texto-100: #1d1c1c;
-  --texto-200: #313d44;
-  --bg-100: #fffefb;
-  --bg-200: #f5f4f1;
-  --bg-300: #cccbc8;
-  
+  --acento-200: #FF385C;           /* Brand coral */
+  --texto-100: #f1f5f9;            /* Light — legible sobre fondos oscuros */
+  --texto-200: #94a3b8;            /* Muted slate */
+  --bg-100: #07091A;               /* Midnight navy — fondo profundo */
+  --bg-200: #0C0E1E;               /* Surface oscura */
+  --bg-300: #1e293b;               /* Borde/divisor */
+
   /* RGB versions for Tailwind opacity support */
   --primario-100-rgb: 212 234 247;
   --primario-200-rgb: 182 204 216;
   --primario-300-rgb: 59 60 61;
   --acento-100-rgb: 113 196 239;
-  --acento-200-rgb: 0 102 140;
-  --texto-100-rgb: 29 28 28;
-  --texto-200-rgb: 49 61 68;
-  --bg-100-rgb: 255 254 251;
-  --bg-200-rgb: 245 244 241;
-  --bg-300-rgb: 204 203 200;
+  --acento-200-rgb: 255 56 92;
+  --texto-100-rgb: 241 245 249;
+  --texto-200-rgb: 148 163 184;
+  --bg-100-rgb: 7 9 26;
+  --bg-200-rgb: 12 14 30;
+  --bg-300-rgb: 30 41 59;
 }
 
 @layer base {
@@ -33,8 +33,15 @@
     @apply border-border;
   }
   
+  html {
+    /* Luxury gradient: Midnight Navy → Deep Dark — fluye hasta el Footer */
+    background: linear-gradient(180deg, #07091A 0%, #080C18 35%, #0A0D14 65%, #0D0D0D 100%);
+    background-attachment: fixed;
+  }
+
   body {
-    @apply bg-[var(--bg-100)] text-[var(--texto-100)];
+    background: transparent;
+    color: var(--texto-100);
     font-family: var(--font-dm-sans), system-ui, sans-serif;
   }
 

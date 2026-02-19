@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, TrendingUp } from 'lucide-react';
 
 const destinations = [
@@ -58,7 +59,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, scale: 0.97 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.45, ease: 'easeOut' } },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.45, ease: 'easeOut' as const } },
 };
 
 /**
@@ -81,8 +82,8 @@ export default function TrendingDestinations() {
         >
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-[#FF385C]" />
-              <p className="text-sm font-semibold text-[#FF385C] uppercase tracking-widest">
+              <TrendingUp className="w-5 h-5 text-acento-200" />
+              <p className="text-sm font-semibold text-acento-200 uppercase tracking-widest">
                 Destinos en tendencia
               </p>
             </div>
@@ -95,7 +96,7 @@ export default function TrendingDestinations() {
           </div>
           <Link
             href="/buscar"
-            className="hidden sm:flex text-sm font-semibold text-gray-900 underline underline-offset-4 hover:text-[#FF385C] transition-colors"
+            className="hidden sm:flex text-sm font-semibold text-gray-900 underline underline-offset-4 hover:text-acento-200 transition-colors"
           >
             Ver todos los destinos
           </Link>
@@ -116,10 +117,12 @@ export default function TrendingDestinations() {
                 className="group relative block rounded-2xl overflow-hidden aspect-[3/4] shadow-sm hover:shadow-xl transition-shadow duration-300"
               >
                 {/* Background image */}
-                <img
+                <Image
                   src={dest.image}
                   alt={dest.name}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
 

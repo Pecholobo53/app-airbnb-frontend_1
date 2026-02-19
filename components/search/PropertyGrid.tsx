@@ -16,14 +16,12 @@ export default function PropertyGrid({ properties }: PropertyGridProps) {
   const uniqueProperties = properties.filter(property => {
     // Verificar por ID primero
     if (seenIds.has(property.id)) {
-      console.warn(`⚠️ [PROPERTY GRID] Propiedad duplicada por ID eliminada: ${property.id} - ${property.title}`);
       return false;
     }
     
     // Verificar por título+ubicación
     const titleLocationKey = `${(property.title || '').toLowerCase().trim()}|${(property.location?.city || '').toLowerCase().trim()}|${(property.location?.country || '').toLowerCase().trim()}`;
     if (seenTitleLocation.has(titleLocationKey)) {
-      console.warn(`⚠️ [PROPERTY GRID] Propiedad duplicada por título+ubicación eliminada: ${property.id} - ${property.title} (${property.location?.city})`);
       return false;
     }
     

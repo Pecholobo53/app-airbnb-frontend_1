@@ -59,7 +59,6 @@ async function apiRequest<T>(
         data = await response.json();
       } else {
         const text = await response.text();
-        console.warn('⚠️ [LOCATION SERVICE] Response no es JSON:', text.substring(0, 100));
         return {
           success: false,
           error: {
@@ -69,7 +68,7 @@ async function apiRequest<T>(
         };
       }
     } catch (jsonError) {
-      console.error('❌ [LOCATION SERVICE] Error parseando respuesta:', jsonError);
+      console.error('❌ [LOCATION SERVICE] Error parseando respuesta');
       return {
         success: false,
         error: {
@@ -80,11 +79,6 @@ async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      console.error('❌ [LOCATION SERVICE] Error en response:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: data.error || data.message,
-      });
 
       // Manejar errores específicos
       if (response.status === 404) {
@@ -122,7 +116,7 @@ async function apiRequest<T>(
       data: data.data || data,
     };
   } catch (error) {
-    console.error('❌ [LOCATION SERVICE] Error de red:', error);
+    console.error('❌ [LOCATION SERVICE] Error de red');
     return {
       success: false,
       error: {
@@ -176,7 +170,7 @@ export class LocationService {
         }
       );
     } catch (error) {
-      console.error('❌ [LOCATION SERVICE] Error en getSuggestions:', error);
+      console.error('❌ [LOCATION SERVICE] Error en getSuggestions');
       return {
         success: false,
         error: {

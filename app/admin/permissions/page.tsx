@@ -178,13 +178,13 @@ export default function PermissionsPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/admin">
-          <button className="w-9 h-9 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-[#f8fafc] transition-colors">
+          <button className="w-9 h-9 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-texto-100 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </button>
         </Link>
         <div>
-          <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-0.5">Seguridad</p>
-          <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Gestión de Permisos</h1>
+          <p className="text-xs font-bold text-admin-accent uppercase tracking-[0.15em] mb-0.5">Seguridad</p>
+          <h1 className="text-2xl md:text-3xl font-black text-texto-100 tracking-tight">Gestión de Permisos</h1>
         </div>
       </div>
 
@@ -214,14 +214,14 @@ export default function PermissionsPage() {
       <div className="rounded-2xl overflow-hidden" style={cardStyle}>
         <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-[#f8fafc]">Asignación de Roles</h2>
+            <h2 className="text-sm font-bold text-texto-100">Asignación de Roles</h2>
             <p className="text-xs text-[#64748b] mt-0.5">{users.length} usuarios encontrados</p>
           </div>
           {hasChanges && (
             <button
               onClick={handleSaveRoles}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-semibold transition-colors shadow-lg shadow-[#0ea5e9]/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-admin-accent hover:bg-admin-accent-hover text-white text-sm font-semibold transition-colors shadow-lg shadow-admin-accent/20 disabled:opacity-50"
             >
               {saving ? (
                 <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Guardando...</>
@@ -245,11 +245,11 @@ export default function PermissionsPage() {
               <div key={user.id} className="px-5 py-4 flex flex-wrap items-center gap-4 hover:bg-[#1e293b]/20 transition-colors">
                 {/* Avatar + Info */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-admin-accent to-admin-accent-hover flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                     {initials}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-semibold text-[#f8fafc] truncate">{user.name}</p>
+                    <p className="text-[13px] font-semibold text-texto-100 truncate">{user.name}</p>
                     <p className="text-[11px] text-[#64748b] truncate">{user.email}</p>
                   </div>
                 </div>
@@ -271,7 +271,7 @@ export default function PermissionsPage() {
                   <SelectTrigger className="w-[140px] bg-[#1e293b]/60 border-[#1e293b] text-[#94a3b8] rounded-xl text-xs">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0f172a] border-[#1e293b] text-[#f8fafc]">
+                  <SelectContent className="bg-[#0f172a] border-[#1e293b] text-texto-100">
                     <SelectItem value="user">Usuario</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
                   </SelectContent>

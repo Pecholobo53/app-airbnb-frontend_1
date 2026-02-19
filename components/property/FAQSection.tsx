@@ -65,7 +65,7 @@ export default function FAQSection() {
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
         <div className="flex items-center gap-2 mb-1">
-          <MessageCircle className="w-5 h-5 text-[#FF385C]" />
+          <MessageCircle className="w-5 h-5 text-acento-200" />
           <h2 className="text-xl font-semibold text-gray-900">
             Preguntas frecuentes
           </h2>
@@ -89,7 +89,7 @@ export default function FAQSection() {
               value={faq.id}
               className="border-0 py-1"
             >
-              <AccordionTrigger className="text-left text-sm font-medium text-gray-900 hover:no-underline hover:text-[#FF385C] py-4">
+              <AccordionTrigger className="text-left text-sm font-medium text-gray-900 hover:no-underline hover:text-acento-200 py-4">
                 {faq.question}
               </AccordionTrigger>
               <AccordionContent className="text-sm text-gray-600 leading-relaxed pb-5 pr-6">

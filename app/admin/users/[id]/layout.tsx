@@ -21,13 +21,10 @@ export async function generateStaticParams() {
         const params = data.data.users.map((user: { id: string }) => ({
           id: String(user.id),
         }));
-        console.log(`[generateStaticParams] Pre-generando ${params.length} rutas de usuarios`);
         return params;
       }
     }
-  } catch (error) {
-    // Backend no disponible durante build - normal en desarrollo
-    console.log('[generateStaticParams] Backend no disponible durante build');
+  } catch {
   }
   
   // Retornar array vacío - en desarrollo Next.js generará dinámicamente

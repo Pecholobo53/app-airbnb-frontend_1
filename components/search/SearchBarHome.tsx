@@ -61,7 +61,7 @@ export default function SearchBarHome() {
         <div className="pr-2">
           <Button
             onClick={handleSearch}
-            className="bg-[#FF385C] hover:bg-[#E31C5F] text-white rounded-full h-14 w-14 p-0 shadow-lg"
+            className="bg-acento-200 hover:bg-acento-100 text-white rounded-full h-14 w-14 p-0 shadow-lg"
           >
             <Search className="h-5 w-5" />
           </Button>

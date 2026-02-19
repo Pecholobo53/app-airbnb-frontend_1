@@ -47,25 +47,11 @@ export default function MisReservasPage() {
     setError(null);
 
     try {
-      console.log('👤 [MIS RESERVAS] Usuario actual:', {
-        id: user.id,
-        name: user.name,
-        email: user.email
-      });
-      
       // Cargar todas las reservas del usuario
       const response = await DashboardService.getAllUserBookings(user.id);
 
-      console.log('📥 [MIS RESERVAS] Respuesta del servicio:', {
-        success: response.success,
-        hasData: !!response.data,
-        dataLength: response.data?.length || 0,
-        error: response.error,
-      });
-
       if (response.success && response.data) {
         const allBookings = response.data;
-        console.log(`✅ [MIS RESERVAS] ${allBookings.length} reservas recibidas`);
 
         const now = new Date();
 
@@ -100,20 +86,8 @@ export default function MisReservasPage() {
           }
           // Fallback: cualquier reserva sin categorizar va a upcoming
           else {
-            console.warn('⚠️ [MIS RESERVAS] Reserva sin categorizar:', {
-              id: booking.id,
-              status: booking.status,
-              checkIn: checkIn,
-              checkOut: checkOut,
-            });
             upcoming.push(booking);
           }
-        });
-
-        console.log(`📊 [MIS RESERVAS] Categorización:`, {
-          upcoming: upcoming.length,
-          active: active.length,
-          past: past.length,
         });
 
         // Combinar próximas y activas en una sola sección
@@ -122,30 +96,23 @@ export default function MisReservasPage() {
       } else {
         // Usar el mensaje de error del servicio (ya está mejorado)
         const errorMessage = response.error?.message || 'Error al cargar reservas';
-        console.error('❌ [MIS RESERVAS] Error:', {
-          error: response.error,
-          code: response.error?.code,
-          message: errorMessage,
-        });
         setError(errorMessage);
         setUpcomingBookings([]);
         setPastBookings([]);
       }
     } catch (err) {
-      console.error('❌ [MIS RESERVAS] Error inesperado cargando reservas:', err);
+      console.error('Error inesperado cargando reservas');
       setError('Error al cargar reservas');
       setUpcomingBookings([]);
       setPastBookings([]);
     } finally {
       setIsLoading(false);
-      console.log('✅ [MIS RESERVAS] Carga de reservas completada');
     }
   };
 
   // Función para eliminar una reserva
   const handleDeleteBooking = async (bookingId: string) => {
     try {
-      console.log('🗑️ [MIS RESERVAS] Eliminando reserva:', bookingId);
       const response = await deleteBooking(bookingId);
       
       if (response.success) {
@@ -153,17 +120,13 @@ export default function MisReservasPage() {
         setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
         setPastBookings(prev => prev.filter(b => b.id !== bookingId));
         toast.success('Reserva eliminada correctamente');
-        console.log('✅ [MIS RESERVAS] Reserva eliminada:', bookingId);
       } else {
-        // Si el backend no soporta eliminación permanente, intentar con cancelación
-        console.warn('⚠️ [MIS RESERVAS] Error eliminando, la reserva puede no soportar eliminación permanente');
-        // Aún así, remover de la UI para mejorar la experiencia
         setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
         setPastBookings(prev => prev.filter(b => b.id !== bookingId));
         toast.success('Reserva eliminada de tu historial');
       }
     } catch (error) {
-      console.error('❌ [MIS RESERVAS] Error eliminando reserva:', error);
+      console.error('Error eliminando reserva');
       toast.error('Error al eliminar la reserva');
       throw error;
     }
@@ -173,7 +136,7 @@ export default function MisReservasPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF385C]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-acento-200"></div>
       </div>
     );
   }
@@ -223,7 +186,7 @@ export default function MisReservasPage() {
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-[#FF385C]" />
+                  <Calendar className="w-5 h-5 text-acento-200" />
                   <div>
                     <div className="text-2xl font-bold text-gray-900">{totalBookings}</div>
                     <div className="text-sm text-gray-500">Total</div>
@@ -349,7 +312,7 @@ export default function MisReservasPage() {
                   </p>
                   <Link
                     href="/buscar"
-                    className="inline-block px-6 py-3 bg-[#FF385C] text-white font-semibold rounded-lg hover:bg-[#E31C5F] transition-colors"
+                    className="inline-block px-6 py-3 bg-acento-200 text-white font-semibold rounded-lg hover:bg-acento-100 transition-colors"
                   >
                     Explorar propiedades
                   </Link>

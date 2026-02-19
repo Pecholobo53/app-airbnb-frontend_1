@@ -44,7 +44,6 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
         newSet.add(index);
         return newSet;
       });
-      console.warn(`⚠️ [PROPERTY GALLERY] Error cargando imagen ${index} de ${title}`);
     }
   };
 
@@ -88,7 +87,6 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
           priority={priority}
           loading={priority ? undefined : 'lazy'}
           onError={() => {
-            console.warn(`⚠️ [PROPERTY GALLERY] Error cargando imagen ${index}: ${imageSrc}`);
             handleImageError(index, isPlaceholder);
           }}
           unoptimized={imageSrc.startsWith('http://localhost') || imageSrc.includes('localhost')}

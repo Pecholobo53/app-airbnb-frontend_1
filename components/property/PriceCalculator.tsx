@@ -58,8 +58,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       return;
     }
 
-    // MODO PERMISIVO: Siempre marcar como disponible sin validar
-    console.log('✅ [PRICE CALCULATOR] Modo permisivo - fechas marcadas como disponibles sin validación');
     setIsAvailabilityVerified(true);
     setAvailabilityError(null);
     setIsCheckingAvailability(false);
@@ -75,12 +73,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
     //     const checkInStr = checkIn.toISOString().split('T')[0];
     //     const checkOutStr = checkOut.toISOString().split('T')[0];
     //     
-    //     console.log('🔍 [PRICE CALCULATOR] Verificando disponibilidad real...', {
-    //       propertyId: property.id,
-    //       checkIn: checkInStr,
-    //       checkOut: checkOutStr,
-    //       guests,
-    //     });
     //     
     //     const validationResponse = await validateBooking({
     //       propertyId: property.id,
@@ -99,7 +91,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
     //           validationResponse.error?.message?.includes('Ruta no encontrada') ||
     //           validationResponse.error?.message?.includes('not found') ||
     //           validationResponse.error?.message?.includes('Demasiadas solicitudes')) {
-    //         console.warn('⚠️ [PRICE CALCULATOR] Endpoint no disponible o rate limit (404/429), permitiendo continuar sin validación');
     //         setIsAvailabilityVerified(true);
     //         setAvailabilityError(null); // No mostrar error, permitir continuar
     //         return;
@@ -112,12 +103,9 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
     //                             validationResponse.data?.message || 
     //                             'Las fechas seleccionadas no están disponibles';
     //         setAvailabilityError(errorMessage);
-    //         console.warn('⚠️ [PRICE CALCULATOR] Fechas no disponibles:', errorMessage);
     //         return;
     //       }
     //       
-    //       // Para otros errores, permitir continuar sin mostrar error
-    //       console.warn('⚠️ [PRICE CALCULATOR] Error en validación, pero permitiendo continuar:', errorCode);
     //       setIsAvailabilityVerified(true);
     //       setAvailabilityError(null);
     //       return;
@@ -127,16 +115,14 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
     //     if (validationResponse.data?.available) {
     //       setIsAvailabilityVerified(true);
     //       setAvailabilityError(null);
-    //       console.log('✅ [PRICE CALCULATOR] Disponibilidad verificada: DISPONIBLE');
     //     } else {
     //       setIsAvailabilityVerified(false);
     //       const errorMessage = validationResponse.data?.message || 
     //                           'Las fechas seleccionadas no están disponibles';
     //       setAvailabilityError(errorMessage);
-    //       console.warn('⚠️ [PRICE CALCULATOR] Fechas no disponibles:', errorMessage);
     //     }
     //   } catch (error) {
-    //     console.error('❌ [PRICE CALCULATOR] Error verificando disponibilidad:', error);
+    //     console.error('❌ [PRICE CALCULATOR] Error verificando disponibilidad');
     //     // En caso de error inesperado, permitir continuar (modo permisivo)
     //     setIsAvailabilityVerified(true);
     //     setAvailabilityError(null); // No mostrar error para no bloquear
@@ -167,7 +153,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
           guests
         );
       } catch (error) {
-        console.error('Error calculando precio:', error);
+        console.error('Error calculando precio');
         validationError = 'Error calculando precio. Por favor, intenta de nuevo.';
       }
     } else {
@@ -194,8 +180,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
     //   return;
     // }
     if (validationError) {
-      console.warn('⚠️ [PRICE CALCULATOR] Error de validación detectado pero ignorado (modo permisivo):', validationError);
-      // No bloquear, permitir continuar
     }
 
     if (guests > capacity.guests) {
@@ -213,11 +197,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       const checkInStr = checkIn.toISOString().split('T')[0];
       const checkOutStr = checkOut.toISOString().split('T')[0];
       
-      console.log('🚀 [PRICE CALCULATOR] Creando reserva en borrador...');
-      
-      // MODO PERMISIVO: Validación deshabilitada - permitir todas las fechas
-      console.log('⚠️ [PRICE CALCULATOR] Validación de disponibilidad deshabilitada - modo permisivo');
-      console.log('✅ [PRICE CALCULATOR] Continuando con creación de reserva sin validación...');
 
       // CÓDIGO ORIGINAL COMENTADO (descomentar para reactivar validaciones):
       // // Paso 1: Verificar disponibilidad (validación final antes de crear)
@@ -243,7 +222,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       //         errorMessage.includes('Ruta no encontrada') || errorMessage.includes('not found') ||
       //         errorMessage.includes('Demasiadas solicitudes') ||
       //         errorMessage.toLowerCase().includes('404') || errorMessage.toLowerCase().includes('429')) {
-      //       console.warn('⚠️ [PRICE CALCULATOR] Endpoint no disponible o rate limit (404/429), continuando sin validación');
       //       skipValidation = true;
       //     } else if (validationResponse.data?.available === false) {
       //       // Si las fechas realmente no están disponibles, bloquear
@@ -256,7 +234,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       //       return;
       //     } else {
       //       // Para otros errores, permitir continuar
-      //       console.warn('⚠️ [PRICE CALCULATOR] Error en validación, pero permitiendo continuar');
       //       skipValidation = true;
       //     }
       //   } else if (!validationResponse.data?.available) {
@@ -270,15 +247,11 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       //   }
       // } catch (error) {
       //   // Si hay un error inesperado, permitir continuar
-      //   console.warn('⚠️ [PRICE CALCULATOR] Error inesperado en validación, continuando:', error);
       //   skipValidation = true;
       // }
 
       // // Si se debe saltar la validación, continuar directamente
       // if (skipValidation) {
-      //   console.log('✅ [PRICE CALCULATOR] Saltando validación, continuando con creación de reserva...');
-      // } else {
-      //   console.log('✅ [PRICE CALCULATOR] Disponibilidad confirmada, creando reserva en borrador...');
       // }
 
       // Paso 2: Crear reserva en estado 'pending' (borrador/preliminar)
@@ -301,14 +274,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
         const errorCode = bookingResponse.error?.code;
         const errorMessage = bookingResponse.error?.message || 'Error al crear la reserva';
         
-        // Log detallado para debugging
-        console.log('🔍 [PRICE CALCULATOR] Respuesta de createBooking:', {
-          success: bookingResponse.success,
-          errorCode,
-          errorMessage,
-          fullError: bookingResponse.error,
-        });
-        
         // MODO PERMISIVO: Si es 409 (CONFLICT) - fechas "no disponibles", ignorar y continuar
         const isConflict = 
           errorCode === 'CONFLICT' || 
@@ -323,11 +288,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
           errorMessage.toLowerCase().includes('reservada');
         
         if (isConflict) {
-          console.warn('⚠️ [PRICE CALCULATOR] Backend reporta conflicto (409/CONFLICT), pero continuando en modo permisivo', {
-            errorCode,
-            errorMessage,
-          });
-          
           // Redirigir a checkout con parámetros de query (ignorar el conflicto)
           const checkoutUrl = `/checkout?propertyId=${property.id}&checkIn=${checkIn.toISOString()}&checkOut=${checkOut.toISOString()}&adults=${guests}&children=0&infants=0`;
           router.push(checkoutUrl);
@@ -338,8 +298,6 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
         // Si el endpoint no existe (404), usar flujo antiguo con parámetros de query
         if (errorCode === 'NOT_FOUND' || errorCode === 'HTTP_404' ||
             errorMessage.includes('Ruta no encontrada') || errorMessage.includes('not found')) {
-          console.warn('⚠️ [PRICE CALCULATOR] Endpoint de creación no disponible (404), usando flujo con parámetros de query');
-          
           // Redirigir a checkout con parámetros de query (flujo antiguo)
           const checkoutUrl = `/checkout?propertyId=${property.id}&checkIn=${checkIn.toISOString()}&checkOut=${checkOut.toISOString()}&adults=${guests}&children=0&infants=0`;
           router.push(checkoutUrl);
@@ -351,17 +309,14 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
         if (errorCode === 'RATE_LIMIT' || errorCode === 'HTTP_429' || 
             errorMessage.includes('Demasiadas solicitudes')) {
           toast.error('Demasiadas solicitudes. Por favor, espera unos segundos e intenta de nuevo.');
-          console.warn('⚠️ [PRICE CALCULATOR] Rate limit al crear reserva, usuario puede reintentar');
           return;
         }
         
         toast.error(errorMessage);
-        console.error('❌ [PRICE CALCULATOR] Error creando reserva:', bookingResponse.error);
         return;
       }
 
       const bookingId = bookingResponse.data.booking.id;
-      console.log('✅ [PRICE CALCULATOR] Reserva creada en borrador:', bookingId);
 
       // Paso 3: Redirigir a checkout con ID de reserva y parámetros como fallback
       // Esto permite que si falla cargar la reserva (403), podamos usar los parámetros
@@ -370,7 +325,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
       router.push(checkoutUrl);
       toast.success('Reserva creada, completando información...');
     } catch (error) {
-      console.error('❌ [PRICE CALCULATOR] Error al crear reserva:', error);
+      console.error('Error al crear reserva');
       toast.error('Error al crear la reserva. Por favor, intenta de nuevo.');
     }
   };
@@ -481,7 +436,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
               ? 'bg-green-600 hover:bg-green-700 text-white'
               : availabilityError && !isAvailabilityVerified
               ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-[#FF385C] hover:bg-[#E31C5F] text-white'
+              : 'bg-acento-200 hover:bg-acento-100 text-white'
           }`}
         >
           <div className="flex items-center justify-center gap-2">
@@ -517,7 +472,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
             setCheckOut(checkoutDate);
             toast.success(`Fechas establecidas (${availability.minNights} ${availability.minNights === 1 ? 'noche' : 'noches'} mínimo)`);
           }}
-          className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold py-3"
+          className="w-full bg-acento-200 hover:bg-acento-100 text-white font-semibold py-3"
         >
           Seleccionar fechas
         </Button>

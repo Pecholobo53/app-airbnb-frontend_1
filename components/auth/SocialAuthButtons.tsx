@@ -18,10 +18,6 @@ export default function SocialAuthButtons() {
     onSuccess: async (tokenResponse) => {
       setIsLoadingGoogle(true);
       try {
-        console.log('✅ [GOOGLE LOGIN] Token recibido de Google');
-        
-        // Obtener datos del usuario desde Google
-        console.log('📡 [GOOGLE LOGIN] Obteniendo información del usuario desde Google...');
         const userInfoResponse = await fetch(
           'https://www.googleapis.com/oauth2/v3/userinfo',
           {
@@ -33,15 +29,10 @@ export default function SocialAuthButtons() {
         
         if (!userInfoResponse.ok) {
           const errorText = await userInfoResponse.text();
-          console.error('❌ [GOOGLE LOGIN] Error obteniendo datos de Google:', userInfoResponse.status, errorText);
           throw new Error(`Error al obtener datos de Google: ${userInfoResponse.status}`);
         }
         
         const googleUser = await userInfoResponse.json();
-        console.log('✅ [GOOGLE LOGIN] Datos de Google obtenidos:', { email: googleUser.email, name: googleUser.name });
-        
-        // Enviar datos al backend
-        console.log('📡 [GOOGLE LOGIN] Enviando datos al backend...');
         const response = await AuthService.loginWithGoogle({
           email: googleUser.email,
           name: googleUser.name,
@@ -49,15 +40,14 @@ export default function SocialAuthButtons() {
           providerId: googleUser.sub,
         });
 
-        console.log('📥 [GOOGLE LOGIN] Respuesta del backend:', response);
-
         if (response.success && response.data) {
           // Manejar diferentes estructuras de respuesta del backend
-          const userData = response.data.user || response.data;
-          const token = response.data.token || response.data.accessToken;
-          const expiresAt = response.data.expiresAt 
-            ? new Date(response.data.expiresAt) 
-            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días por defecto
+          const responseData = response.data as any;
+          const userData = responseData.user || responseData;
+          const token = responseData.token || responseData.accessToken;
+          const expiresAt = responseData.expiresAt 
+            ? new Date(responseData.expiresAt) 
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
           
           const session = {
             ...response.data,
@@ -84,11 +74,10 @@ export default function SocialAuthButtons() {
           const userIsAdmin = isAdmin(session.user);
           window.location.href = userIsAdmin ? '/admin' : '/dashboard';
         } else {
-          console.error('❌ [GOOGLE LOGIN] Error en respuesta del backend:', response.error);
           toast.error(response.error?.message || 'Error al iniciar sesión con Google');
         }
       } catch (error) {
-        console.error('❌ [GOOGLE LOGIN] Error completo:', error);
+        console.error('Error en login con Google');
         
         // Mensajes de error más específicos
         if (error instanceof Error) {
@@ -107,7 +96,6 @@ export default function SocialAuthButtons() {
       }
     },
     onError: (error) => {
-      console.error('❌ [GOOGLE LOGIN] Error en autenticación de Google:', error);
       setIsLoadingGoogle(false);
       toast.error('Error al autenticar con Google. Verifica que tu email esté en la lista de usuarios de prueba.');
     },

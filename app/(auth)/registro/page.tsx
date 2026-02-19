@@ -45,7 +45,7 @@ export default function RegisterPage() {
           ¿Ya tienes cuenta?{' '}
           <Link
             href="/login"
-            className="font-semibold text-[#FF385C] hover:text-[#E31C5F] hover:underline"
+            className="font-semibold text-acento-200 hover:text-acento-100 hover:underline"
           >
             Inicia sesión
           </Link>

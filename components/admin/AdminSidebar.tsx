@@ -44,18 +44,18 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
       <div className="px-5 py-6 border-b border-[#1e293b]/60">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] flex items-center justify-center shadow-lg shadow-[#0ea5e9]/25">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-admin-accent to-admin-accent-hover flex items-center justify-center shadow-lg shadow-admin-accent/25">
               <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-[15px] font-bold text-[#f8fafc] tracking-tight">Admin Panel</h2>
+              <h2 className="text-[15px] font-bold text-texto-100 tracking-tight">Admin Panel</h2>
               <p className="text-[11px] text-[#64748b]">Sistema de administración</p>
             </div>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="md:hidden w-7 h-7 rounded-lg bg-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-[#f8fafc] transition-colors"
+              className="md:hidden w-7 h-7 rounded-lg bg-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-texto-100 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -65,14 +65,14 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
         {user && (
           <div className="mt-4 px-3 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b]">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-admin-accent to-admin-accent-hover flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 {user.name?.charAt(0).toUpperCase() || 'A'}
               </div>
               <div className="min-w-0">
-                <p className="text-[12px] font-semibold text-[#f8fafc] truncate">{user.name}</p>
+                <p className="text-[12px] font-semibold text-texto-100 truncate">{user.name}</p>
                 <p className="text-[10px] text-[#64748b] truncate">{user.email}</p>
               </div>
-              <span className="ml-auto text-[10px] font-bold text-[#0ea5e9] bg-[#0ea5e9]/10 px-2 py-0.5 rounded-full border border-[#0ea5e9]/20 flex-shrink-0">
+              <span className="ml-auto text-[10px] font-bold text-admin-accent bg-admin-accent/10 px-2 py-0.5 rounded-full border border-admin-accent/20 flex-shrink-0">
                 Admin
               </span>
             </div>
@@ -97,13 +97,13 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
               className={cn(
                 'group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 border',
                 isActive
-                  ? 'bg-[#0ea5e9]/15 border-[#0ea5e9]/30 text-[#38bdf8]'
-                  : 'text-[#94a3b8] hover:bg-[#1e293b]/80 hover:text-[#f8fafc] border-transparent'
+                  ? 'bg-admin-accent/15 border-admin-accent/30 text-[#38bdf8]'
+                  : 'text-[#94a3b8] hover:bg-[#1e293b]/80 hover:text-texto-100 border-transparent'
               )}
             >
               <div className={cn(
                 'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0',
-                isActive ? 'bg-[#0ea5e9]/20' : 'bg-[#1e293b]/60 group-hover:bg-[#1e293b]'
+                isActive ? 'bg-admin-accent/20' : 'bg-[#1e293b]/60 group-hover:bg-[#1e293b]'
               )}>
                 <Icon className={cn(
                   'w-4 h-4 transition-colors duration-200',
@@ -111,7 +111,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
                 )} />
               </div>
               <span className="text-[13px] font-semibold tracking-wide">{item.title}</span>
-              {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#0ea5e9]" />}
+              {isActive && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-admin-accent" />}
             </Link>
           );
         })}
@@ -122,7 +122,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
         <Link
           href="/dashboard"
           onClick={onClose}
-          className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#94a3b8] hover:bg-[#1e293b]/80 hover:text-[#f8fafc] transition-all duration-200 border border-transparent"
+          className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#94a3b8] hover:bg-[#1e293b]/80 hover:text-texto-100 transition-all duration-200 border border-transparent"
         >
           <div className="w-8 h-8 rounded-lg bg-[#1e293b]/60 group-hover:bg-[#1e293b] flex items-center justify-center transition-all flex-shrink-0">
             <Home className="w-4 h-4 text-[#64748b] group-hover:text-[#94a3b8]" />

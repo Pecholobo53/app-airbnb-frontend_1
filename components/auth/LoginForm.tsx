@@ -39,18 +39,10 @@ export default function LoginForm() {
   const rememberMe = watch('rememberMe');
 
   const onSubmit = async (data: LoginFormData) => {
-    console.log('🔐 [LOGIN FORM] onSubmit llamado con datos:', {
-      email: data.email,
-      passwordLength: data.password.length,
-      rememberMe: data.rememberMe
-    });
-    
     setIsLoading(true);
     
     try {
-      console.log('🔐 [LOGIN FORM] Llamando a login()...');
       const success = await login(data);
-      console.log('🔐 [LOGIN FORM] Respuesta de login():', success);
       
       if (success) {
         // Esperar a que la sesión se guarde en sessionStorage y el contexto se actualice
@@ -64,29 +56,21 @@ export default function LoginForm() {
             try {
               const parsed = JSON.parse(session);
               if (parsed.user && parsed.user.id) {
-                console.log('✅ [LOGIN FORM] Sesión confirmada en sessionStorage, redirigiendo...');
-                console.log('👤 [LOGIN FORM] Usuario logueado:', parsed.user.email);
-                console.log('👤 [LOGIN FORM] Rol del usuario:', parsed.user.role || 'no definido');
-                
-                // Verificar si el usuario es administrador
                 const userIsAdmin = isAdmin(parsed.user);
-                console.log('🔐 [LOGIN FORM] ¿Es administrador?', userIsAdmin);
                 
                 // Pequeño delay adicional para asegurar que React haya actualizado el estado
                 await new Promise(resolve => setTimeout(resolve, 100));
                 
                 // Redirigir según el rol del usuario
                 if (userIsAdmin) {
-                  console.log('✅ [LOGIN FORM] Redirigiendo a panel de administración...');
                   router.push('/admin');
                 } else {
-                  console.log('✅ [LOGIN FORM] Redirigiendo a dashboard de usuario...');
                   router.push('/dashboard');
                 }
                 return;
               }
             } catch (e) {
-              console.error('❌ [LOGIN FORM] Error parseando sesión:', e);
+              console.error('Error parseando sesión');
             }
           }
           // Esperar 100ms antes de intentar de nuevo (aumentado para dar más tiempo)
@@ -96,8 +80,6 @@ export default function LoginForm() {
         
         // Si después de todos los intentos no se guardó, intentar leer del sessionStorage una vez más
         // (el estado del contexto debería estar actualizado)
-        console.warn('⚠️ [LOGIN FORM] No se pudo confirmar sesión en sessionStorage, intentando lectura final...');
-        
         // Último intento de leer del sessionStorage
         try {
           const finalSession = sessionStorage.getItem('airbnb_session');
@@ -106,25 +88,22 @@ export default function LoginForm() {
             if (parsed.user) {
               const userIsAdmin = isAdmin(parsed.user);
               if (userIsAdmin) {
-                console.log('✅ [LOGIN FORM] Usuario es admin (lectura final), redirigiendo a /admin');
                 router.push('/admin');
                 return;
               }
             }
           }
         } catch (e) {
-          console.error('❌ [LOGIN FORM] Error en lectura final:', e);
+          console.error('Error en lectura final');
         }
         
         // Fallback: redirigir a dashboard si no se pudo determinar el rol
-        console.log('✅ [LOGIN FORM] Redirigiendo a /dashboard (fallback)');
         router.push('/dashboard');
       } else {
         // El login falló, el mensaje de error ya se mostró en el toast
-        console.error('❌ [LOGIN FORM] Login falló');
       }
     } catch (error) {
-      console.error('❌ [LOGIN FORM] Error inesperado durante el login:', error);
+      console.error('Error inesperado durante el login');
     } finally {
       setIsLoading(false);
     }
@@ -133,15 +112,9 @@ export default function LoginForm() {
   return (
     <form 
       onSubmit={(e) => {
-        console.log('🔵 [LOGIN FORM] Form onSubmit handler ejecutado');
-        console.log('🔵 [LOGIN FORM] Event:', e.type);
-        console.log('🔵 [LOGIN FORM] Form values:', watch());
-        console.log('🔵 [LOGIN FORM] Form errors:', errors);
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔵 [LOGIN FORM] Llamando a handleSubmit(onSubmit)...');
-        const result = handleSubmit(onSubmit)(e);
-        console.log('🔵 [LOGIN FORM] handleSubmit retornó:', result);
+        handleSubmit(onSubmit)(e);
       }} 
       className="space-y-4"
     >
@@ -150,7 +123,6 @@ export default function LoginForm() {
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
-          name="email"
           type="email"
           placeholder="tu@email.com"
           autoComplete="off"
@@ -174,7 +146,6 @@ export default function LoginForm() {
         <div className="relative">
           <Input
             id="password"
-            name="password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             autoComplete="new-password"
@@ -221,7 +192,7 @@ export default function LoginForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white font-semibold h-12"
+        className="w-full bg-acento-200 hover:bg-acento-100 text-white font-semibold h-12"
         disabled={isLoading}
       >
         {isLoading ? (
@@ -238,7 +209,7 @@ export default function LoginForm() {
       <div className="text-center">
         <Link
           href="/recuperar-password"
-          className="text-sm text-[#FF385C] hover:text-[#E31C5F] hover:underline"
+          className="text-sm text-acento-200 hover:text-acento-100 hover:underline"
         >
           ¿Olvidaste tu contraseña?
         </Link>

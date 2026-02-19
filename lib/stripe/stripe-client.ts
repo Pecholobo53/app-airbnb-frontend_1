@@ -28,7 +28,6 @@ let stripePromise: Promise<Stripe | null> | null = null;
 export function getStripe(): Promise<Stripe | null> {
   if (!stripePromise) {
     if (!STRIPE_PUBLISHABLE_KEY) {
-      console.warn('⚠️ [STRIPE] NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY no está configurada');
       stripePromise = Promise.resolve(null);
     } else {
       stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);

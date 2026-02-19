@@ -632,10 +632,3 @@ export function createBooking(booking: Omit<Booking, 'id'>): Booking {
   return newBooking;
 }
 
-if (typeof window !== 'undefined') {
-  console.log('🗓️ MOCK Bookings Database inicializada');
-  console.log(`📊 Total reservas: ${MOCK_BOOKINGS.length}`);
-  console.log(`⏳ Pendientes: ${MOCK_BOOKINGS.filter(b => b.status === 'pending').length}`);
-  console.log(`✅ Confirmadas: ${MOCK_BOOKINGS.filter(b => b.status === 'confirmed').length}`);
-}
-

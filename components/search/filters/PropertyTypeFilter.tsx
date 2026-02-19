@@ -37,7 +37,7 @@ export default function PropertyTypeFilter({ value = [], onChange }: PropertyTyp
             onClick={() => toggleType(type.value)}
             className={`w-full text-left border rounded-lg p-4 transition-all bg-white ${
               value.includes(type.value)
-                ? 'border-[#FF385C] bg-[#FFF5F7]'
+                ? 'border-acento-200 bg-[#FFF5F7]'
                 : 'border-gray-200 hover:border-gray-300 bg-white'
             }`}
           >
