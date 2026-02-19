@@ -1,60 +1,87 @@
-import { Shield, Clock, Award, HeadphonesIcon } from 'lucide-react';
+'use client';
 
-/**
- * Features Section Component - Beneficios y características destacadas
- * TODO: Agregar animaciones cuando los elementos entren en viewport
- */
+import { Shield, Clock, Award, HeadphonesIcon } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const features = [
   {
     icon: Shield,
-    title: 'Reserva Segura',
-    description: 'Protección completa en cada reserva con nuestro sistema de garantía.'
+    title: 'Pago Blindado',
+    description:
+      'Cifrado SSL de nivel bancario en cada transacción. Tu patrimonio, protegido.',
   },
   {
     icon: Clock,
-    title: 'Cancelación Flexible',
-    description: 'Cancela sin cargos hasta 24 horas antes de tu llegada.'
+    title: 'Flexibilidad sin Compromisos',
+    description:
+      'Modifica o cancela sin penalización hasta 48 horas antes de tu llegada.',
   },
   {
     icon: Award,
-    title: 'Calidad Garantizada',
-    description: 'Solo alojamientos verificados y con las mejores valoraciones.'
+    title: 'Alojamientos Certificados',
+    description:
+      'Solo residencias que superan nuestra auditoría de calidad de 48 puntos.',
   },
   {
     icon: HeadphonesIcon,
-    title: 'Soporte 24/7',
-    description: 'Atención personalizada disponible en todo momento.'
-  }
+    title: 'Conserjería Privada 24/7',
+    description:
+      'Atención personalizada disponible en todo momento, sin esperas ni bots.',
+  },
 ];
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.12 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+};
 
 export default function FeaturesSection() {
   return (
     <section className="py-16 lg:py-24 bg-bg-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+        >
           <h2 className="text-3xl lg:text-4xl font-bold text-texto-100 mb-4">
-            ¿Por qué elegir Airbnb?
+            La garantía de una experiencia impecable
           </h2>
           <p className="text-lg text-texto-200 max-w-2xl mx-auto">
-            Más que alojamiento, una experiencia completa respaldada por nuestra garantía de calidad.
+            Cada detalle, cuidadosamente supervisado para quienes exigen lo mejor.
           </p>
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <motion.div
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+        >
           {features.map((feature, index) => (
-            <div 
+            <motion.div
               key={index}
+              variants={itemVariants}
               className="text-center group"
             >
               {/* Icon */}
               <div className="w-16 h-16 bg-gradient-to-r from-primario-100 to-acento-100/30 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                 <feature.icon className="w-8 h-8 text-acento-200" />
               </div>
-              
+
               {/* Content */}
               <h3 className="font-bold text-lg text-texto-100 mb-3">
                 {feature.title}
@@ -62,9 +89,10 @@ export default function FeaturesSection() {
               <p className="text-texto-200 leading-relaxed">
                 {feature.description}
               </p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );

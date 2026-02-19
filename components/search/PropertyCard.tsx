@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { UI_LABELS } from '@/lib/constants';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import { normalizeText } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface PropertyCardProps {
   property: Property;
@@ -63,6 +64,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const isPlaceholder = imageSrc === placeholderImage || hasError;
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -4 }}
+    >
     <Link href={`/propiedad/${property.id}`} className="group block">
       <div className="rounded-xl overflow-hidden transition-all hover:shadow-lg">
         {/* Image Carousel */}
@@ -193,6 +200,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         </div>
       </div>
     </Link>
+    </motion.div>
   );
 }
 

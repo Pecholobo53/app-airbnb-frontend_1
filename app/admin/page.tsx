@@ -2,144 +2,140 @@
 'use client';
 
 import { useAuth } from '@/lib/auth/auth-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Shield, Activity, Building2 } from 'lucide-react';
+import { Users, Shield, Activity, Building2, ArrowRight, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { UserStats } from '@/components/admin/UserStats';
 import { useEffect } from 'react';
-import { requestCache } from '@/lib/utils/request-cache';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();
 
-  // Limpiar caché al desmontar para forzar recarga en próxima visita
   useEffect(() => {
-    return () => {
-      // No limpiar automáticamente, solo al desmontar si es necesario
-      // El caché se mantiene para evitar múltiples peticiones
-    };
+    return () => {};
   }, []);
 
-  const stats = [
+  const modules = [
     {
       title: 'Usuarios',
-      description: 'Gestionar usuarios del sistema',
+      description: 'Gestionar cuentas, verificaciones y perfiles de usuario.',
       icon: Users,
       href: '/admin/users',
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      accent: '#0ea5e9',
+      accentBg: 'rgba(14, 165, 233, 0.12)',
+      accentBorder: 'rgba(14, 165, 233, 0.25)',
     },
     {
       title: 'Permisos',
-      description: 'Gestionar roles y permisos',
+      description: 'Asignar roles de administrador y controlar accesos al sistema.',
       icon: Shield,
       href: '/admin/permissions',
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      disabled: false,
+      accent: '#a78bfa',
+      accentBg: 'rgba(167, 139, 250, 0.12)',
+      accentBorder: 'rgba(167, 139, 250, 0.25)',
     },
     {
       title: 'Actividad',
-      description: 'Ver logs y actividad del sistema',
+      description: 'Registros de eventos, autenticaciones y acciones del sistema.',
       icon: Activity,
       href: '/admin/activity',
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      disabled: false,
+      accent: '#34d399',
+      accentBg: 'rgba(52, 211, 153, 0.12)',
+      accentBorder: 'rgba(52, 211, 153, 0.25)',
     },
     {
       title: 'Propiedades',
-      description: 'Gestionar propiedades del sistema',
+      description: 'Administrar listados, imágenes, precios y disponibilidad.',
       icon: Building2,
       href: '/admin/properties',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      disabled: false,
+      accent: '#fb923c',
+      accentBg: 'rgba(251, 146, 60, 0.12)',
+      accentBorder: 'rgba(251, 146, 60, 0.25)',
     },
   ];
 
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 md:p-8 min-h-full">
+
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-        <p className="text-gray-600 mt-2">
-          Bienvenido, {user?.name || 'Administrador'}
+        <div className="flex items-center gap-2 mb-1">
+          <TrendingUp className="w-4 h-4 text-[#0ea5e9]" />
+          <span className="text-xs font-semibold text-[#0ea5e9] uppercase tracking-[0.15em]">Panel de control</span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">
+          {greeting}, {user?.name?.split(' ')[0] || 'Administrador'}
+        </h1>
+        <p className="text-[#64748b] mt-1 text-sm">
+          Tienes acceso completo al sistema. Aquí tienes el resumen del día.
         </p>
       </div>
 
       {/* User Statistics */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Estadísticas de Usuarios</h2>
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-base font-bold text-[#f8fafc]">Estadísticas de Usuarios</h2>
+          <div className="h-px flex-1 bg-[#1e293b]" />
+        </div>
         <UserStats />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          const content = (
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{stat.title}</CardTitle>
-                  <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
+      {/* Modules grid */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-base font-bold text-[#f8fafc]">Módulos del sistema</h2>
+          <div className="h-px flex-1 bg-[#1e293b]" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {modules.map((mod) => {
+            const Icon = mod.icon;
+            return (
+              <Link
+                key={mod.href}
+                href={mod.href}
+                className="group block rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.01] hover:shadow-xl"
+                style={{
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  borderColor: 'rgba(30, 41, 59, 0.8)',
+                  backdropFilter: 'blur(8px)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = mod.accentBorder;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 0 0 1px ${mod.accentBorder}, 0 20px 40px rgba(0,0,0,0.3)`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(30, 41, 59, 0.8)';
+                  (e.currentTarget as HTMLElement).style.boxShadow = '';
+                }}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: mod.accentBg }}
+                  >
+                    <Icon className="w-5 h-5" style={{ color: mod.accent }} />
                   </div>
+                  <ArrowRight
+                    className="w-4 h-4 text-[#475569] group-hover:text-[#94a3b8] group-hover:translate-x-0.5 transition-all duration-200"
+                  />
                 </div>
-                <CardDescription>{stat.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {stat.disabled ? (
-                  <Button variant="outline" disabled className="w-full">
-                    Próximamente
-                  </Button>
-                ) : (
-                  <Link href={stat.href}>
-                    <Button className="w-full">
-                      Gestionar
-                    </Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
-          );
-
-          return stat.disabled ? (
-            <div key={stat.title}>{content}</div>
-          ) : (
-            <Link key={stat.title} href={stat.href}>
-              {content}
-            </Link>
-          );
-        })}
+                <h3 className="text-[15px] font-bold text-[#f8fafc] mb-1">{mod.title}</h3>
+                <p className="text-[13px] text-[#64748b] leading-relaxed">{mod.description}</p>
+                <div
+                  className="mt-4 text-[12px] font-semibold"
+                  style={{ color: mod.accent }}
+                >
+                  Gestionar →
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acciones Rápidas</CardTitle>
-          <CardDescription>
-            Accesos directos a las funciones más utilizadas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <Link href="/admin/users">
-              <Button variant="outline">
-                <Users className="w-4 h-4 mr-2" />
-                Ver Todos los Usuarios
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button variant="outline">
-                Volver al Dashboard
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -201,42 +201,45 @@ export default function AdminUsersPage() {
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
+  const cardStyle = {
+    background: 'rgba(15, 23, 42, 0.8)',
+    border: '1px solid rgba(30, 41, 59, 0.8)',
+    backdropFilter: 'blur(8px)',
+  };
+
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 md:p-8 min-h-full">
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Usuarios</h1>
-          <p className="text-gray-600 mt-2">
-            Administra los usuarios del sistema
-          </p>
+          <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-1">Administración</p>
+          <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Gestión de Usuarios</h1>
+          <p className="text-[#64748b] text-sm mt-1">Administra las cuentas y permisos del sistema</p>
         </div>
         <Link href="/admin/users/new">
-          <Button>
-            <UserPlus className="w-4 h-4 mr-2" />
+          <button className="flex items-center gap-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-[#0ea5e9]/20">
+            <UserPlus className="w-4 h-4" />
             Nuevo Usuario
-          </Button>
+          </button>
         </Link>
       </div>
 
-      {/* Search Bar */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Buscar usuarios por nombre o email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search */}
+      <div className="mb-4 rounded-2xl p-4" style={cardStyle}>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#475569] w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Buscar usuarios por nombre o email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-[#f8fafc] placeholder-[#475569] text-sm focus:outline-none focus:border-[#0ea5e9]/50 transition-colors"
+          />
+        </div>
+      </div>
 
       {/* Filters */}
-      <div className="mb-6">
+      <div className="mb-4">
         <UserFilters
           roleFilter={roleFilter}
           verificationFilter={verificationFilter}
@@ -245,186 +248,170 @@ export default function AdminUsersPage() {
         />
       </div>
 
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Usuarios</CardTitle>
-          <CardDescription>
-            {total > 0 ? `${total} usuario${total !== 1 ? 's' : ''} encontrado${total !== 1 ? 's' : ''}` : 'No hay usuarios'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-[#FF385C] animate-spin" />
-            </div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No se encontraron usuarios</p>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <button
-                          onClick={() => handleSort('name')}
-                          className="flex items-center hover:text-[#FF385C] transition-colors"
-                        >
-                          Nombre
-                          <SortIcon field="name" />
-                        </button>
-                      </TableHead>
-                      <TableHead>
-                        <button
-                          onClick={() => handleSort('email')}
-                          className="flex items-center hover:text-[#FF385C] transition-colors"
-                        >
-                          Email
-                          <SortIcon field="email" />
-                        </button>
-                      </TableHead>
-                      <TableHead>Teléfono</TableHead>
-                      <TableHead>Rol</TableHead>
-                      <TableHead>Verificado</TableHead>
-                      <TableHead>
-                        <button
-                          onClick={() => handleSort('createdAt')}
-                          className="flex items-center hover:text-[#FF385C] transition-colors"
-                        >
-                          Fecha de Registro
-                          <SortIcon field="createdAt" />
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone || '-'}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            (user.role === 'admin' || user.email === 'armandito@gmail.com')
-                              ? 'bg-purple-100 text-purple-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {(user.role === 'admin' || user.email === 'armandito@gmail.com') ? 'Admin' : 'Usuario'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {user.emailVerified ? (
-                            <span className="text-green-600">✓ Verificado</span>
-                          ) : (
-                            <span className="text-gray-400">No verificado</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.createdAt).toLocaleDateString('es-ES')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/admin/users/${user.id}`)}
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => router.push(`/admin/users/${user.id}?edit=true`)}
-                              title="Editar usuario"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteClick(user)}
-                              className="text-red-600 hover:text-red-700"
-                              title="Eliminar usuario"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+      {/* Users List */}
+      <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+        {/* List header */}
+        <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-[#f8fafc]">Lista de Usuarios</h2>
+          <span className="text-xs text-[#64748b]">
+            {total > 0 ? `${total} usuario${total !== 1 ? 's' : ''}` : 'Sin usuarios'}
+          </span>
+        </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-sm text-gray-600">
-                    Página {currentPage + 1} de {totalPages}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-                      disabled={currentPage === 0}
-                    >
-                      Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
-                      disabled={currentPage >= totalPages - 1}
-                    >
-                      Siguiente
-                    </Button>
+        {loading ? (
+          <div className="py-16 flex flex-col items-center gap-3">
+            <Loader2 className="w-7 h-7 text-[#0ea5e9] animate-spin" />
+            <p className="text-xs text-[#475569]">Cargando usuarios...</p>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-[#64748b] text-sm">No se encontraron usuarios</p>
+          </div>
+        ) : (
+          <>
+            {/* Sort header */}
+            <div className="px-5 py-2.5 border-b border-[#1e293b]/40 grid grid-cols-12 gap-4 text-[11px] font-bold text-[#475569] uppercase tracking-[0.1em]">
+              <div className="col-span-4 sm:col-span-3">
+                <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-[#0ea5e9] transition-colors">
+                  Usuario <SortIcon field="name" />
+                </button>
+              </div>
+              <div className="hidden sm:block sm:col-span-3">
+                <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-[#0ea5e9] transition-colors">
+                  Email <SortIcon field="email" />
+                </button>
+              </div>
+              <div className="col-span-3 sm:col-span-2">Rol</div>
+              <div className="hidden sm:block sm:col-span-2">
+                <button onClick={() => handleSort('createdAt')} className="flex items-center gap-1 hover:text-[#0ea5e9] transition-colors">
+                  Registro <SortIcon field="createdAt" />
+                </button>
+              </div>
+              <div className="col-span-5 sm:col-span-2 text-right">Acciones</div>
+            </div>
+
+            {/* Rows */}
+            <div className="divide-y divide-[#1e293b]/40">
+              {users.map((user) => {
+                const isUserAdmin = user.role === 'admin' || user.email === 'armandito@gmail.com';
+                const initials = user.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '??';
+                return (
+                  <div key={user.id} className="px-5 py-3.5 grid grid-cols-12 gap-4 items-center hover:bg-[#1e293b]/30 transition-colors">
+                    {/* Avatar + Name */}
+                    <div className="col-span-4 sm:col-span-3 flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-semibold text-[#f8fafc] truncate">{user.name}</p>
+                        <p className="text-[11px] text-[#475569] sm:hidden truncate">{user.email}</p>
+                      </div>
+                    </div>
+                    {/* Email */}
+                    <div className="hidden sm:block sm:col-span-3 min-w-0">
+                      <p className="text-[13px] text-[#94a3b8] truncate">{user.email}</p>
+                    </div>
+                    {/* Role + Verified */}
+                    <div className="col-span-3 sm:col-span-2 flex flex-col gap-1">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${
+                        isUserAdmin
+                          ? 'bg-[#a78bfa]/15 text-[#a78bfa] border border-[#a78bfa]/25'
+                          : 'bg-[#94a3b8]/10 text-[#94a3b8] border border-[#94a3b8]/20'
+                      }`}>
+                        {isUserAdmin ? 'Admin' : 'Usuario'}
+                      </span>
+                      {user.emailVerified ? (
+                        <span className="text-[10px] text-[#34d399] font-medium">✓ Verificado</span>
+                      ) : (
+                        <span className="text-[10px] text-[#475569]">Sin verificar</span>
+                      )}
+                    </div>
+                    {/* Date */}
+                    <div className="hidden sm:block sm:col-span-2">
+                      <p className="text-[12px] text-[#64748b]">{new Date(user.createdAt).toLocaleDateString('es-ES')}</p>
+                    </div>
+                    {/* Actions */}
+                    <div className="col-span-5 sm:col-span-2 flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => router.push(`/admin/users/${user.id}`)}
+                        className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-[#0ea5e9]/20 text-[#64748b] hover:text-[#0ea5e9] flex items-center justify-center transition-all"
+                        title="Ver detalles"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => router.push(`/admin/users/${user.id}?edit=true`)}
+                        className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-[#fbbf24]/20 text-[#64748b] hover:text-[#fbbf24] flex items-center justify-center transition-all"
+                        title="Editar"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(user)}
+                        className="w-8 h-8 rounded-lg bg-[#1e293b] hover:bg-red-500/20 text-[#64748b] hover:text-red-400 flex items-center justify-center transition-all"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-5 py-4 border-t border-[#1e293b]/60 flex items-center justify-between">
+                <p className="text-xs text-[#64748b]">
+                  Página {currentPage + 1} de {totalPages}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                    disabled={currentPage === 0}
+                    className="px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#1e293b] text-xs font-semibold text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-40 transition-colors"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                    disabled={currentPage >= totalPages - 1}
+                    className="px-3 py-1.5 rounded-lg bg-[#0ea5e9] text-xs font-semibold text-white hover:bg-[#0284c7] disabled:opacity-40 transition-colors"
+                  >
+                    Siguiente
+                  </button>
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-[#0f172a] border border-[#1e293b] text-[#f8fafc]">
           <DialogHeader>
-            <DialogTitle>¿Eliminar usuario?</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-[#f8fafc]">¿Eliminar usuario?</DialogTitle>
+            <DialogDescription className="text-[#64748b]">
               Esta acción no se puede deshacer. Se eliminará permanentemente el usuario{' '}
-              <strong>{userToDelete?.name}</strong> ({userToDelete?.email}).
+              <strong className="text-[#f8fafc]">{userToDelete?.name}</strong> ({userToDelete?.email}).
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeleteDialogOpen(false);
-                setUserToDelete(null);
-              }}
+            <button
+              onClick={() => { setDeleteDialogOpen(false); setUserToDelete(null); }}
               disabled={deleting}
+              className="px-4 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-50 transition-colors"
             >
               Cancelar
-            </Button>
-            <Button
-              variant="destructive"
+            </button>
+            <button
               onClick={handleDeleteConfirm}
               disabled={deleting}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 text-sm font-semibold text-red-400 hover:bg-red-500/25 disabled:opacity-50 transition-colors"
             >
-              {deleting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Eliminando...
-                </>
-              ) : (
-                'Eliminar'
-              )}
-            </Button>
+              {deleting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Eliminando...</> : 'Eliminar'}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

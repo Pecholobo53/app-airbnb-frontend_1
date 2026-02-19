@@ -600,7 +600,7 @@ export default function PriceCalculator({ property }: PriceCalculatorProps) {
 
       {/* Info adicional */}
       <p className="text-xs text-gray-500 text-center mt-4">
-        No se hará ningún cargo todavía
+        Reserve con total confianza · Sin cargos hasta confirmar
       </p>
 
       {/* Instant Book */}

@@ -31,23 +31,23 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
 
   const getPropertyTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      'entire_place': 'Alojamiento entero',
-      'private_room': 'Habitación privada',
-      'shared_room': 'Habitación compartida'
+      'entire_place': 'Residencia completa, solo para ti',
+      'private_room': 'Tu espacio privado, sin interrupciones',
+      'shared_room': 'Convivencia con viajeros afines',
     };
     return labels[type] || type;
   };
 
   const getRoomTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      'apartment': 'Apartamento',
-      'house': 'Casa',
-      'villa': 'Villa',
-      'loft': 'Loft',
-      'cabin': 'Cabaña',
-      'hotel': 'Hotel',
-      'cottage': 'Casa de campo',
-      'castle': 'Castillo'
+      'apartment': 'Apartamento exclusivo',
+      'house': 'Casa de ensueño',
+      'villa': 'Villa de lujo',
+      'loft': 'Loft de diseño',
+      'cabin': 'Cabaña de autor',
+      'hotel': 'Suite de hotel',
+      'cottage': 'Retiro rural',
+      'castle': 'Castillo histórico',
     };
     return labels[type] || type;
   };
@@ -60,27 +60,43 @@ export default function PropertyInfo({ property }: PropertyInfoProps) {
           {getRoomTypeLabel(roomType)} - {getPropertyTypeLabel(propertyType)}
         </h2>
         <p className="text-gray-600">
-          Anfitrión: {hostName}
+          Bajo la atención personal de <span className="font-medium text-gray-800">{hostName}</span>
         </p>
       </div>
 
       {/* Capacidad */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex items-center gap-2 text-gray-700">
-          <Users className="w-5 h-5" />
-          <span>{capacity.guests} {capacity.guests === 1 ? 'huésped' : 'huéspedes'}</span>
+          <Users className="w-5 h-5 text-[#FF385C]" />
+          <span>
+            {capacity.guests === 1
+              ? 'Diseñado para 1 viajero'
+              : `Pensado para hasta ${capacity.guests} viajeros`}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
-          <Home className="w-5 h-5" />
-          <span>{capacity.bedrooms} {capacity.bedrooms === 1 ? 'habitación' : 'habitaciones'}</span>
+          <Home className="w-5 h-5 text-[#FF385C]" />
+          <span>
+            {capacity.bedrooms === 1
+              ? '1 suite privada'
+              : `${capacity.bedrooms} suites para el descanso`}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
-          <Bed className="w-5 h-5" />
-          <span>{capacity.beds} {capacity.beds === 1 ? 'cama' : 'camas'}</span>
+          <Bed className="w-5 h-5 text-[#FF385C]" />
+          <span>
+            {capacity.beds === 1
+              ? '1 cama premium'
+              : `${capacity.beds} camas de confort premium`}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-gray-700">
-          <Bath className="w-5 h-5" />
-          <span>{capacity.bathrooms} {capacity.bathrooms === 1 ? 'baño' : 'baños'}</span>
+          <Bath className="w-5 h-5 text-[#FF385C]" />
+          <span>
+            {capacity.bathrooms === 1
+              ? '1 baño de diseño exclusivo'
+              : `${capacity.bathrooms} baños de diseño exclusivo`}
+          </span>
         </div>
       </div>
 

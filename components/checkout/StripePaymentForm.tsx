@@ -381,11 +381,21 @@ function PaymentFormInner({
           )}
         </Button>
         
-        {/* Información de seguridad */}
-        <p className="text-center text-sm text-gray-500 flex items-center justify-center gap-2">
-          <Lock className="w-4 h-4" />
-          Pago seguro con encriptación SSL
-        </p>
+        {/* Micro-textos de seguridad */}
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+          <span className="text-xs text-gray-400 flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-green-500" />
+            Pago encriptado SSL
+          </span>
+          <span className="text-xs text-gray-400 flex items-center gap-1.5">
+            <span className="text-green-500 font-bold text-sm leading-none">✓</span>
+            Confirmación instantánea en tu email
+          </span>
+          <span className="text-xs text-gray-400 flex items-center gap-1.5">
+            <span className="text-green-500 font-bold text-sm leading-none">✓</span>
+            Sin cargos ocultos
+          </span>
+        </div>
         
         {/* Debug info - solo en desarrollo */}
         {process.env.NODE_ENV === 'development' && !canSubmit && (

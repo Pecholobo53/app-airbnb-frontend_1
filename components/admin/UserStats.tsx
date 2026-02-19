@@ -113,157 +113,111 @@ export function UserStats() {
     await loadStats(true);
   };
 
+  const oceanCard = {
+    background: 'rgba(15, 23, 42, 0.8)',
+    border: '1px solid rgba(30, 41, 59, 0.8)',
+    backdropFilter: 'blur(8px)',
+  };
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center h-20">
-                <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-              </div>
-            </CardContent>
-          </Card>
+          <div
+            key={i}
+            className="rounded-2xl p-5 animate-pulse"
+            style={oceanCard}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl bg-[#1e293b]" />
+              <div className="w-16 h-3 rounded bg-[#1e293b]" />
+            </div>
+            <div className="w-16 h-8 rounded bg-[#1e293b] mb-1" />
+            <div className="w-24 h-3 rounded bg-[#1e293b]" />
+          </div>
         ))}
       </div>
     );
   }
 
   if (error) {
-    const isRateLimit = error.toLowerCase().includes('demasiadas') || 
+    const isRateLimit = error.toLowerCase().includes('demasiadas') ||
                        error.toLowerCase().includes('rate limit') ||
                        error.toLowerCase().includes('429');
-    
+
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center justify-center text-center space-y-4">
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              <p className="font-semibold">Error al cargar estadísticas</p>
-            </div>
-            <div className="text-sm text-gray-700 max-w-md space-y-2">
-              <p className="font-medium">{error}</p>
-              {isRateLimit ? (
-                <div className="text-xs text-gray-600 space-y-1 mt-2">
-                  <p>💡 El servidor está recibiendo demasiadas peticiones.</p>
-                  <p>Espera unos segundos y vuelve a intentar.</p>
-                </div>
-              ) : (
-                <div className="text-xs text-gray-600 mt-2">
-                  <p>Verifica tu conexión a internet y que el servidor esté disponible.</p>
-                </div>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRetry}
-              disabled={isRetrying || loading}
-              className="mt-2"
-            >
-              {isRetrying ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Reintentando...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Reintentar
-                </>
-              )}
-            </Button>
+      <div
+        className="rounded-2xl p-6 border border-red-500/20"
+        style={{ background: 'rgba(239, 68, 68, 0.05)' }}
+      >
+        <div className="flex flex-col items-center justify-center text-center space-y-3">
+          <div className="flex items-center gap-2 text-red-400">
+            <AlertCircle className="w-5 h-5" />
+            <p className="font-semibold text-sm">Error al cargar estadísticas</p>
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-xs text-[#64748b] max-w-xs">{error}</p>
+          {isRateLimit && (
+            <p className="text-xs text-[#64748b]">Espera unos segundos antes de reintentar.</p>
+          )}
+          <button
+            onClick={handleRetry}
+            disabled={isRetrying || loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1e293b] border border-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc] text-xs font-semibold transition-colors disabled:opacity-50"
+          >
+            {isRetrying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            {isRetrying ? 'Reintentando...' : 'Reintentar'}
+          </button>
+        </div>
+      </div>
     );
   }
 
   if (!stats && !loading) {
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            <p className="text-gray-500">No se pudieron cargar las estadísticas</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRetry}
-              disabled={isRetrying || loading}
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Reintentar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-2xl p-6 text-center" style={oceanCard}>
+        <p className="text-[#64748b] text-sm mb-3">No se pudieron cargar las estadísticas</p>
+        <button
+          onClick={handleRetry}
+          disabled={isRetrying || loading}
+          className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#1e293b] text-[#94a3b8] hover:text-[#f8fafc] text-xs font-semibold transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          Reintentar
+        </button>
+      </div>
     );
   }
 
   const statCards = [
-    {
-      title: 'Total de Usuarios',
-      value: stats.total,
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      title: 'Usuarios Verificados',
-      value: stats.verified,
-      icon: UserCheck,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-    },
-    {
-      title: 'No Verificados',
-      value: stats.unverified,
-      icon: UserX,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-    },
-    {
-      title: 'Administradores',
-      value: stats.admins,
-      icon: Shield,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-    },
-    {
-      title: 'Usuarios Regulares',
-      value: stats.regularUsers,
-      icon: Users,
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50',
-    },
-    {
-      title: 'Nuevos Este Mes',
-      value: stats.newThisMonth,
-      icon: UserPlus,
-      color: 'text-[#FF385C]',
-      bgColor: 'bg-pink-50',
-    },
+    { title: 'Total Usuarios', value: stats.total, icon: Users, accent: '#0ea5e9', accentBg: 'rgba(14,165,233,0.12)' },
+    { title: 'Verificados', value: stats.verified, icon: UserCheck, accent: '#34d399', accentBg: 'rgba(52,211,153,0.12)' },
+    { title: 'Sin verificar', value: stats.unverified, icon: UserX, accent: '#fbbf24', accentBg: 'rgba(251,191,36,0.12)' },
+    { title: 'Administradores', value: stats.admins, icon: Shield, accent: '#a78bfa', accentBg: 'rgba(167,139,250,0.12)' },
+    { title: 'Usuarios Regulares', value: stats.regularUsers, icon: Users, accent: '#94a3b8', accentBg: 'rgba(148,163,184,0.12)' },
+    { title: 'Nuevos este mes', value: stats.newThisMonth, icon: UserPlus, accent: '#fb923c', accentBg: 'rgba(251,146,60,0.12)' },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {statCards.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{stat.title}</CardTitle>
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
+          <div
+            key={stat.title}
+            className="rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.01]"
+            style={oceanCard}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: stat.accentBg }}
+              >
+                <Icon className="w-5 h-5" style={{ color: stat.accent }} />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="text-2xl font-black text-[#f8fafc] mb-1">{stat.value}</div>
+            <div className="text-[12px] font-medium text-[#64748b]">{stat.title}</div>
+          </div>
         );
       })}
     </div>

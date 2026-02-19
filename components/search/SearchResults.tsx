@@ -7,6 +7,7 @@ import PropertyGrid from './PropertyGrid';
 import SortSelector from './SortSelector';
 import FilterPanel from './FilterPanel';
 import { Loader2, Search } from 'lucide-react';
+import { PropertyGridSkeleton } from './PropertyCardSkeleton';
 
 interface SearchResultsProps {
   results: SearchResultsType | null;
@@ -31,11 +32,12 @@ export default function SearchResults({
 }: SearchResultsProps) {
   if (isLoading && !results) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#FF385C] mx-auto mb-4" />
-          <p className="text-gray-500">Buscando propiedades...</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-6 bg-gray-200 animate-pulse rounded w-40" />
+          <div className="h-9 bg-gray-200 animate-pulse rounded w-28" />
         </div>
+        <PropertyGridSkeleton count={8} />
       </div>
     );
   }

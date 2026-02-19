@@ -156,165 +156,140 @@ export default function PermissionsPage() {
     assignment => assignment.newRole && assignment.newRole !== assignment.currentRole
   );
 
+  const cardStyle = {
+    background: 'rgba(15, 23, 42, 0.8)',
+    border: '1px solid rgba(30, 41, 59, 0.8)',
+    backdropFilter: 'blur(8px)',
+  };
+
   if (loading) {
     return (
-      <div className="p-6 md:p-8">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-[#FF385C] animate-spin" />
-        </div>
+      <div className="p-5 md:p-8 space-y-4">
+        <div className="h-8 w-56 rounded-xl bg-[#1e293b] animate-pulse" />
+        {[1,2,3].map(i => (
+          <div key={i} className="h-16 rounded-2xl bg-[#0f172a] animate-pulse" />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 md:p-8 min-h-full space-y-5">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <Link href="/admin">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver
-          </Button>
+          <button className="w-9 h-9 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-[#f8fafc] transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+          </button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Permisos</h1>
-          <p className="text-gray-600 mt-2">
-            Asigna y gestiona roles de usuario en el sistema
+          <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-0.5">Seguridad</p>
+          <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Gestión de Permisos</h1>
+        </div>
+      </div>
+
+      {/* Role info cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="rounded-2xl p-4 border" style={{ background: 'rgba(167,139,250,0.08)', borderColor: 'rgba(167,139,250,0.2)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Shield className="w-4 h-4 text-[#a78bfa]" />
+            <h3 className="text-sm font-bold text-[#a78bfa]">Administrador</h3>
+          </div>
+          <p className="text-[12px] text-[#64748b] leading-relaxed">
+            Acceso completo al sistema. Puede gestionar usuarios, permisos y ver toda la actividad.
+          </p>
+        </div>
+        <div className="rounded-2xl p-4 border" style={{ background: 'rgba(148,163,184,0.06)', borderColor: 'rgba(148,163,184,0.15)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="w-4 h-4 text-[#94a3b8]" />
+            <h3 className="text-sm font-bold text-[#94a3b8]">Usuario</h3>
+          </div>
+          <p className="text-[12px] text-[#64748b] leading-relaxed">
+            Acceso estándar. Puede gestionar su perfil y realizar reservas en la plataforma.
           </p>
         </div>
       </div>
 
-      {/* Info Card */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5" />
-            Roles Disponibles
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-purple-900">Administrador</h3>
-              </div>
-              <p className="text-sm text-purple-700">
-                Acceso completo al sistema, puede gestionar usuarios, permisos y ver toda la actividad.
-              </p>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Users className="w-5 h-5 text-gray-600" />
-                <h3 className="font-semibold text-gray-900">Usuario</h3>
-              </div>
-              <p className="text-sm text-gray-700">
-                Acceso estándar, puede gestionar su perfil y realizar reservas.
-              </p>
-            </div>
+      {/* Roles Table */}
+      <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+        <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-[#f8fafc]">Asignación de Roles</h2>
+            <p className="text-xs text-[#64748b] mt-0.5">{users.length} usuarios encontrados</p>
           </div>
-        </CardContent>
-      </Card>
+          {hasChanges && (
+            <button
+              onClick={handleSaveRoles}
+              disabled={saving}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-semibold transition-colors shadow-lg shadow-[#0ea5e9]/20 disabled:opacity-50"
+            >
+              {saving ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Guardando...</>
+              ) : (
+                <><Save className="w-3.5 h-3.5" /> Guardar Cambios</>
+              )}
+            </button>
+          )}
+        </div>
 
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Asignación de Roles</CardTitle>
-              <CardDescription>
-                {users.length} usuarios encontrados
-              </CardDescription>
-            </div>
-            {hasChanges && (
-              <Button onClick={handleSaveRoles} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Guardar Cambios
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Rol Actual</TableHead>
-                  <TableHead>Nuevo Rol</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => {
-                  const assignment = roleAssignments.get(user.id);
-                  // Usar isAdmin() para determinar el rol real
-                  const userIsAdmin = isAdmin(user);
-                  const currentRole = assignment?.currentRole || (userIsAdmin ? 'admin' : (user.role || 'user'));
-                  const newRole = assignment?.newRole;
-                  const hasChange = newRole && newRole !== currentRole;
+        <div className="divide-y divide-[#1e293b]/40">
+          {users.map((user) => {
+            const assignment = roleAssignments.get(user.id);
+            const userIsAdmin = isAdmin(user);
+            const currentRole = assignment?.currentRole || (userIsAdmin ? 'admin' : (user.role || 'user'));
+            const newRole = assignment?.newRole;
+            const hasChange = newRole && newRole !== currentRole;
+            const initials = user.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
-                  return (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={currentRole === 'admin' ? 'default' : 'secondary'}
-                          className={
-                            currentRole === 'admin'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }
-                        >
-                          {currentRole === 'admin' ? 'Admin' : 'Usuario'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={newRole || currentRole}
-                          onValueChange={(value) =>
-                            handleRoleChange(user.id, value as 'admin' | 'user')
-                          }
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="user">Usuario</SelectItem>
-                            <SelectItem value="admin">Administrador</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        {hasChange ? (
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-300">
-                            Cambio pendiente
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-green-50 text-green-800 border-green-300">
-                            Sin cambios
-                          </Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+            return (
+              <div key={user.id} className="px-5 py-4 flex flex-wrap items-center gap-4 hover:bg-[#1e293b]/20 transition-colors">
+                {/* Avatar + Info */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0284c7] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-[#f8fafc] truncate">{user.name}</p>
+                    <p className="text-[11px] text-[#64748b] truncate">{user.email}</p>
+                  </div>
+                </div>
+
+                {/* Current role badge */}
+                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                  currentRole === 'admin'
+                    ? 'bg-[#a78bfa]/15 text-[#a78bfa] border border-[#a78bfa]/25'
+                    : 'bg-[#94a3b8]/10 text-[#94a3b8] border border-[#94a3b8]/20'
+                }`}>
+                  {currentRole === 'admin' ? 'Admin' : 'Usuario'}
+                </span>
+
+                {/* Role selector */}
+                <Select
+                  value={newRole || currentRole}
+                  onValueChange={(value) => handleRoleChange(user.id, value as 'admin' | 'user')}
+                >
+                  <SelectTrigger className="w-[140px] bg-[#1e293b]/60 border-[#1e293b] text-[#94a3b8] rounded-xl text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0f172a] border-[#1e293b] text-[#f8fafc]">
+                    <SelectItem value="user">Usuario</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Change status */}
+                <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                  hasChange
+                    ? 'bg-[#fbbf24]/15 text-[#fbbf24] border border-[#fbbf24]/25'
+                    : 'bg-[#34d399]/10 text-[#34d399] border border-[#34d399]/20'
+                }`}>
+                  {hasChange ? '● Cambio pendiente' : '✓ Sin cambios'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

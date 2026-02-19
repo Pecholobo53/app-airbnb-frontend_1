@@ -78,181 +78,181 @@ export default function AdminPropertiesPage() {
     }).format(price);
   };
 
+  const cardStyle = {
+    background: 'rgba(15, 23, 42, 0.8)',
+    border: '1px solid rgba(30, 41, 59, 0.8)',
+    backdropFilter: 'blur(8px)',
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="p-5 md:p-8 min-h-full space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestión de Propiedades</h1>
-          <p className="text-gray-600 mt-1">
-            Administra todas las propiedades del sistema
-          </p>
+          <p className="text-xs font-bold text-[#0ea5e9] uppercase tracking-[0.15em] mb-1">Inventario</p>
+          <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Gestión de Propiedades</h1>
+          <p className="text-[#64748b] text-sm mt-1">Administra todas las propiedades del sistema</p>
         </div>
-        <Button
+        <button
           onClick={() => router.push('/admin/properties/new')}
-          className="bg-[#FF385C] hover:bg-[#E31C5F]"
+          className="flex items-center gap-2 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-[#0ea5e9]/20 self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4" />
           Nueva Propiedad
-        </Button>
+        </button>
       </div>
 
-      {/* Search Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar por ubicación, título..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Button type="submit" variant="outline">
-              <Search className="w-4 h-4 mr-2" />
-              Buscar
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      {/* Search */}
+      <div className="rounded-2xl p-4" style={cardStyle}>
+        <form onSubmit={handleSearch} className="flex gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#475569] w-4 h-4" />
+            <input
+              placeholder="Buscar por ubicación, título..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1e293b]/60 border border-[#1e293b] text-[#f8fafc] placeholder-[#475569] text-sm focus:outline-none focus:border-[#0ea5e9]/50 transition-colors"
+            />
+          </div>
+          <button
+            type="submit"
+            className="px-4 py-2.5 rounded-xl bg-[#1e293b] border border-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] transition-colors flex items-center gap-2"
+          >
+            <Search className="w-4 h-4" />
+            Buscar
+          </button>
+        </form>
+      </div>
 
-      {/* Properties Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Propiedades</CardTitle>
-          <CardDescription>
-            {total > 0 ? `${total} propiedades encontradas` : 'No hay propiedades'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-[#FF385C]" />
-            </div>
-          ) : properties.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No se encontraron propiedades</p>
-              <Button
-                onClick={() => router.push('/admin/properties/new')}
-                variant="outline"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Crear Primera Propiedad
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Imagen</TableHead>
-                      <TableHead>Título</TableHead>
-                      <TableHead>Ubicación</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Precio</TableHead>
-                      <TableHead>Huéspedes</TableHead>
-                      <TableHead>Calificación</TableHead>
-                      <TableHead>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {properties.map((property) => (
-                      <TableRow key={property.id}>
-                        <TableCell>
-                          <div className="w-16 h-16 rounded-lg overflow-hidden">
-                            <img
-                              src={property.images?.[0] || '/placeholder.jpg'}
-                              alt={property.title || 'Propiedad sin título'}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.src = '/placeholder.jpg';
-                              }}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium max-w-xs">
-                          <div className="truncate">{property.title || 'Sin título'}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {property.location?.city || 'N/A'}, {property.location?.country || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {property.roomType || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {formatPrice(property.pricing?.basePrice || 0, property.pricing?.currency || 'EUR')}
-                        </TableCell>
-                        <TableCell>{property.capacity?.guests || 0}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">
-                              {property.rating?.overall?.toFixed(1) || '0.0'}
-                            </span>
-                            <span className="text-gray-500 text-sm">
-                              ({property.rating?.reviewCount || 0})
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Link 
-                              href={`/propiedad/${property.id}`}
-                              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-                              title="Ver detalles de la propiedad"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                            <Link 
-                              href={`/admin/properties/${property.id}/edit`}
-                              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-                              title="Editar propiedad"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Link>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+      {/* Properties Grid */}
+      <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+        <div className="px-5 py-4 border-b border-[#1e293b]/60 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-[#f8fafc]">Propiedades</h2>
+          <span className="text-xs text-[#64748b]">
+            {total > 0 ? `${total} encontradas` : 'Sin propiedades'}
+          </span>
+        </div>
+
+        {isLoading ? (
+          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="rounded-2xl overflow-hidden animate-pulse" style={{ background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(30,41,59,0.6)' }}>
+                <div className="aspect-video bg-[#1e293b]" />
+                <div className="p-4 space-y-2">
+                  <div className="h-4 bg-[#1e293b] rounded w-3/4" />
+                  <div className="h-3 bg-[#1e293b] rounded w-1/2" />
+                </div>
               </div>
-
-              {/* Pagination */}
-              {total > perPage && (
-                <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <div className="text-sm text-gray-600">
-                    Mostrando {(currentPage - 1) * perPage + 1} - {Math.min(currentPage * perPage, total)} de {total}
+            ))}
+          </div>
+        ) : properties.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-[#64748b] text-sm mb-4">No se encontraron propiedades</p>
+            <button
+              onClick={() => router.push('/admin/properties/new')}
+              className="flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#1e293b] text-sm font-semibold text-[#94a3b8] hover:text-[#f8fafc] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Crear Primera Propiedad
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {properties.map((property) => (
+                <div
+                  key={property.id}
+                  className="group relative rounded-2xl overflow-hidden border border-[#1e293b]/60 hover:border-[#0ea5e9]/30 transition-all duration-300"
+                  style={{ background: 'rgba(15, 23, 42, 0.6)' }}
+                >
+                  {/* Image */}
+                  <div className="relative aspect-video overflow-hidden">
+                    <img
+                      src={property.images?.[0] || '/placeholder.jpg'}
+                      alt={property.title || 'Propiedad'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.currentTarget.src = '/placeholder.jpg'; }}
+                    />
+                    {/* Hover controls */}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                      <Link
+                        href={`/propiedad/${property.id}`}
+                        className="w-10 h-10 rounded-xl bg-[#0ea5e9] flex items-center justify-center text-white hover:bg-[#0284c7] transition-colors shadow-lg"
+                        title="Ver propiedad"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <Link
+                        href={`/admin/properties/${property.id}/edit`}
+                        className="w-10 h-10 rounded-xl bg-[#1e293b] border border-[#1e293b] flex items-center justify-center text-[#94a3b8] hover:text-[#f8fafc] transition-colors shadow-lg"
+                        title="Editar"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Link>
+                    </div>
+                    {/* Type badge */}
+                    <div className="absolute top-2 left-2">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#020617]/80 backdrop-blur-sm text-[#94a3b8]">
+                        {property.roomType || 'N/A'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={currentPage * perPage >= total}
-                    >
-                      Siguiente
-                    </Button>
+
+                  {/* Info */}
+                  <div className="p-4">
+                    <h3 className="text-[13px] font-bold text-[#f8fafc] truncate mb-1">
+                      {property.title || 'Sin título'}
+                    </h3>
+                    <p className="text-[12px] text-[#64748b] mb-3">
+                      {property.location?.city || 'N/A'}, {property.location?.country || 'N/A'}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <span className="text-yellow-400 text-[11px]">★</span>
+                        <span className="text-[12px] font-semibold text-[#f8fafc]">
+                          {property.rating?.overall?.toFixed(1) || '0.0'}
+                        </span>
+                        <span className="text-[11px] text-[#475569]">
+                          ({property.rating?.reviewCount || 0})
+                        </span>
+                      </div>
+                      <span className="text-[13px] font-bold text-[#0ea5e9]">
+                        {formatPrice(property.pricing?.basePrice || 0, property.pricing?.currency || 'EUR')}
+                        <span className="text-[10px] font-normal text-[#475569]">/noche</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {total > perPage && (
+              <div className="px-5 py-4 border-t border-[#1e293b]/60 flex items-center justify-between">
+                <p className="text-xs text-[#64748b]">
+                  Mostrando {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, total)} de {total}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#1e293b] text-xs font-semibold text-[#94a3b8] hover:text-[#f8fafc] disabled:opacity-40 transition-colors"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    disabled={currentPage * perPage >= total}
+                    className="px-3 py-1.5 rounded-lg bg-[#0ea5e9] text-xs font-semibold text-white hover:bg-[#0284c7] disabled:opacity-40 transition-colors"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
