@@ -22,11 +22,27 @@ const nextConfig = {
       },
     ],
   },
+
+  /**
+   * Rewrites de desarrollo:
+   *   - Solo activos en local. Proxea /api/* al backend para evitar CORS en el browser.
+   *   - El destino se toma de NEXT_PUBLIC_API_URL o cae al puerto 3000 local.
+   *
+   * En producción:
+   *   - Los servicios usan NEXT_PUBLIC_API_URL directamente (peticiones client-side).
+   *   - El rewrite se desactiva para no interferir con rutas SSR/API de Next.js.
+   */
   async rewrites() {
+    if (process.env.NODE_ENV === 'production') return [];
+
+    const backendOrigin =
+      process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') ||
+      'http://localhost:3000';
+
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*',
+        destination: `${backendOrigin}/api/:path*`,
       },
     ];
   },

@@ -43,14 +43,23 @@ export interface CreateBookingRequest {
 export interface Booking {
   id: string;
   propertyId: string;
+  /** ID del huésped que realizó la reserva — requerido por el backend */
+  guestId: string;
+  /** ID del anfitrión — disponible en la vista del host */
+  hostId?: string;
   checkIn: string;
   checkOut: string;
   guests: number;
   guestInfo: GuestInfo;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   createdAt: string;
+  updatedAt?: string;
   totalPrice?: number;
+  /** Total de noches calculado por el backend (equivale a "nights" en pricing) */
+  nightsTotal?: number;
   currency?: string;
+  paymentStatus?: 'pending' | 'paid' | 'refunded' | 'failed';
+  paymentIntentId?: string;
 }
 
 export interface ApiResponse<T> {

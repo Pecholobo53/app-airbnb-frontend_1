@@ -1,0 +1,42 @@
+---
+alwaysApply: false
+description: "Reglas de enrutamiento para modelos DeepSeek. Solo aplicar cuando el modelo activo sea DeepSeek."
+globs: []
+---
+
+# RULE: Model Routing (DeepSeek)
+
+> **IMPORTANTE**: Esta regla SOLO aplica cuando el modelo activo en Cursor es DeepSeek (deepseek-chat o deepseek-reasoner). Si estás usando Claude, GPT-4 u otro modelo, ignora esta regla.
+
+## Mandatory header in every response (solo para DeepSeek)
+Cuando uses DeepSeek, DEBES empezar cada respuesta con:
+Selected model: <deepseek-chat|deepseek-reasoner>
+Reason: <1 line>
+
+
+## Objetivo
+Seleccionar el modelo DeepSeek correcto según el tipo de tarea para optimizar calidad, coste y velocidad.
+
+## Modelos disponibles
+- deepseek-chat
+- deepseek-reasoner
+
+## Política de enrutado
+1) Usa **deepseek-reasoner** cuando la tarea requiera:
+   - Decisiones complejas o trade-offs
+   - Arquitectura / diseño de sistema
+   - QA/Validación (checklists, riesgos, edge cases)
+   - Debugging difícil o incierto (hipótesis múltiples, causas no obvias)
+   - Planificación multi-paso con dependencias
+
+2) Usa **deepseek-chat** cuando la tarea sea:
+   - Implementación rápida (codegen directo)
+   - Cambios pequeños y concretos (refactor simple, renombres, ajustes UI menores)
+   - Copy / microcopy / texto corto
+   - Iteraciones rápidas (“haz esto”, “cambia aquello”) sin alto riesgo
+   - Respuestas directas sin necesidad de razonamiento profundo
+
+## Regla de escalado
+- Si empiezas con **deepseek-chat** y aparece incertidumbre, errores no obvios o decisiones de arquitectura → **escalar a deepseek-reasoner**.
+- Si estás en **deepseek-reasoner** y la tarea se vuelve mecánica/repetitiva → **volver a deepseek-chat**.
+
