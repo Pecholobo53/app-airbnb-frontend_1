@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Search, ShieldCheck, Sparkles } from 'lucide-react';
+import { Search, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 const steps = [
@@ -11,8 +11,15 @@ const steps = [
     title: 'Elige tu estancia',
     description:
       'Explora nuestra colección de residencias exclusivas. Filtra por destino, fechas y número de huéspedes. Cada propiedad incluye galería completa, amenidades verificadas y reseñas auténticas.',
-    color: 'from-rose-50 to-pink-50',
-    iconColor: 'text-acento-200',
+    href: '/buscar',
+    cta: 'Ver propiedades',
+    badge: '247 propiedades disponibles',
+    iconBg: 'rgba(255,56,92,0.12)',
+    iconBorder: 'rgba(255,56,92,0.25)',
+    iconColor: '#FF385C',
+    accentBorder: 'rgba(255,56,92,0.35)',
+    hoverGlow: 'rgba(255,56,92,0.06)',
+    hoverShadow: '0 24px 48px rgba(255,56,92,0.18), inset 0 0 0 1px rgba(255,56,92,0.35)',
   },
   {
     number: '02',
@@ -20,8 +27,15 @@ const steps = [
     title: 'Reserva con total seguridad',
     description:
       'Confirma en segundos con pago encriptado SSL. Recibirás la confirmación en tu email al instante. Sin cargos ocultos — el precio del desglose es el precio final.',
-    color: 'from-emerald-50 to-teal-50',
-    iconColor: 'text-emerald-600',
+    href: '/buscar',
+    cta: 'Ver precios y disponibilidad',
+    badge: 'Pago 100% seguro · SSL',
+    iconBg: 'rgba(52,211,153,0.12)',
+    iconBorder: 'rgba(52,211,153,0.25)',
+    iconColor: '#34d399',
+    accentBorder: 'rgba(52,211,153,0.35)',
+    hoverGlow: 'rgba(52,211,153,0.06)',
+    hoverShadow: '0 24px 48px rgba(52,211,153,0.15), inset 0 0 0 1px rgba(52,211,153,0.35)',
   },
   {
     number: '03',
@@ -29,8 +43,15 @@ const steps = [
     title: 'Disfruta tu hogar lejos de casa',
     description:
       'Check-in autónomo a cualquier hora, limpieza profesional certificada y conserjería privada 24/7. Llega, desconecta y vive la experiencia que mereces.',
-    color: 'from-violet-50 to-purple-50',
-    iconColor: 'text-violet-600',
+    href: '/mis-reservas',
+    cta: 'Mi espacio personal',
+    badge: 'Conserjería 24/7',
+    iconBg: 'rgba(167,139,250,0.12)',
+    iconBorder: 'rgba(167,139,250,0.25)',
+    iconColor: '#a78bfa',
+    accentBorder: 'rgba(167,139,250,0.35)',
+    hoverGlow: 'rgba(167,139,250,0.06)',
+    hoverShadow: '0 24px 48px rgba(167,139,250,0.15), inset 0 0 0 1px rgba(167,139,250,0.35)',
   },
 ];
 
@@ -44,14 +65,12 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
 
-/**
- * HowItWorksSection — 3 pasos para explicar el proceso de reserva.
- * Reduce la fricción cognitiva del usuario que llega por primera vez.
- * Zero backend: datos estáticos + Framer Motion stagger.
- */
 export default function HowItWorksSection() {
   return (
-    <section className="py-16 lg:py-20 bg-white">
+    <section
+      className="py-16 lg:py-20"
+      style={{ background: 'linear-gradient(180deg, #07091A 0%, #080C18 100%)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Encabezado */}
@@ -65,17 +84,17 @@ export default function HowItWorksSection() {
           <p className="text-sm font-semibold text-acento-200 uppercase tracking-widest mb-3">
             Así de sencillo
           </p>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Tu experiencia perfecta en 3 pasos
           </h2>
-          <p className="text-gray-500 max-w-xl mx-auto">
+          <p className="text-gray-400 max-w-xl mx-auto">
             De la idea a la llave en minutos. Sin complicaciones, sin intermediarios, sin sorpresas.
           </p>
         </motion.div>
 
         {/* Steps grid */}
         <motion.div
-          className="grid md:grid-cols-3 gap-8 lg:gap-12"
+          className="grid md:grid-cols-3 gap-6 lg:gap-8"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -83,32 +102,78 @@ export default function HowItWorksSection() {
         >
           {steps.map((step, i) => (
             <motion.div key={i} variants={itemVariants} className="relative">
+
               {/* Connector line (desktop only) */}
               {i < steps.length - 1 && (
-                <div className="hidden md:block absolute top-10 left-[calc(100%-16px)] w-[calc(100%-60px)] h-px bg-gray-200 z-0" />
+                <div
+                  className="hidden md:block absolute top-10 left-[calc(100%-16px)] w-[calc(100%-60px)] h-px z-0"
+                  style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.07) 0%, transparent 100%)' }}
+                />
               )}
 
-              <div className="relative z-10">
-                {/* Number + Icon */}
-                <div className="flex items-start gap-4 mb-5">
-                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                    <step.icon className={`w-9 h-9 ${step.iconColor}`} />
+              <Link href={step.href} className="block h-full">
+                <motion.div
+                  className="relative z-10 h-full rounded-2xl p-6"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.07)',
+                  }}
+                  whileHover={{
+                    y: -6,
+                    backgroundColor: step.hoverGlow,
+                    boxShadow: step.hoverShadow,
+                  }}
+                  transition={{ duration: 0.28, ease: 'easeOut' }}
+                >
+                  {/* Number + Icon */}
+                  <div className="flex items-start gap-4 mb-5">
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: step.iconBg, border: `1px solid ${step.iconBorder}` }}
+                    >
+                      <step.icon className="w-7 h-7" style={{ color: step.iconColor }} />
+                    </div>
+                    <div className="pt-1">
+                      <span
+                        className="text-5xl font-black leading-none select-none"
+                        style={{ color: 'rgba(255,255,255,0.07)' }}
+                      >
+                        {step.number}
+                      </span>
+                    </div>
                   </div>
-                  <div className="pt-1">
-                    <span className="text-5xl font-black text-gray-100 leading-none select-none">
-                      {step.number}
+
+                  {/* Content */}
+                  <h3 className="text-base font-bold text-white mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                    {step.description}
+                  </p>
+
+                  {/* Badge + CTA row */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span
+                      className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                      style={{
+                        background: step.iconBg,
+                        border: `1px solid ${step.iconBorder}`,
+                        color: step.iconColor,
+                      }}
+                    >
+                      {step.badge}
+                    </span>
+                    <span
+                      className="flex items-center gap-1 text-[12px] font-semibold"
+                      style={{ color: step.iconColor }}
+                    >
+                      {step.cta}
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
-                </div>
+                </motion.div>
+              </Link>
 
-                {/* Content */}
-                <h3 className="text-lg font-bold text-gray-900 mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
             </motion.div>
           ))}
         </motion.div>

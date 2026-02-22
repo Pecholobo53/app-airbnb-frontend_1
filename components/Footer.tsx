@@ -87,9 +87,6 @@ export default function Footer() {
       {/* ══════════ NEWSLETTER — Full impact section ══════════ */}
       <div className="relative overflow-hidden border-b border-white/8">
 
-        {/* Ambient gradient BG */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#200810] via-[#0D0D0D] to-[#080d1a]" />
-
         {/* Animated blob 1 */}
         <motion.div
           className="absolute -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
@@ -104,6 +101,7 @@ export default function Footer() {
           animate={{ scale: [1.15, 1, 1.15], x: [0, -20, 0], y: [0, 12, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
+
         {/* Subtle grid */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -253,26 +251,48 @@ export default function Footer() {
                   onSubmit={handleSubmit}
                   className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
                 >
-                  {/* Input with glow on focus */}
-                  <div className="relative flex-1">
+                  {/* Input con borde cónico giratorio */}
+                  <div className="relative flex-1 p-[1.5px] rounded-xl overflow-hidden">
+                    {/* Conic gradient giratorio — crea el borde animado */}
                     <motion.div
-                      className="absolute -inset-0.5 rounded-xl pointer-events-none"
-                      animate={{
-                        opacity: focused ? 1 : 0,
-                        boxShadow: focused ? '0 0 20px rgba(255,56,92,0.35)' : '0 0 0px rgba(255,56,92,0)',
+                      className="absolute inset-0 rounded-xl"
+                      style={{
+                        background:
+                          'conic-gradient(from 0deg at 50% 50%, rgba(255,56,92,0) 0deg, rgba(255,56,92,0.5) 45deg, #FF385C 90deg, #ff9eb0 135deg, #FF385C 180deg, rgba(255,56,92,0.5) 225deg, rgba(255,56,92,0) 270deg, rgba(255,56,92,0) 360deg)',
                       }}
-                      transition={{ duration: 0.3 }}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                     />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => setFocused(true)}
-                      onBlur={() => setFocused(false)}
-                      placeholder="tu@email.com"
-                      required
-                      className="relative w-full bg-white/8 border border-white/12 text-white placeholder-gray-500 text-sm px-4 py-3.5 rounded-xl focus:outline-none focus:border-acento-200/50 transition-colors"
+                    {/* Glow exterior pulsante */}
+                    <motion.div
+                      className="absolute -inset-1 rounded-xl pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(ellipse at center, rgba(255,56,92,0.25) 0%, transparent 70%)',
+                        filter: 'blur(8px)',
+                      }}
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                     />
+                    {/* Fondo oscuro del input — crea la ilusión de borde */}
+                    <div className="relative rounded-[10px] overflow-hidden" style={{ background: '#0D0D0D' }}>
+                      {focused && (
+                        <div
+                          className="absolute inset-0 rounded-[10px] pointer-events-none z-10"
+                          style={{ boxShadow: 'inset 0 0 0 1px rgba(255,56,92,0.5), 0 0 20px rgba(255,56,92,0.2)' }}
+                        />
+                      )}
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onFocus={() => setFocused(true)}
+                        onBlur={() => setFocused(false)}
+                        placeholder="tu@email.com"
+                        required
+                        className="relative z-[1] w-full text-white placeholder-gray-500 text-sm px-4 py-3.5 focus:outline-none"
+                        style={{ background: 'transparent', border: 'none' }}
+                      />
+                    </div>
                   </div>
                   {/* CTA button with pulse glow */}
                   <div className="relative">
