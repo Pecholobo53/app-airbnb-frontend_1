@@ -38,9 +38,11 @@ export function saveCheckoutData(data: Partial<CheckoutPersistenceData>): void {
 
   try {
     const existing = getCheckoutData();
+    const base: Partial<CheckoutPersistenceData> = existing ?? {};
     const merged: CheckoutPersistenceData = {
-      ...existing,
+      ...base,
       ...data,
+      currentStep: data.currentStep ?? base.currentStep ?? 1,
       timestamp: Date.now(),
     };
 
