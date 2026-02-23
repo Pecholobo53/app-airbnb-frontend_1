@@ -83,7 +83,7 @@ export interface UpdateProfileData {
 /**
  * Códigos de error de autenticación
  */
-export type AuthError = 
+export type AuthError =
   | 'EMAIL_EXISTS'
   | 'INVALID_CREDENTIALS'
   | 'EMAIL_NOT_VERIFIED'
@@ -93,7 +93,15 @@ export type AuthError =
   | 'WEAK_PASSWORD'
   | 'NETWORK_ERROR'
   | 'TIMEOUT_ERROR'
-  | 'NOT_FOUND';
+  | 'NOT_FOUND'
+  | 'INVALID_RESPONSE'
+  | 'RATE_LIMIT'
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
+  | 'SERVER_ERROR'
+  | 'UNKNOWN_ERROR'
+  | 'CONFLICT'
+  | 'VALIDATION_ERROR';
 
 /**
  * Respuesta estándar de servicios de autenticación

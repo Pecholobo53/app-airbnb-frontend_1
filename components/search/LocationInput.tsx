@@ -8,7 +8,8 @@ import { LocationSuggestion } from '@/types/search';
 import { LocationService } from '@/lib/locations/location-service';
 
 // Ciudades españolas para autocompletado local (incluye ciudades de propiedades activas)
-const LOCAL_CITIES: LocationSuggestion[] = [
+// Definidas sin type/matchText y completadas con .map para mantener la lista legible.
+const LOCAL_CITIES_RAW = [
   // Ciudades con propiedades activas (prioridad)
   { id: 'madrid', city: 'Madrid', region: 'Comunidad de Madrid', country: 'España' },
   { id: 'barcelona', city: 'Barcelona', region: 'Cataluña', country: 'España' },
@@ -23,7 +24,7 @@ const LOCAL_CITIES: LocationSuggestion[] = [
   { id: 'puerto-cruz', city: 'Puerto de la Cruz', region: 'Canarias', country: 'España' },
   { id: 'cangas-onis', city: 'Cangas de Onís', region: 'Asturias', country: 'España' },
   { id: 'alaro', city: 'Alaró', region: 'Islas Baleares', country: 'España' },
-  { id: 'sant-josep', city: 'Sant Josep de sa Talaia', region: 'Islas Baleares', country: 'España' },
+  { id: 'sant-Josep', city: 'Sant Josep de sa Talaia', region: 'Islas Baleares', country: 'España' },
   { id: 'las-palmas', city: 'Las Palmas de Gran Canaria', region: 'Canarias', country: 'España' },
   // Ciudades adicionales populares
   { id: 'ibiza', city: 'Ibiza', region: 'Islas Baleares', country: 'España' },
@@ -45,7 +46,13 @@ const LOCAL_CITIES: LocationSuggestion[] = [
   { id: 'benidorm', city: 'Benidorm', region: 'Comunidad Valenciana', country: 'España' },
   { id: 'lloret', city: 'Lloret de Mar', region: 'Cataluña', country: 'España' },
   { id: 'sitges', city: 'Sitges', region: 'Cataluña', country: 'España' },
-];
+] as const;
+
+const LOCAL_CITIES: LocationSuggestion[] = LOCAL_CITIES_RAW.map(c => ({
+  ...c,
+  type: 'city' as const,
+  matchText: c.city,
+}));
 
 // Función para normalizar texto (quitar acentos y convertir a minúsculas)
 function normalizeText(text: string): string {
@@ -61,7 +68,7 @@ function filterLocalCities(query: string): LocationSuggestion[] {
   return LOCAL_CITIES
     .filter(city => {
       const normalizedCity = normalizeText(city.city);
-      const normalizedRegion = normalizeText(city.region);
+      const normalizedRegion = normalizeText(city.region ?? '');
       return normalizedCity.includes(normalizedQuery) || 
              normalizedCity.startsWith(normalizedQuery) ||
              normalizedRegion.includes(normalizedQuery);

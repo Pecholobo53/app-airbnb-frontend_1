@@ -186,7 +186,7 @@ export default function TestimonialsSection() {
 
               {/* Testimonio */}
               <p className="text-[#cbd5e1] text-sm leading-relaxed flex-1">
-                "{t.text}"
+                &ldquo;{t.text}&rdquo;
               </p>
 
               {/* Propiedad */}

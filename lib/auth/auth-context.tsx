@@ -157,19 +157,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         let userData: User;
         let accessToken: string | undefined;
         let expiresAt: Date;
-        
-        if (response.data.user) {
-          userData = response.data.user;
-          accessToken = response.data.accessToken || response.data.token;
-          expiresAt = response.data.expiresAt 
-            ? new Date(response.data.expiresAt)
+
+        // El backend puede devolver distintos formatos; casteamos a Record flexible
+        // para detectar la forma antes de construir la sesión tipada.
+        const raw = response.data as unknown as Record<string, unknown>;
+
+        if (raw.user) {
+          userData = raw.user as User;
+          accessToken = (raw.accessToken || raw.token) as string | undefined;
+          expiresAt = raw.expiresAt
+            ? new Date(raw.expiresAt as string | Date)
             : new Date(Date.now() + 24 * 60 * 60 * 1000);
-        } else if (response.data.id || response.data.email) {
-          const { accessToken: token, token: token2, expiresAt: expAt, ...userFields } = response.data;
-          userData = userFields as User;
-          accessToken = token || token2;
-          expiresAt = expAt 
-            ? new Date(expAt)
+        } else if (raw.id || raw.email) {
+          const { accessToken: token, token: token2, expiresAt: expAt, ...userFields } = raw;
+          userData = userFields as unknown as User;
+          accessToken = (token || token2) as string | undefined;
+          expiresAt = expAt
+            ? new Date(expAt as string | Date)
             : new Date(Date.now() + 24 * 60 * 60 * 1000);
         } else {
           toast.error('El servidor devolvió una respuesta con formato inesperado.');

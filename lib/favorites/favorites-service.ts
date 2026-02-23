@@ -99,9 +99,9 @@ async function apiRequest<T>(
 ): Promise<ApiResponse<T>> {
   const token = getAuthToken();
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string> | undefined),
   };
 
   if (token) {
@@ -259,7 +259,7 @@ export class FavoritesService {
     );
 
     if (!response.success) {
-      return response;
+      return response as unknown as ApiResponse<Favorite[]>;
     }
 
     // La API retorna { data: { favorites: [...] } }

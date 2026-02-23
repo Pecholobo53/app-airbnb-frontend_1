@@ -162,7 +162,7 @@ export default function FeaturedHostsSection() {
 
               {/* Quote */}
               <blockquote className="text-xs text-gray-500 italic leading-relaxed border-l-2 border-gray-200 pl-3">
-                "{host.quote}"
+                &quot;{host.quote}&quot;
               </blockquote>
 
               {/* Desde */}

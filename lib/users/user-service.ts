@@ -1,8 +1,9 @@
 // lib/users/user-service.ts
 
-import { 
-  AuthResponse, 
-  User 
+import {
+  AuthResponse,
+  AuthError,
+  User,
 } from '@/types/auth';
 
 /**
@@ -71,9 +72,9 @@ async function apiRequest<T>(
       }
     }
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> | undefined),
     };
 
     if (token) {
@@ -119,7 +120,7 @@ async function apiRequest<T>(
     if (!response.ok) {
       
       // Determinar código de error basado en status HTTP
-      let errorCode = 'NETWORK_ERROR';
+      let errorCode: AuthError = 'NETWORK_ERROR';
       if (response.status === 404) {
         errorCode = 'NOT_FOUND';
       } else if (response.status === 401) {
@@ -455,7 +456,7 @@ export class UserService {
         return statsResponse;
       } else {
         // Si el endpoint existe pero falla, verificar si es rate limiting
-        if (statsResponse.error?.code === 'RATE_LIMIT' || statsResponse.error?.code === '429') {
+        if (statsResponse.error?.code === 'RATE_LIMIT') {
           return statsResponse; // Retornar el error directamente
         }
       }
@@ -527,8 +528,7 @@ export class UserService {
         };
       } else {
         // Verificar si es rate limiting
-        if (listResponse.error?.code === 'RATE_LIMIT' || 
-            listResponse.error?.code === '429' ||
+        if (listResponse.error?.code === 'RATE_LIMIT' ||
             listResponse.error?.message?.toLowerCase().includes('demasiadas')) {
           return {
             success: false,

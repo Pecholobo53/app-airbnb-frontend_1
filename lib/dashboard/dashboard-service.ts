@@ -514,7 +514,7 @@ export class DashboardService {
       // Calcular rating promedio (si está disponible en las reservas)
       const bookingsWithRating = hostBookings.filter(b => b.property?.rating);
       const averageRating = bookingsWithRating.length > 0
-        ? bookingsWithRating.reduce((sum, b) => sum + (b.property?.rating || 0), 0) / bookingsWithRating.length
+        ? bookingsWithRating.reduce((sum, b) => sum + (b.property?.rating?.overall || 0), 0) / bookingsWithRating.length
         : 0;
       
       const totalReviews = bookingsWithRating.length;
@@ -590,7 +590,7 @@ export class DashboardService {
         : (response.data as any).bookings || [];
       
       const now = new Date();
-      const upcomingTrips = allBookings.filter(b => {
+      const upcomingTrips = (allBookings as Booking[]).filter(b => {
         const booking = b as Booking;
         const checkIn = booking.checkIn instanceof Date 
           ? booking.checkIn 
@@ -649,7 +649,7 @@ export class DashboardService {
         : (response.data as any).bookings || [];
       
       const now = new Date();
-      const pastTrips = allBookings.filter(b => {
+      const pastTrips = (allBookings as Booking[]).filter(b => {
         const booking = b as Booking;
         const checkOut = booking.checkOut instanceof Date 
           ? booking.checkOut 
@@ -828,7 +828,7 @@ export class DashboardService {
         ? response.data 
         : (response.data as any).bookings || [];
       
-      const pendingRequests = allBookings.filter(b => {
+      const pendingRequests = (allBookings as Booking[]).filter(b => {
         const booking = b as Booking;
         return booking.hostId === hostId;
       });

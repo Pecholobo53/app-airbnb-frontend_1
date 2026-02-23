@@ -28,9 +28,9 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const token = getAuthToken();
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string> | undefined),
   };
 
   if (token) {
@@ -172,9 +172,9 @@ export class NotificationsService {
     );
     
     if (!response.success) {
-      return response;
+      return response as ApiResponse<NotificationsResponse>;
     }
-    
+
     const data = response.data as any;
     const notifications = data?.notifications || data || [];
     
@@ -241,9 +241,9 @@ export class NotificationsService {
     );
     
     if (!response.success) {
-      return response;
+      return response as unknown as ApiResponse<Notification>;
     }
-    
+
     const notification = (response.data as any)?.notification || response.data;
     const notificationWithDate = {
       ...notification,

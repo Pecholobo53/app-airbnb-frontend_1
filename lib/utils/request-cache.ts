@@ -43,7 +43,7 @@ class RequestCache {
         // Solo guardar en caché si la respuesta es exitosa
         // Verificar si tiene estructura { success: true, data: ... }
         if (data && typeof data === 'object' && 'success' in data) {
-          if (data.success === true && data.data) {
+          if (data.success === true && 'data' in data && (data as Record<string, unknown>).data) {
             // Guardar en caché solo si es exitoso
             this.cache.set(key, {
               data,

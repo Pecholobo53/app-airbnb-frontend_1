@@ -77,9 +77,9 @@ async function apiRequest<T>(
       }
     }
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> | undefined),
     };
 
     if (token) {
@@ -221,7 +221,6 @@ async function apiRequest<T>(
           error: {
             code: 'VALIDATION_ERROR',
             message: errorMessage,
-            details: validationErrors,
           },
         };
       }
@@ -470,7 +469,7 @@ export class PropertyService {
         }
       }
       if (params.filters?.amenities && params.filters.amenities.length > 0) {
-        queryParams.append('amenities', params.filters.amenities.map(a => a.id).join(','));
+        queryParams.append('amenities', params.filters.amenities.join(','));
       }
       if (params.filters?.minRating) {
         queryParams.append('minRating', params.filters.minRating.toString());

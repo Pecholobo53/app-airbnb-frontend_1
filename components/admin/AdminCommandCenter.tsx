@@ -205,7 +205,7 @@ function DetailNewsletter() {
       <div className="p-3 rounded-xl"
         style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.12)' }}>
         <p className="text-[10px] font-bold text-[#fbbf24] mb-1">Última campaña</p>
-        <p className="text-[11px] text-texto-100 font-semibold">"Ofertas Especiales de Primavera"</p>
+        <p className="text-[11px] text-texto-100 font-semibold">&quot;Ofertas Especiales de Primavera&quot;</p>
         <p className="text-[10px] text-[#64748b] mt-0.5">Hace 3 días · 12.847 destinatarios</p>
       </div>
 

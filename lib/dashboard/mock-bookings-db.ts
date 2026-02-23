@@ -1,6 +1,7 @@
 // lib/dashboard/mock-bookings-db.ts
 
 import { Booking, GuestStats, HostStats, MonthlyData, PropertyStats } from '@/types/dashboard';
+import { Property } from '@/types/search';
 // import { MOCK_PROPERTIES } from '@/lib/search/mock-properties-db'; // ELIMINADO - Usar PropertyService en su lugar
 import { MOCK_USERS } from '@/lib/auth/mock-users-db-stub';
 
@@ -197,7 +198,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-004',
     propertyId: 'prop-001',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-001')!,
+    property: { id: 'prop-001', title: 'Villa Mediterránea' } as unknown as Property,
     guestId: 'guest-laura',
     guest: {
       id: 'guest-laura',
@@ -255,7 +256,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'booking-006',
     propertyId: 'prop-001',
-    property: MOCK_PROPERTIES.find(p => p.id === 'prop-001')!,
+    property: { id: 'prop-001', title: 'Villa Mediterránea' } as unknown as Property,
     guestId: 'guest-sofia',
     guest: {
       id: 'guest-sofia',
