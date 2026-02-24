@@ -1,5 +1,7 @@
 // app/(auth)/registro/page.tsx
 
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
 import RegisterForm from '@/components/auth/RegisterForm';
 import SocialAuthButtons from '@/components/auth/SocialAuthButtons';

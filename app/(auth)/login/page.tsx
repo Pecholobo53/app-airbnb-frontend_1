@@ -1,5 +1,7 @@
 // app/(auth)/login/page.tsx
 
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
