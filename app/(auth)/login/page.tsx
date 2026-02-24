@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next';
 import LoginForm from '@/components/auth/LoginForm';
-import SocialAuthButtonsDynamic from '@/components/auth/SocialAuthButtonsDynamic';
+import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default function LoginPage() {
       </div>
 
       {/* Social Auth */}
-      <SocialAuthButtonsDynamic />
+      <SocialAuthButtons />
 
       {/* Divider */}
       <div className="relative">

@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
-import { GoogleAuthProvider } from '@/components/providers/GoogleAuthProvider';
+import GoogleProvider from '@/components/providers/GoogleProvider';
 import ConditionalOfferTopBar from '@/components/ConditionalOfferTopBar';
 import Header from '@/components/Header';
 import { AuthProvider } from '@/lib/auth/auth-context';
@@ -52,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${dmSans.variable} font-sans antialiased`}>
-        <GoogleAuthProvider>
+        <GoogleProvider>
           <AuthProvider>
             <NotificationProvider>
               <Header />
@@ -66,7 +66,7 @@ export default function RootLayout({
               <Toaster richColors position="top-center" />
             </NotificationProvider>
           </AuthProvider>
-        </GoogleAuthProvider>
+        </GoogleProvider>
       </body>
     </html>
   );
