@@ -1,7 +1,7 @@
 // components/search/LocationInput.tsx
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { LocationSuggestion } from '@/types/search';
@@ -97,7 +97,6 @@ export default function LocationInput({ value = '', onChange }: LocationInputPro
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setInputValue(value);
@@ -209,7 +208,7 @@ export default function LocationInput({ value = '', onChange }: LocationInputPro
             onKeyDown={handleKeyDown}
             onFocus={() => inputValue.length >= 2 && setShowDropdown(true)}
             autoComplete="off"
-            className="border-none p-0 h-auto focus-visible:ring-0 text-sm"
+            className="border-none p-0 h-auto focus-visible:ring-0 text-sm text-gray-900 bg-transparent placeholder:text-gray-400"
           />
         </div>
         {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
