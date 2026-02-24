@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, Menu, Search, MapPin } from 'lucide-react';
+import { Menu, Search, MapPin, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import UserMenu from '@/components/auth/UserMenu';
 import NotificationsMenu from '@/components/notifications/NotificationsMenu';
@@ -79,6 +79,7 @@ export default function Header() {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFilterOpen, setIsSearchFilterOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<typeof CITIES>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -279,17 +280,65 @@ export default function Header() {
             )}
             
             {/* Mobile Menu Button */}
-            <button className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Menu className="w-5 h-5 text-gray-700" />
+            <button
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 active:scale-95 transition-all"
+              aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            >
+              {mobileMenuOpen
+                ? <X className="w-5 h-5 text-gray-700" />
+                : <Menu className="w-5 h-5 text-gray-700" />
+              }
             </button>
           </div>
         </div>
+
+        {/* Mobile nav panel */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-3 space-y-1">
+            <button
+              onClick={() => { setMobileMenuOpen(false); router.push(ROUTES.HOME); }}
+              className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+            >
+              Inicio
+            </button>
+            <button
+              onClick={() => { setMobileMenuOpen(false); router.push(ROUTES.BUSCAR); }}
+              className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+            >
+              Buscar
+            </button>
+            <button
+              onClick={() => { setMobileMenuOpen(false); router.push('/#experiencias'); }}
+              className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+            >
+              Experiencias
+            </button>
+            <a
+              href="/#ofertas"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+            >
+              Ofertas
+            </a>
+            {!isAuthenticated && (
+              <div className="flex gap-2 px-4 pt-2">
+                <Link href={ROUTES.LOGIN} onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                  <Button variant="outline" className="w-full">Iniciar sesión</Button>
+                </Link>
+                <Link href={ROUTES.REGISTRO} onClick={() => setMobileMenuOpen(false)} className="flex-1">
+                  <Button className="w-full bg-acento-200 hover:bg-acento-100 text-white">Registrarse</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filtro de búsqueda modal */}
-      <HeaderSearchFilter 
-        isOpen={isSearchFilterOpen} 
-        onClose={() => setIsSearchFilterOpen(false)} 
+      <HeaderSearchFilter
+        isOpen={isSearchFilterOpen}
+        onClose={() => setIsSearchFilterOpen(false)}
       />
     </header>
   );

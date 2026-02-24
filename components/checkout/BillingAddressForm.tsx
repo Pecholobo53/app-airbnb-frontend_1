@@ -39,7 +39,6 @@ export default function BillingAddressForm({
     register,
     handleSubmit,
     formState: { errors, isValid },
-    setValue,
     watch,
   } = useForm<BillingAddressFormData>({
     resolver: zodResolver(billingAddressSchema),
@@ -116,7 +115,7 @@ export default function BillingAddressForm({
             id="address"
             type="text"
             {...register('address')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
             placeholder="123 main street"
             autoComplete="street-address"
             disabled={isLoading}
@@ -137,7 +136,7 @@ export default function BillingAddressForm({
               id="city"
               type="text"
               {...register('city')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
               placeholder="Barcelona"
               autoComplete="address-level2"
               disabled={isLoading}
@@ -156,7 +155,7 @@ export default function BillingAddressForm({
               id="state"
               type="text"
               {...register('state')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
               placeholder="Cataluña"
               autoComplete="address-level1"
               disabled={isLoading}
@@ -178,7 +177,7 @@ export default function BillingAddressForm({
               id="postalCode"
               type="text"
               {...register('postalCode')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
               placeholder="08001"
               autoComplete="postal-code"
               disabled={isLoading}

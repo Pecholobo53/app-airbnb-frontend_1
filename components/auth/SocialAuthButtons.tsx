@@ -2,7 +2,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { isAdmin } from '@/lib/utils/admin';
@@ -11,7 +10,6 @@ import { AuthService } from '@/lib/auth/auth-service';
 import { toast } from 'sonner';
 
 export default function SocialAuthButtons() {
-  const router = useRouter();
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
 
   const handleGoogleLogin = useGoogleLogin({
@@ -28,7 +26,6 @@ export default function SocialAuthButtons() {
         );
         
         if (!userInfoResponse.ok) {
-          const errorText = await userInfoResponse.text();
           throw new Error(`Error al obtener datos de Google: ${userInfoResponse.status}`);
         }
         
@@ -95,7 +92,7 @@ export default function SocialAuthButtons() {
         setIsLoadingGoogle(false);
       }
     },
-    onError: (error) => {
+    onError: (_error) => {
       setIsLoadingGoogle(false);
       toast.error('Error al autenticar con Google. Verifica que tu email esté en la lista de usuarios de prueba.');
     },
@@ -107,7 +104,7 @@ export default function SocialAuthButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full h-12 font-medium"
+        className="w-full h-12 font-medium active:scale-95 transition-transform"
         onClick={() => handleGoogleLogin()}
         disabled={isLoadingGoogle}
       >
