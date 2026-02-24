@@ -2,7 +2,7 @@
 
 import type { Metadata } from 'next';
 import RegisterForm from '@/components/auth/RegisterForm';
-import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
+import SocialAuthButtonsDynamic from '@/components/auth/SocialAuthButtonsDynamic';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Social Auth */}
-      <SocialAuthButtons />
+      <SocialAuthButtonsDynamic />
 
       {/* Divider */}
       <div className="relative">
