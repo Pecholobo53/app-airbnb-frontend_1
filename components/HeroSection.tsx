@@ -126,7 +126,7 @@ export default function HeroSection() {
                 initial={{ opacity: 0, x: -20, y: 20 }}
                 animate={{ opacity: 1, x: 0, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.6, ease: 'easeOut' }}
-                className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl max-w-xs"
+                className="absolute -bottom-6 -left-6 bg-bg-200 border border-white/10 p-6 rounded-2xl shadow-xl max-w-xs"
               >
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-acento-200 to-acento-100 rounded-full" />

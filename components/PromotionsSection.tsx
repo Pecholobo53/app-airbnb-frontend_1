@@ -145,7 +145,7 @@ export default function PromotionsSection() {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Image */}
-                <div className="relative overflow-hidden flex-shrink-0 bg-gray-100">
+                <div className="relative overflow-hidden flex-shrink-0 bg-bg-300">
                   {(() => {
                     const hasError = imageErrors.has(property.id);
                     const originalImage = property.images && property.images.length > 0 && property.images[0] 
@@ -171,7 +171,7 @@ export default function PromotionsSection() {
                         <img
                           src={imageSrc}
                           alt={property.title}
-                          className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={() => {
                             handleImageError(property.id, isPlaceholder);
                           }}
@@ -184,7 +184,7 @@ export default function PromotionsSection() {
                         alt={property.title}
                         width={600}
                         height={256}
-                        className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={() => {
                           handleImageError(property.id, isPlaceholder);
                         }}
@@ -200,7 +200,7 @@ export default function PromotionsSection() {
                   </div>
                   
                   {/* Category Badge */}
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-texto-100 px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute top-4 right-4 bg-bg-300/90 backdrop-blur-sm text-texto-100 px-3 py-1 rounded-full text-sm font-medium border border-white/10">
                     {roomTypeLabels[property.roomType] || property.roomType}
                   </div>
                 </div>
