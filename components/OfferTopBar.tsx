@@ -61,9 +61,15 @@ export default function OfferTopBar({
   };
 
   return (
-    <div 
-      className={`sticky top-16 z-40 w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden transition-all duration-300 ${
-        isVisible ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0'
+    <>
+    {/* Espaciador en el flujo del documento — se colapsa cuando el banner se cierra */}
+    <div
+      aria-hidden="true"
+      className={`transition-all duration-300 ${isVisible ? 'h-9 sm:h-12' : 'h-0'}`}
+    />
+    <div
+      className={`fixed top-16 left-0 right-0 z-40 w-full bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 overflow-hidden transition-all duration-300 ${
+        isVisible ? 'max-h-[100px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,6 +139,7 @@ export default function OfferTopBar({
 
       </div>
     </div>
+    </>
   );
 }
 
