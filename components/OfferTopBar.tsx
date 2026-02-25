@@ -67,60 +67,70 @@ export default function OfferTopBar({
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-3 gap-4">
-          {/* Contenido principal */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 flex-1 text-white">
-            {/* Icono de fuego */}
-            <div className="flex items-center gap-2 animate-bounce">
-              <Flame className="w-5 h-5 sm:w-6 sm:h-6 fill-yellow-300 text-yellow-300" />
-              <span className="font-bold text-lg sm:text-xl hidden sm:inline">¡OFERTA FLASH!</span>
-            </div>
 
-            {/* Mensaje principal */}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-center sm:text-left">
-              <span className="font-semibold text-sm sm:text-base">
-                {message || (
-                  <>
-                    <span className="text-xl sm:text-2xl font-bold text-yellow-300">{discount} OFF</span>
-                    {' '}para las primeras{' '}
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 rounded-full">
-                      <Users className="w-4 h-4" />
-                      <span className="font-bold">{spotsLeft}</span>
-                    </span>
-                    {' '}personas
-                  </>
-                )}
-              </span>
+        {/* Mobile — compact single row */}
+        <div className="flex sm:hidden items-center gap-2 py-2 text-white">
+          <Flame className="w-4 h-4 fill-yellow-300 text-yellow-300 flex-shrink-0" />
+          <span className="font-bold text-yellow-300 text-sm flex-shrink-0">{discount} OFF</span>
+          <span className="text-white/60 text-xs flex-shrink-0">·</span>
+          <span className="text-white/85 text-xs flex-1 truncate">{spotsLeft} plazas</span>
+          {showTimer && (
+            <div className="flex items-center gap-1 bg-black/30 px-2 py-1 rounded-full flex-shrink-0">
+              <Clock className="w-3 h-3" />
+              <span className="font-mono font-bold text-xs tabular-nums">{formatTime(timeLeft)}</span>
             </div>
+          )}
+          <button
+            onClick={handleClose}
+            className="flex-shrink-0 p-1 rounded-full hover:bg-white/20 active:scale-90 transition-all text-white"
+            aria-label="Cerrar banner"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-            {/* Temporizador */}
+        {/* Desktop */}
+        <div className="hidden sm:flex items-center justify-between py-3 gap-4">
+          <div className="flex items-center justify-center gap-4 flex-1 text-white">
+            <div className="flex items-center gap-2">
+              <Flame className="w-6 h-6 fill-yellow-300 text-yellow-300" />
+              <span className="font-bold text-xl">¡OFERTA FLASH!</span>
+            </div>
+            <span className="font-semibold text-base">
+              {message || (
+                <>
+                  <span className="text-2xl font-bold text-yellow-300">{discount} OFF</span>
+                  {' '}para las primeras{' '}
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 rounded-full">
+                    <Users className="w-4 h-4" />
+                    <span className="font-bold">{spotsLeft}</span>
+                  </span>
+                  {' '}personas
+                </>
+              )}
+            </span>
             {showTimer && (
               <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full">
                 <Clock className="w-4 h-4 animate-pulse" />
-                <span className="font-mono font-bold text-sm sm:text-base tabular-nums">
-                  {formatTime(timeLeft)}
-                </span>
+                <span className="font-mono font-bold text-base tabular-nums">{formatTime(timeLeft)}</span>
               </div>
             )}
-
-            {/* CTA Button */}
-            <button 
+            <button
               onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}
-              className="hidden md:inline-flex items-center px-4 py-2 bg-white text-rose-600 rounded-full font-bold text-sm hover:bg-yellow-300 hover:text-rose-700 transition-all duration-200 hover:scale-105 shadow-lg"
+              className="inline-flex items-center px-4 py-2 bg-white text-rose-600 rounded-full font-bold text-sm hover:bg-yellow-300 hover:text-rose-700 transition-all duration-200 hover:scale-105 shadow-lg"
             >
               ¡Reservar ahora!
             </button>
           </div>
-
-          {/* Botón de cerrar */}
           <button
             onClick={handleClose}
             className="flex-shrink-0 p-1 rounded-full hover:bg-white/20 transition-colors text-white"
             aria-label="Cerrar banner"
           >
-            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
+
       </div>
     </div>
   );

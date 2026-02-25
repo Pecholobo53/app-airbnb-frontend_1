@@ -153,7 +153,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white backdrop-blur-sm border-b border-gray-200 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
@@ -295,36 +295,36 @@ export default function Header() {
 
         {/* Mobile nav panel */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-3 space-y-1">
+          <div className="md:hidden border-t border-rose-900/40 py-3 space-y-1 bg-[#12040a]">
             <button
               onClick={() => { setMobileMenuOpen(false); router.push(ROUTES.HOME); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Inicio
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); router.push(ROUTES.BUSCAR); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Buscar
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); router.push('/#experiencias'); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Experiencias
             </button>
             <a
               href="/#ofertas"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 rounded-lg transition-colors"
+              className="block px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Ofertas
             </a>
             {!isAuthenticated && (
-              <div className="flex gap-2 px-4 pt-2">
+              <div className="flex gap-2 px-4 pt-3 pb-1">
                 <Link href={ROUTES.LOGIN} onClick={() => setMobileMenuOpen(false)} className="flex-1">
-                  <Button variant="outline" className="w-full">Iniciar sesión</Button>
+                  <Button variant="outline" className="w-full border-white/20 text-rose-100 hover:bg-white/10">Iniciar sesión</Button>
                 </Link>
                 <Link href={ROUTES.REGISTRO} onClick={() => setMobileMenuOpen(false)} className="flex-1">
                   <Button className="w-full bg-acento-200 hover:bg-acento-100 text-white">Registrarse</Button>

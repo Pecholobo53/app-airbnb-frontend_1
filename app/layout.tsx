@@ -56,7 +56,8 @@ export default function RootLayout({
           <AuthProvider>
             <NotificationProvider>
               <Header />
-              <ConditionalOfferTopBar 
+              <div className="h-16" />
+              <ConditionalOfferTopBar
                 discount="40%" 
                 maxUsers={10}
                 showTimer={true}
