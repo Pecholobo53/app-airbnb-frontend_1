@@ -15,6 +15,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<boolean>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<boolean>;
+  loginWithGoogleSession: (googleSession: AuthSession) => Promise<boolean>;
   loginWithFacebook: () => Promise<boolean>;
   updateUser: (data: Partial<User>) => Promise<boolean>;
 }
@@ -308,10 +309,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loginWithGoogle = useCallback(async (): Promise<boolean> => {
-    // Esta función ahora se maneja directamente en SocialAuthButtons.tsx
-    // usando useGoogleLogin hook. Se mantiene aquí para compatibilidad
-    // pero el flujo real está en el componente.
+    // El flujo real se maneja en SocialAuthButtons.tsx via loginWithGoogleSession
     return false;
+  }, []);
+
+  /**
+   * Guarda una sesión de Google OAuth en el contexto y sessionStorage.
+   * Llamado desde SocialAuthButtons después de que el backend valida el token.
+   */
+  const loginWithGoogleSession = useCallback(async (googleSession: AuthSession): Promise<boolean> => {
+    try {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(googleSession));
+      setSession(googleSession);
+      return true;
+    } catch (error) {
+      console.error('[GOOGLE SESSION] Error guardando sesión:', error);
+      return false;
+    }
   }, []);
 
   const loginWithFacebook = useCallback(async (): Promise<boolean> => {
@@ -393,9 +407,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     loginWithGoogle,
+    loginWithGoogleSession,
     loginWithFacebook,
     updateUser,
-  }), [session, isLoading, login, register, logout, loginWithGoogle, loginWithFacebook, updateUser]);
+  }), [session, isLoading, login, register, logout, loginWithGoogle, loginWithGoogleSession, loginWithFacebook, updateUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
