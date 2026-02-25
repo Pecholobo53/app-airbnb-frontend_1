@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight, MapPin, Phone, Mail, ShieldCheck, Sparkles, Gift, Bell, Zap, CheckCircle2, Users, Loader2, AlertCircle } from 'lucide-react';
+import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight, MapPin, Phone, Mail, ShieldCheck, Sparkles, Gift, Bell, Zap, CheckCircle2, Users, Loader2, AlertCircle, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { subscribeNewsletter, getSubscriptionStatus } from '@/lib/newsletter/newsletter-service';
 import BrandLogo from '@/components/BrandLogo';
@@ -52,6 +52,8 @@ export default function Footer() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [showPrivacyDetails, setShowPrivacyDetails] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('newsletter_last_email');
@@ -63,7 +65,7 @@ export default function Footer() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || isLoading) return;
+    if (!email.trim() || isLoading || !consentChecked) return;
 
     setError('');
     setIsLoading(true);
@@ -85,19 +87,19 @@ export default function Footer() {
     <footer className="bg-[#0D0D0D] text-white">
 
       {/* ══════════ NEWSLETTER — Full impact section ══════════ */}
-      <div className="relative overflow-hidden border-b border-white/8">
+      <div className="relative overflow-hidden border-b border-white/8 bg-[#071b3e]">
 
         {/* Animated blob 1 */}
         <motion.div
           className="absolute -top-24 -left-24 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(255,56,92,0.22) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(56,130,255,0.25) 0%, transparent 70%)' }}
           animate={{ scale: [1, 1.18, 1], x: [0, 30, 0], y: [0, -15, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
         />
         {/* Animated blob 2 */}
         <motion.div
           className="absolute -bottom-24 -right-16 w-[480px] h-[480px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(255,56,92,0.14) 0%, transparent 65%)' }}
+          style={{ background: 'radial-gradient(circle, rgba(99,179,255,0.15) 0%, transparent 65%)' }}
           animate={{ scale: [1.15, 1, 1.15], x: [0, -20, 0], y: [0, 12, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -273,8 +275,8 @@ export default function Footer() {
                       animate={{ opacity: [0.5, 1, 0.5] }}
                       transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                     />
-                    {/* Fondo oscuro del input — crea la ilusión de borde */}
-                    <div className="relative rounded-[10px] overflow-hidden" style={{ background: '#0D0D0D' }}>
+                    {/* Fondo del input */}
+                    <div className="relative rounded-[10px] overflow-hidden" style={{ background: '#0a1e45' }}>
                       {focused && (
                         <div
                           className="absolute inset-0 rounded-[10px] pointer-events-none z-10"
@@ -303,10 +305,10 @@ export default function Footer() {
                     />
                     <motion.button
                       type="submit"
-                      disabled={isLoading}
-                      whileHover={isLoading ? {} : { scale: 1.04 }}
-                      whileTap={isLoading ? {} : { scale: 0.97 }}
-                      className="relative flex items-center justify-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-acento-200/25 w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
+                      disabled={isLoading || !consentChecked}
+                      whileHover={isLoading || !consentChecked ? {} : { scale: 1.04 }}
+                      whileTap={isLoading || !consentChecked ? {} : { scale: 0.97 }}
+                      className="relative flex items-center justify-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-acento-200/25 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? (
                         <>
@@ -337,6 +339,74 @@ export default function Footer() {
                       {error}
                     </motion.div>
                   )}
+
+                  {/* Consentimiento RGPD */}
+                  <div className="w-full mt-3 space-y-2">
+                    <label className="flex items-start gap-2.5 cursor-pointer group select-none">
+                      <div className="relative flex-shrink-0 mt-0.5">
+                        <input
+                          type="checkbox"
+                          checked={consentChecked}
+                          onChange={(e) => setConsentChecked(e.target.checked)}
+                          className="sr-only"
+                        />
+                        <div
+                          className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                            consentChecked
+                              ? 'bg-blue-500 border-blue-500'
+                              : 'bg-transparent border-white/30 group-hover:border-blue-400'
+                          }`}
+                        >
+                          {consentChecked && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400 leading-relaxed">
+                        He leído y acepto la{' '}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); setShowPrivacyDetails(prev => !prev); }}
+                          className="inline-flex items-center gap-0.5 text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors font-medium"
+                        >
+                          política de protección de datos
+                          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showPrivacyDetails ? 'rotate-180' : ''}`} />
+                        </button>
+                      </span>
+                    </label>
+
+                    {/* Desplegable de política de datos */}
+                    <AnimatePresence>
+                      {showPrivacyDetails && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="text-left rounded-xl border border-blue-500/20 bg-blue-950/40 p-4 text-xs text-gray-400 space-y-2 leading-relaxed">
+                            <p className="font-semibold text-blue-300 flex items-center gap-1.5">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              Información sobre protección de datos
+                            </p>
+                            <p><span className="text-gray-300 font-medium">Responsable:</span> VoyagerAuMaroc S.L., con domicilio en Madrid, España.</p>
+                            <p><span className="text-gray-300 font-medium">Finalidad:</span> Gestionar tu suscripción al boletín de noticias y enviarte comunicaciones comerciales sobre ofertas y alojamientos.</p>
+                            <p><span className="text-gray-300 font-medium">Base legal:</span> Consentimiento expreso del interesado (art. 6.1.a RGPD).</p>
+                            <p><span className="text-gray-300 font-medium">Conservación:</span> Hasta que revoques el consentimiento o solicites la supresión de tus datos.</p>
+                            <p><span className="text-gray-300 font-medium">Destinatarios:</span> No se cederán datos a terceros salvo obligación legal.</p>
+                            <p>
+                              <span className="text-gray-300 font-medium">Derechos:</span> Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición y portabilidad escribiendo a{' '}
+                              <span className="text-blue-400">privacidad@voyageraumaroc.com</span>. Más información en nuestra{' '}
+                              <Link href="#" className="text-blue-400 hover:text-blue-300 underline underline-offset-1">Política de Privacidad</Link>.
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </motion.form>
               )}
             </AnimatePresence>
