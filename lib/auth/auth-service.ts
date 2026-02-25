@@ -372,8 +372,8 @@ export class AuthService {
   }
 
   /**
-   * LOGIN WITH GOOGLE
-   * 
+   * LOGIN WITH GOOGLE (popup mode — legacy)
+   *
    * Endpoint: POST /api/auth/google
    * Body: { email, name, avatar, providerId }
    */
@@ -400,6 +400,27 @@ export class AuthService {
         name: data.name,
         avatar: data.avatar,
         providerId: data.providerId,
+      }),
+    });
+  }
+
+  /**
+   * LOGIN WITH GOOGLE (redirect/auth-code mode)
+   *
+   * Endpoint: POST /api/auth/google
+   * Body: { code, redirect_uri }
+   *
+   * El backend intercambia el authorization code con Google,
+   * obtiene el id_token y los datos del usuario, y devuelve un JWT propio.
+   */
+  static async loginWithGoogleCode(code: string): Promise<AuthResponse<AuthSession>> {
+    const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
+
+    return apiRequest<AuthSession>('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        redirect_uri: redirectUri,
       }),
     });
   }

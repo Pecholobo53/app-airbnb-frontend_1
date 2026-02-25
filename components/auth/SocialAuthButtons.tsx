@@ -4,144 +4,28 @@
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { isAdmin } from '@/lib/utils/admin';
 import { useGoogleLogin } from '@react-oauth/google';
-import { AuthService } from '@/lib/auth/auth-service';
-import { useAuth } from '@/lib/auth/auth-context';
-import { AuthSession } from '@/types/auth';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
+/**
+ * SocialAuthButtons
+ *
+ * Inicia el flujo OAuth de Google en modo redirect (auth-code).
+ * El authorization code que devuelve Google se procesa en
+ * GoogleAuthCallback (montado en el root layout), que lo envía
+ * al backend y guarda la sesión.
+ */
 export default function SocialAuthButtons() {
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
-  const { loginWithGoogleSession } = useAuth();
-  const router = useRouter();
 
   const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setIsLoadingGoogle(true);
-      try {
-        console.log('[GOOGLE] Step 1: access_token recibido de Google');
-
-        // Obtener datos del usuario desde Google
-        const userInfoResponse = await fetch(
-          'https://www.googleapis.com/oauth2/v3/userinfo',
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          }
-        );
-
-        if (!userInfoResponse.ok) {
-          throw new Error(`Error al obtener datos de Google: ${userInfoResponse.status}`);
-        }
-
-        const googleUser = await userInfoResponse.json();
-        console.log('[GOOGLE] Step 2: userinfo obtenido:', {
-          email: googleUser.email,
-          name: googleUser.name,
-          sub: googleUser.sub,
-        });
-
-        // Llamar al backend con los datos del usuario de Google
-        const response = await AuthService.loginWithGoogle({
-          email: googleUser.email,
-          name: googleUser.name,
-          avatar: googleUser.picture,
-          providerId: googleUser.sub,
-        });
-
-        console.log('[GOOGLE] Step 3: respuesta del backend:', {
-          success: response.success,
-          error: response.error,
-          hasData: !!response.data,
-        });
-
-        if (response.success && response.data) {
-          const raw = response.data as Record<string, any>;
-
-          // El backend puede devolver distintos formatos — normalizar aquí
-          const rawUser = raw.user ?? raw;
-          const accessToken =
-            raw.accessToken ??
-            raw.token ??
-            rawUser.accessToken ??
-            rawUser.token ??
-            '';
-
-          if (!accessToken) {
-            console.error('[GOOGLE] Step 3 ERROR: El backend no devolvió accessToken. Datos:', raw);
-            toast.error('El servidor no devolvió un token de acceso válido.');
-            return;
-          }
-
-          // Construir AuthSession con la estructura exacta que AuthContext espera
-          const session: AuthSession = {
-            accessToken,
-            expiresAt: raw.expiresAt
-              ? new Date(raw.expiresAt)
-              : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            user: {
-              id: rawUser.id ?? rawUser._id ?? '',
-              email: rawUser.email ?? googleUser.email,
-              name: rawUser.name ?? googleUser.name,
-              avatar: rawUser.avatar ?? rawUser.picture ?? googleUser.picture,
-              phone: rawUser.phone,
-              emailVerified: rawUser.emailVerified ?? true,
-              provider: 'google',
-              favorites: Array.isArray(rawUser.favorites) ? rawUser.favorites : [],
-              role: rawUser.role,
-              createdAt: rawUser.createdAt ? new Date(rawUser.createdAt) : new Date(),
-              updatedAt: rawUser.updatedAt ? new Date(rawUser.updatedAt) : new Date(),
-            },
-          };
-
-          console.log('[GOOGLE] Step 4: sesión construida:', {
-            userId: session.user.id,
-            email: session.user.email,
-            hasToken: !!session.accessToken,
-            expiresAt: session.expiresAt,
-          });
-
-          // Guardar sesión en contexto (actualiza estado React + sessionStorage)
-          const saved = await loginWithGoogleSession(session);
-          if (!saved) {
-            toast.error('Error al guardar la sesión. Intenta nuevamente.');
-            return;
-          }
-
-          console.log('[GOOGLE] Step 5: sesión guardada, redirigiendo...');
-          toast.success(`¡Bienvenido, ${session.user.name}!`);
-
-          const userIsAdmin = isAdmin(session.user);
-          router.push(userIsAdmin ? '/admin' : '/dashboard');
-        } else {
-          console.error('[GOOGLE] Step 3 FAIL:', response.error);
-          toast.error(response.error?.message || 'Error al iniciar sesión con Google');
-        }
-      } catch (error) {
-        console.error('[GOOGLE] Error en login con Google:', error);
-
-        if (error instanceof Error) {
-          if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
-            toast.error('No se pudo conectar al backend. Verifica la conexión.');
-          } else if (error.message.includes('obtener datos de Google')) {
-            toast.error('Error al obtener información de Google. Intenta nuevamente.');
-          } else {
-            toast.error(`Error: ${error.message}`);
-          }
-        } else {
-          toast.error('Error de conexión. Intenta nuevamente.');
-        }
-      } finally {
-        setIsLoadingGoogle(false);
-      }
-    },
+    flow: 'auth-code',
+    ux_mode: 'redirect',
+    redirect_uri: typeof window !== 'undefined' ? window.location.origin : '',
     onError: (error) => {
       console.error('[GOOGLE] onError:', error);
       setIsLoadingGoogle(false);
-      toast.error('Error al autenticar con Google. Verifica que tu email esté en la lista de usuarios de prueba.');
+      toast.error('Error al autenticar con Google. Intenta nuevamente.');
     },
   });
 
@@ -151,7 +35,11 @@ export default function SocialAuthButtons() {
         type="button"
         variant="outline"
         className="w-full h-12 font-medium active:scale-95 transition-transform"
-        onClick={() => handleGoogleLogin()}
+        onClick={() => {
+          console.log('[GOOGLE] Redirect Step 0: iniciando flujo de redirección a Google');
+          setIsLoadingGoogle(true);
+          handleGoogleLogin();
+        }}
         disabled={isLoadingGoogle}
       >
         {isLoadingGoogle ? (

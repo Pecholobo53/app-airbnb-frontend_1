@@ -4,6 +4,7 @@ import { DM_Sans } from 'next/font/google';
 import GoogleProvider from '@/components/providers/GoogleProvider';
 import ConditionalOfferTopBar from '@/components/ConditionalOfferTopBar';
 import Header from '@/components/Header';
+import GoogleAuthCallback from '@/components/auth/GoogleAuthCallback';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { NotificationProvider } from '@/lib/notifications/notification-context';
 import { Toaster } from '@/components/ui/sonner';
@@ -55,6 +56,7 @@ export default function RootLayout({
         <GoogleProvider>
           <AuthProvider>
             <NotificationProvider>
+              <GoogleAuthCallback />
               <Header />
               <div className="h-16" />
               <ConditionalOfferTopBar
