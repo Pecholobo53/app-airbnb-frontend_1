@@ -4,30 +4,46 @@
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
-import { toast } from 'sonner';
 
 /**
  * SocialAuthButtons
  *
- * Inicia el flujo OAuth de Google en modo redirect (auth-code).
- * El authorization code que devuelve Google se procesa en
- * GoogleAuthCallback (montado en el root layout), que lo envía
- * al backend y guarda la sesión.
+ * Inicia el Authorization Code Flow de Google mediante redirect manual
+ * (sin popup, sin @react-oauth/google en este componente).
+ *
+ * Flujo:
+ *   click → construye URL OAuth → window.location.href → Google
+ *   → Google redirige a window.location.origin?code=XXX
+ *   → GoogleAuthCallback (root layout) detecta el code y completa el flujo
  */
+
+function buildGoogleAuthUrl(): string {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+  const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
+
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope: 'openid email profile',
+    access_type: 'offline',
+    prompt: 'select_account',
+  });
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
 export default function SocialAuthButtons() {
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
 
-  const handleGoogleLogin = useGoogleLogin({
-    flow: 'auth-code',
-    ux_mode: 'redirect',
-    redirect_uri: typeof window !== 'undefined' ? window.location.origin : '',
-    onError: (error) => {
-      console.error('[GOOGLE] onError:', error);
-      setIsLoadingGoogle(false);
-      toast.error('Error al autenticar con Google. Intenta nuevamente.');
-    },
-  });
+  const handleGoogleLogin = () => {
+    console.log('[GOOGLE] Step 0: construyendo URL de Google OAuth y redirigiendo...');
+    setIsLoadingGoogle(true);
+
+    const url = buildGoogleAuthUrl();
+    // Redirect completo — Google devolverá ?code= al origin
+    window.location.href = url;
+  };
 
   return (
     <div className="space-y-3">
@@ -35,11 +51,7 @@ export default function SocialAuthButtons() {
         type="button"
         variant="outline"
         className="w-full h-12 font-medium active:scale-95 transition-transform"
-        onClick={() => {
-          console.log('[GOOGLE] Redirect Step 0: iniciando flujo de redirección a Google');
-          setIsLoadingGoogle(true);
-          handleGoogleLogin();
-        }}
+        onClick={handleGoogleLogin}
         disabled={isLoadingGoogle}
       >
         {isLoadingGoogle ? (
