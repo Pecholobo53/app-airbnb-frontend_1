@@ -251,98 +251,102 @@ export default function Footer() {
                 <motion.form
                   key="form"
                   onSubmit={handleSubmit}
-                  className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+                  className="flex flex-col gap-3 max-w-md mx-auto w-full"
                 >
-                  {/* Input con borde cónico giratorio */}
-                  <div className="relative flex-1 p-[1.5px] rounded-xl overflow-hidden">
-                    {/* Conic gradient giratorio — crea el borde animado */}
-                    <motion.div
-                      className="absolute inset-0 rounded-xl"
-                      style={{
-                        background:
-                          'conic-gradient(from 0deg at 50% 50%, rgba(255,56,92,0) 0deg, rgba(255,56,92,0.5) 45deg, #FF385C 90deg, #ff9eb0 135deg, #FF385C 180deg, rgba(255,56,92,0.5) 225deg, rgba(255,56,92,0) 270deg, rgba(255,56,92,0) 360deg)',
-                      }}
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                    />
-                    {/* Glow exterior pulsante */}
-                    <motion.div
-                      className="absolute -inset-1 rounded-xl pointer-events-none"
-                      style={{
-                        background: 'radial-gradient(ellipse at center, rgba(255,56,92,0.25) 0%, transparent 70%)',
-                        filter: 'blur(8px)',
-                      }}
-                      animate={{ opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                    {/* Fondo del input */}
-                    <div className="relative rounded-[10px] overflow-hidden" style={{ background: '#0a1e45' }}>
-                      {focused && (
-                        <div
-                          className="absolute inset-0 rounded-[10px] pointer-events-none z-10"
-                          style={{ boxShadow: 'inset 0 0 0 1px rgba(255,56,92,0.5), 0 0 20px rgba(255,56,92,0.2)' }}
-                        />
-                      )}
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onFocus={() => setFocused(true)}
-                        onBlur={() => setFocused(false)}
-                        placeholder="tu@email.com"
-                        required
-                        className="relative z-[1] w-full text-white placeholder-gray-500 text-sm px-4 py-3.5 focus:outline-none"
-                        style={{ background: 'transparent', border: 'none' }}
+                  {/* Fila: input + botón */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Input con borde cónico giratorio */}
+                    <div className="relative flex-1 p-[1.5px] rounded-xl overflow-hidden">
+                      {/* Conic gradient giratorio — crea el borde animado */}
+                      <motion.div
+                        className="absolute inset-0 rounded-xl"
+                        style={{
+                          background:
+                            'conic-gradient(from 0deg at 50% 50%, rgba(255,56,92,0) 0deg, rgba(255,56,92,0.5) 45deg, #FF385C 90deg, #ff9eb0 135deg, #FF385C 180deg, rgba(255,56,92,0.5) 225deg, rgba(255,56,92,0) 270deg, rgba(255,56,92,0) 360deg)',
+                        }}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                       />
+                      {/* Glow exterior pulsante */}
+                      <motion.div
+                        className="absolute -inset-1 rounded-xl pointer-events-none"
+                        style={{
+                          background: 'radial-gradient(ellipse at center, rgba(255,56,92,0.25) 0%, transparent 70%)',
+                          filter: 'blur(8px)',
+                        }}
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      {/* Fondo del input */}
+                      <div className="relative rounded-[10px] overflow-hidden bg-white/10">
+                        {focused && (
+                          <div
+                            className="absolute inset-0 rounded-[10px] pointer-events-none z-10"
+                            style={{ boxShadow: 'inset 0 0 0 1px rgba(255,56,92,0.5), 0 0 20px rgba(255,56,92,0.2)' }}
+                          />
+                        )}
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          onFocus={() => setFocused(true)}
+                          onBlur={() => setFocused(false)}
+                          placeholder="tu@email.com"
+                          required
+                          className="relative z-[1] w-full text-white placeholder-white/40 text-sm px-4 py-3.5 focus:outline-none bg-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* CTA button with pulse glow */}
+                    <div className="relative">
+                      <motion.div
+                        className="absolute inset-0 rounded-xl bg-acento-200 blur-md opacity-50 pointer-events-none"
+                        animate={{ opacity: [0.35, 0.6, 0.35], scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                      <motion.button
+                        type="submit"
+                        disabled={isLoading || !consentChecked}
+                        whileHover={isLoading || !consentChecked ? {} : { scale: 1.04 }}
+                        whileTap={isLoading || !consentChecked ? {} : { scale: 0.97 }}
+                        className="relative flex items-center justify-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-acento-200/25 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Suscribiendo...
+                          </>
+                        ) : (
+                          <>
+                            Suscribirme gratis
+                            <motion.span
+                              animate={{ x: [0, 3, 0] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                            >
+                              <ArrowRight className="w-4 h-4" />
+                            </motion.span>
+                          </>
+                        )}
+                      </motion.button>
                     </div>
                   </div>
-                  {/* CTA button with pulse glow */}
-                  <div className="relative">
-                    <motion.div
-                      className="absolute inset-0 rounded-xl bg-acento-200 blur-md opacity-50 pointer-events-none"
-                      animate={{ opacity: [0.35, 0.6, 0.35], scale: [1, 1.05, 1] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                    <motion.button
-                      type="submit"
-                      disabled={isLoading || !consentChecked}
-                      whileHover={isLoading || !consentChecked ? {} : { scale: 1.04 }}
-                      whileTap={isLoading || !consentChecked ? {} : { scale: 0.97 }}
-                      className="relative flex items-center justify-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold text-sm px-6 py-3.5 rounded-xl transition-colors whitespace-nowrap shadow-lg shadow-acento-200/25 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Suscribiendo...
-                        </>
-                      ) : (
-                        <>
-                          Suscribirme gratis
-                          <motion.span
-                            animate={{ x: [0, 3, 0] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                          >
-                            <ArrowRight className="w-4 h-4" />
-                          </motion.span>
-                        </>
-                      )}
-                    </motion.button>
-                  </div>
 
+                  {/* Error */}
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 text-xs text-red-400 sm:col-span-2 justify-center mt-1"
+                      className="flex items-center gap-2 text-xs text-red-400 justify-center"
                     >
                       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                       {error}
                     </motion.div>
                   )}
 
-                  {/* Consentimiento RGPD */}
-                  <div className="w-full mt-3 space-y-2">
-                    <label className="flex items-start gap-2.5 cursor-pointer group select-none">
+                  {/* Consentimiento RGPD — siempre debajo del formulario */}
+                  <div className="space-y-2">
+                    <label className="flex items-start gap-2.5 cursor-pointer group select-none justify-center sm:justify-start">
                       <div className="relative flex-shrink-0 mt-0.5">
                         <input
                           type="checkbox"
