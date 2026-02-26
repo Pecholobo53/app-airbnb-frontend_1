@@ -414,13 +414,17 @@ export class AuthService {
    * obtiene el id_token y los datos del usuario, y devuelve un JWT propio.
    */
   static async loginWithGoogleCode(code: string): Promise<AuthResponse<AuthSession>> {
-    const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
+    // Hardcodeado al dominio oficial — debe coincidir con redirect_uri
+    // registrado en Google Cloud Console y con el valor usado en SocialAuthButtons.
+    const REDIRECT_URI = 'https://www.voyageraumaroc.net';
+
+    console.log('[GOOGLE] Redirect URI used (backend call):', REDIRECT_URI);
 
     return apiRequest<AuthSession>('/api/auth/google', {
       method: 'POST',
       body: JSON.stringify({
         code,
-        redirect_uri: redirectUri,
+        redirect_uri: REDIRECT_URI,
       }),
     });
   }

@@ -17,9 +17,9 @@ import { isAdmin } from '@/lib/utils/admin';
  * con ?code= en la URL (Authorization Code Flow).
  *
  * Flujo completo:
- *   Google → redirect a https://www.voyageraumaroc.net?code=XXX
+ *   Google → redirect a REDIRECT_URI?code=XXX
  *   → Step 1: detectar ?code= y limpiar URL
- *   → Step 2: POST /api/auth/google { code, redirect_uri }
+ *   → Step 2: POST /api/auth/google { code, redirect_uri: REDIRECT_URI }
  *   → Step 3: construir AuthSession limpia y llamar loginWithGoogleSession()
  *   → Step 4: router.replace('/perfil') o '/admin'
  *
@@ -27,7 +27,12 @@ import { isAdmin } from '@/lib/utils/admin';
  *   - useRef(false) evita doble ejecución (React Strict Mode, re-renders)
  *   - Maneja error= de Google (usuario canceló)
  *   - Maneja respuesta sin accessToken
+ *
+ * REDIRECT_URI hardcodeado al dominio oficial — debe coincidir exactamente
+ * con el valor registrado en Google Cloud Console.
  */
+
+const REDIRECT_URI = 'https://www.voyageraumaroc.net';
 export default function GoogleAuthCallback() {
   const { loginWithGoogleSession } = useAuth();
   const router = useRouter();
@@ -67,8 +72,9 @@ export default function GoogleAuthCallback() {
       try {
         console.log('[GOOGLE] Step 2: enviando código al backend:', {
           endpoint: `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`,
-          redirect_uri: window.location.origin,
+          redirect_uri: REDIRECT_URI,
         });
+        console.log('[GOOGLE] Redirect URI used:', REDIRECT_URI);
 
         const response = await AuthService.loginWithGoogleCode(code);
 

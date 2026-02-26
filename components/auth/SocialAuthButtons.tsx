@@ -9,22 +9,27 @@ import { Loader2 } from 'lucide-react';
  * SocialAuthButtons
  *
  * Inicia el Authorization Code Flow de Google mediante redirect manual
- * (sin popup, sin @react-oauth/google en este componente).
+ * (sin popup, sin SDK de Google Identity Services).
  *
  * Flujo:
  *   click → construye URL OAuth → window.location.href → Google
- *   → Google redirige a window.location.origin?code=XXX
+ *   → Google redirige a REDIRECT_URI?code=XXX
  *   → GoogleAuthCallback (root layout) detecta el code y completa el flujo
+ *
+ * REDIRECT_URI está hardcodeado al dominio oficial para evitar
+ * "redirect_uri_mismatch" cuando el acceso viene desde dominios
+ * alternativos (p.ej. *.vercel.app).
  */
+
+const REDIRECT_URI = 'https://www.voyageraumaroc.net';
 
 function buildGoogleAuthUrl(): string {
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
-  const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
 
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: clientId,
-    redirect_uri: redirectUri,
+    redirect_uri: REDIRECT_URI,
     scope: 'openid email profile',
     access_type: 'offline',
     prompt: 'consent',
@@ -38,10 +43,11 @@ export default function SocialAuthButtons() {
 
   const handleGoogleLogin = () => {
     console.log('[GOOGLE] Step 0: construyendo URL de Google OAuth y redirigiendo...');
+    console.log('[GOOGLE] Redirect URI used:', REDIRECT_URI);
     setIsLoadingGoogle(true);
 
     const url = buildGoogleAuthUrl();
-    // Redirect completo — Google devolverá ?code= al origin
+    // Redirect completo — Google devolverá ?code= a REDIRECT_URI
     window.location.href = url;
   };
 
