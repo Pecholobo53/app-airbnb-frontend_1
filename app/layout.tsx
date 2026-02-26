@@ -1,7 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { DM_Sans } from 'next/font/google';
-import GoogleProvider from '@/components/providers/GoogleProvider';
 import ConditionalOfferTopBar from '@/components/ConditionalOfferTopBar';
 import Header from '@/components/Header';
 import GoogleAuthCallback from '@/components/auth/GoogleAuthCallback';
@@ -53,23 +52,21 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${dmSans.variable} font-sans antialiased`}>
-        <GoogleProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <GoogleAuthCallback />
-              <Header />
-              <div className="h-16" />
-              <ConditionalOfferTopBar
-                discount="40%" 
-                maxUsers={10}
-                showTimer={true}
-                timerMinutes={60}
-              />
-              {children}
-              <Toaster richColors position="top-center" />
-            </NotificationProvider>
-          </AuthProvider>
-        </GoogleProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <GoogleAuthCallback />
+            <Header />
+            <div className="h-16" />
+            <ConditionalOfferTopBar
+              discount="40%"
+              maxUsers={10}
+              showTimer={true}
+              timerMinutes={60}
+            />
+            {children}
+            <Toaster richColors position="top-center" />
+          </NotificationProvider>
+        </AuthProvider>
       </body>
     </html>
   );
