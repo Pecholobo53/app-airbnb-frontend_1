@@ -35,10 +35,7 @@ import { Property, SearchParams, SearchResults, SearchResponse } from '@/types/s
  * - Otros endpoints son públicos (buscar, ver detalles)
  */
 
-// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-  : '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 /**
  * Helper para realizar requests HTTP

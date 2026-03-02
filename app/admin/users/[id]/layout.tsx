@@ -9,7 +9,7 @@
 export async function generateStaticParams() {
   // Intentar obtener usuarios del backend durante el build
   try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
     
     const response = await fetch(`${API_BASE_URL}/api/users?limit=1000&offset=0`, {
       cache: 'no-store',

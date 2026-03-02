@@ -29,9 +29,8 @@ const nextConfig = {
   async rewrites() {
     if (process.env.NODE_ENV === 'production') return [];
 
-    const backendOrigin =
-      process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') ||
-      'http://localhost:3000';
+    const backendOrigin = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '');
+    if (!backendOrigin) return [];
 
     return [
       {

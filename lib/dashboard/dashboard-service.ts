@@ -55,11 +55,7 @@ import { AuthResponse } from '@/types/auth';
  * - El token se busca en los campos 'token' o 'accessToken' de la sesión
  */
 
-// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
-// En producción usamos la URL completa del backend
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-  : ''; // URL vacía = relativa, pasa por el proxy de Next.js
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 /**
  * Helper para obtener el userId del usuario autenticado desde sessionStorage

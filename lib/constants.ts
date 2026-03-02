@@ -61,10 +61,7 @@ export const SUCCESS_MESSAGES = {
  * Configuración de API
  */
 export const API_CONFIG = {
-  // En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
-  BASE_URL: process.env.NODE_ENV === 'production' 
-    ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-    : '',
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL ?? '',
   ENDPOINTS: {
     AUTH: {
       REGISTER: '/api/auth/register',

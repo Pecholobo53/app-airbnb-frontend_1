@@ -231,7 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorCode = response.error?.code || 'UNKNOWN_ERROR';
         
         if (errorCode === 'NETWORK_ERROR') {
-          toast.error('No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000');
+          toast.error('No se pudo conectar al servidor. Verifica tu conexión e inténtalo de nuevo.');
         } else if (errorCode === 'UNAUTHORIZED') {
           toast.error('Credenciales inválidas. Verifica tu email y contraseña.');
         } else {
@@ -245,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       let errorMessage = 'Error de conexión. Intenta nuevamente.';
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        errorMessage = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000';
+        errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión e inténtalo de nuevo.';
       }
       
       toast.error(errorMessage);
@@ -264,7 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorCode = response.error?.code || 'UNKNOWN_ERROR';
         
         if (errorCode === 'NETWORK_ERROR') {
-          toast.error('No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000');
+          toast.error('No se pudo conectar al servidor. Verifica tu conexión e inténtalo de nuevo.');
         } else if (errorCode === 'CONFLICT' || errorMessage.includes('ya está registrado') || errorMessage.includes('already exists')) {
           toast.error('Este email ya está registrado. ¿Ya tienes una cuenta? Intenta iniciar sesión.');
         } else if (errorCode === 'VALIDATION_ERROR') {
@@ -280,7 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       let errorMessage = 'Error de conexión. Intenta nuevamente.';
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        errorMessage = 'No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:3000';
+        errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión e inténtalo de nuevo.';
       }
       
       toast.error(errorMessage);

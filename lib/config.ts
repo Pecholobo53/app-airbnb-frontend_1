@@ -41,9 +41,7 @@ export const API_BASE_URL: string = IS_PRODUCTION
  * Origen completo del backend (útil para logs y health checks).
  * En dev apunta a localhost según NEXT_PUBLIC_API_URL o fallback estándar.
  */
-export const API_ORIGIN: string = IS_PRODUCTION
-  ? API_BASE_URL
-  : (process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') ?? 'http://localhost:3000');
+export const API_ORIGIN: string = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') ?? '';
 
 // ---------------------------------------------------------------------------
 // Auth / Sesión

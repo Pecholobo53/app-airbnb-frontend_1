@@ -10,7 +10,7 @@
 export async function generateStaticParams() {
   // Intentar obtener propiedades del backend durante el build
   try {
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
     
     // Intentar obtener algunas propiedades para pre-generar rutas
     const response = await fetch(`${API_BASE_URL}/api/properties/search?perPage=50&page=1`, {

@@ -3,10 +3,7 @@
 import { Notification, GetNotificationsOptions, NotificationsResponse } from '@/types/notifications';
 import { ApiResponse } from '@/lib/bookings/booking-service'; // Reusing ApiResponse type
 
-// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-  : '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;

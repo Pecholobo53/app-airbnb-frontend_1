@@ -6,11 +6,7 @@
  * NO usa mocks ni fallbacks - solo la API real.
  */
 
-// En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
-// En producción usamos la URL completa del backend
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-  : ''; // URL vacía = relativa, pasa por el proxy de Next.js
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export interface BookingValidationRequest {
   propertyId: string;

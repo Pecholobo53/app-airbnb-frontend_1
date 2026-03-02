@@ -49,10 +49,7 @@ export function isAdmin(user: User | null | undefined): boolean {
  */
 export async function verifyAdminAccess(token: string): Promise<boolean> {
   try {
-    // En desarrollo usamos URL relativa para pasar por el proxy de Next.js (evita CORS)
-    const API_BASE_URL = process.env.NODE_ENV === 'production' 
-      ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000')
-      : '';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
     
     // Intentar acceder a un endpoint de admin
     const response = await fetch(`${API_BASE_URL}/api/users?limit=1&offset=0`, {
