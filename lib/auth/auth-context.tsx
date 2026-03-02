@@ -230,7 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorMessage = response.error?.message || 'Error al iniciar sesión';
         const errorCode = response.error?.code || 'UNKNOWN_ERROR';
         
-        if (errorCode === 'NETWORK_ERROR') {
+        if (errorCode === 'NETWORK_ERROR' || errorCode === 'TIMEOUT_ERROR') {
           toast.error('No se pudo conectar al servidor. Verifica tu conexión e inténtalo de nuevo.');
         } else if (errorCode === 'UNAUTHORIZED') {
           toast.error('Credenciales inválidas. Verifica tu email y contraseña.');
@@ -263,7 +263,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const errorMessage = response.error?.message || 'Error al crear cuenta';
         const errorCode = response.error?.code || 'UNKNOWN_ERROR';
         
-        if (errorCode === 'NETWORK_ERROR') {
+        if (errorCode === 'NETWORK_ERROR' || errorCode === 'TIMEOUT_ERROR') {
           toast.error('No se pudo conectar al servidor. Verifica tu conexión e inténtalo de nuevo.');
         } else if (errorCode === 'CONFLICT' || errorMessage.includes('ya está registrado') || errorMessage.includes('already exists')) {
           toast.error('Este email ya está registrado. ¿Ya tienes una cuenta? Intenta iniciar sesión.');

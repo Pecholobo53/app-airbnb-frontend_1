@@ -162,15 +162,17 @@ async function apiRequest<T>(
       return {
         success: false,
         error: {
-          code: 'NETWORK_ERROR',
-          message: `Error al procesar la respuesta del servidor. Verifica que el backend esté corriendo en ${API_BASE_URL}`,
+          code: `HTTP_${response.status}`,
+          message: `El servidor respondió con un formato inesperado (HTTP ${response.status}).`,
         },
       };
     }
 
     if (!response.ok) {
       let errorMessage = data.error?.message || data.message || 'Error en la petición';
-      let errorCode = data.error?.code || 'NETWORK_ERROR';
+      // IMPORTANTE: el servidor SÍ respondió — no es un error de red.
+      // Usar HTTP_ERROR como código por defecto, no NETWORK_ERROR.
+      let errorCode = data.error?.code || `HTTP_${response.status}`;
       
       if (response.status === 401) {
         errorCode = 'UNAUTHORIZED';
