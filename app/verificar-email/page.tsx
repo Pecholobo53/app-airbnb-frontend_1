@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { CheckCircle2, XCircle, Loader2, MailCheck } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { XCircle, Loader2, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -11,6 +11,7 @@ type Status = 'loading' | 'success' | 'error' | 'no-token';
 
 function VerificarEmailContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [status, setStatus] = useState<Status>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -47,7 +48,7 @@ function VerificarEmailContent() {
           throw new Error(msg);
         }
 
-        setStatus('success');
+        router.push('/email-confirmado');
       } catch (err) {
         console.error('[VERIFY EMAIL] Error:', err);
         setErrorMessage(
@@ -141,27 +142,17 @@ function VerificarEmailContent() {
     );
   }
 
-  // ── Éxito ────────────────────────────────────────────────────────────────
+  // ── Éxito → redirige a /email-confirmado ─────────────────────────────────
   return (
     <div className="space-y-6 text-center">
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-          <CheckCircle2 className="w-8 h-8 text-green-600" />
+        <div className="w-16 h-16 rounded-full bg-acento-200/10 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-acento-200 animate-spin" />
         </div>
       </div>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">
-          ¡Email verificado!
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Tu cuenta ha sido activada correctamente. Ya puedes iniciar sesión.
-        </p>
+        <h2 className="text-xl font-semibold text-gray-900">Redirigiendo...</h2>
       </div>
-      <Link href="/login">
-        <Button className="w-full bg-acento-200 hover:bg-acento-100 text-white">
-          Iniciar sesión
-        </Button>
-      </Link>
     </div>
   );
 }

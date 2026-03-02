@@ -14,12 +14,9 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useNotificationTriggers } from '@/hooks/useNotificationTriggers';
-
 export default function RegisterForm() {
-  const { register: registerUser, login } = useAuth();
+  const { register: registerUser } = useAuth();
   const router = useRouter();
-  const { notifyWelcome } = useNotificationTriggers();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,48 +48,8 @@ export default function RegisterForm() {
       const success = await registerUser(data);
     
     if (success) {
-      // Hacer login automático después del registro
-      const loginSuccess = await login({
-        email: data.email,
-        password: data.password,
-        rememberMe: false,
-      });
-      
       setIsLoading(false);
-      
-      if (loginSuccess) {
-        // Esperar a que la sesión se guarde en sessionStorage
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-          const session = sessionStorage.getItem('airbnb_session');
-          if (session) {
-            try {
-              const parsed = JSON.parse(session);
-              if (parsed.user && parsed.user.id) {
-                // Pequeño delay adicional para asegurar que React haya actualizado el estado
-                await new Promise(resolve => setTimeout(resolve, 50));
-                
-                // Enviar notificación de bienvenida al nuevo usuario
-                setTimeout(() => {
-                  notifyWelcome(15); // 15% de descuento de bienvenida
-                }, 1000);
-                
-                router.push('/dashboard');
-                return;
-              }
-            } catch (e) {
-              console.error('Error parseando sesión');
-            }
-          }
-          await new Promise(resolve => setTimeout(resolve, 50));
-          attempts++;
-        }
-        
-        // Si después de todos los intentos no se guardó, redirigir de todas formas
-        router.push('/dashboard');
-      }
+      router.push('/registro-confirmacion');
       } else {
         setIsLoading(false);
       }

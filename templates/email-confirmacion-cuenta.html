@@ -1,0 +1,79 @@
+<!--
+  Plantilla HTML para email de confirmación de cuenta.
+  Usar en el backend al enviar el email de verificación.
+  Variables a reemplazar: {{verificationLink}}, {{year}}
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirma tu cuenta - VoyagerAuMaroc</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0C0E1E; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #07091A; min-height: 100vh;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 520px;">
+          <!-- Logo con fondo negro -->
+          <tr>
+            <td style="padding: 32px 24px; background-color: #000000; border-radius: 12px 12px 0 0; border: 1px solid #1e293b;">
+              <table role="presentation" cellspacing="0" cellpadding="0" align="center">
+                <tr>
+                  <td style="vertical-align: middle; padding-right: 12px;">
+                    <!-- Media luna roja SVG -->
+                    <img src="data:image/svg+xml,%3Csvg width='42' height='42' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 70 10 A 45 45 0 1 0 70 90 A 35 35 0 1 1 70 10 Z' fill='%23FF385C'/%3E%3C/svg%3E" alt="VoyagerAuMaroc" width="42" height="42" style="display: block;">
+                  </td>
+                  <td>
+                    <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; line-height: 1;">
+                      <span style="color: #ffffff;">Voyager</span><span style="color: #FF385C;">AuMaroc</span>
+                    </div>
+                    <div style="font-size: 9px; color: #64748b; letter-spacing: 0.05em; margin-top: 2px;">
+                      voyageraumaroc.net
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Contenido -->
+          <tr>
+            <td style="padding: 40px 32px; background-color: #0C0E1E; border: 1px solid #1e293b; border-top: none; border-radius: 0 0 12px 12px;">
+              <h1 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #f1f5f9; line-height: 1.3;">
+                Confirma tu cuenta en<br><span style="color: #FF385C;">VoyagerAuMaroc</span>
+              </h1>
+              <p style="margin: 0 0 28px; font-size: 15px; color: #94a3b8; line-height: 1.6;">
+                Gracias por registrarte. Para activar tu cuenta y comenzar a explorar experiencias únicas, confirma tu email haciendo clic en el botón.
+              </p>
+              <table role="presentation" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <a href="{{verificationLink}}" style="display: inline-block; padding: 14px 28px; background-color: #FF385C; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 10px;">
+                      Confirmar mi cuenta
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 24px 0 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+                Si el botón no funciona, copia este enlace en tu navegador:
+              </p>
+              <p style="margin: 8px 0 0; word-break: break-all;">
+                <a href="{{verificationLink}}" style="color: #FF385C; font-size: 13px;">{{verificationLink}}</a>
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px; text-align: center;">
+              <p style="margin: 0; font-size: 12px; color: #64748b;">
+                © {{year}} VoyagerAuMaroc<br>
+                <a href="https://www.voyageraumaroc.net" style="color: #94a3b8; text-decoration: none;">https://www.voyageraumaroc.net</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
