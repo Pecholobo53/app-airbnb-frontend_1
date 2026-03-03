@@ -41,15 +41,16 @@ export default function GoogleAuthCallback() {
     const code = params.get('code');
     const oauthError = params.get('error');
 
-    // Google devolvió error (acceso denegado, etc.)
+    // Google devolvió error (acceso denegado, redirect_uri_mismatch, etc.)
     if (oauthError) {
       console.error('[GOOGLE] OAuth error from Google:', oauthError);
       window.history.replaceState({}, document.title, window.location.pathname);
-      toast.error(
-        oauthError === 'access_denied'
-          ? 'Autenticación con Google cancelada.'
-          : `Error de Google OAuth: ${oauthError}`
-      );
+      if (oauthError === 'access_denied') {
+        // El usuario canceló — volver a login sin error
+        window.location.href = '/login';
+      } else {
+        window.location.href = `/login?error=google_failed&detail=${encodeURIComponent(oauthError)}`;
+      }
       return;
     }
 
@@ -153,9 +154,10 @@ export default function GoogleAuthCallback() {
         window.location.href = destination;
 
       } catch (err) {
-        console.error('[GOOGLE] Login error:', err instanceof Error ? err.message : err);
-        toast.error('Error al iniciar sesión con Google. Intenta nuevamente.');
-        processedRef.current = false;
+        const msg = err instanceof Error ? err.message : 'Error desconocido';
+        console.error('[GOOGLE] Login error:', msg);
+        // Redirigir a login con error visible en lugar de un toast que puede pasar desapercibido
+        window.location.href = `/login?error=google_failed&detail=${encodeURIComponent(msg)}`;
       }
     };
 
