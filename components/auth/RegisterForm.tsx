@@ -20,6 +20,7 @@ export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
   const {
     register,
@@ -43,19 +44,21 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
-    
+    setErrorBanner(null);
+
     try {
       const success = await registerUser(data);
-    
-    if (success) {
-      setIsLoading(false);
-      router.push('/registro-confirmacion');
+
+      if (success) {
+        setIsLoading(false);
+        router.push('/registro-confirmacion');
       } else {
         setIsLoading(false);
+        setErrorBanner('No se pudo crear la cuenta. Puede que el email ya esté registrado o haya un problema de conexión. Inténtalo de nuevo.');
       }
-    } catch (error) {
-      console.error('Error inesperado durante el registro');
+    } catch {
       setIsLoading(false);
+      setErrorBanner('Error inesperado. Verifica tu conexión e inténtalo de nuevo.');
     }
   };
 
@@ -194,6 +197,17 @@ export default function RegisterForm() {
           <p className="text-sm text-red-500">{errors.acceptTerms.message}</p>
         )}
       </div>
+
+      {/* Error banner persistente */}
+      {errorBanner && (
+        <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{errorBanner}</span>
+        </div>
+      )}
 
       {/* Submit Button */}
       <Button

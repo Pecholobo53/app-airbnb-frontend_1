@@ -4,21 +4,38 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { User } from '@/types/auth';
-import AuthGuard from '@/components/auth/AuthGuard';
-import Footer from '@/components/Footer';
 import UserAvatar from '@/components/auth/UserAvatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Mail, Phone, MapPin, Heart, Shield, Loader2 } from 'lucide-react';
+import { Calendar, Mail, Phone, Heart, Shield, Loader2, Pencil, X, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateProfileSchema, UpdateProfileFormData } from '@/lib/auth/validators';
 import { toast } from 'sonner';
 
-function PerfilContent() {
+const ACCENT = '#ff385c';
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#0f172a]">
+      <div className="flex-shrink-0">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] text-[#475569] uppercase tracking-wide font-semibold">{label}</p>
+        <p className="text-sm text-[#f8fafc] truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatBox({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+  return (
+    <div className="text-center p-4 rounded-xl bg-[#0f172a] border border-[#1e293b]">
+      <div className="flex justify-center mb-2">{icon}</div>
+      <p className="text-2xl font-bold text-[#f8fafc]">{value}</p>
+      <p className="text-xs text-[#64748b]">{label}</p>
+    </div>
+  );
+}
+
+export default function PerfilPage() {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,43 +54,28 @@ function PerfilContent() {
     },
   });
 
-  // Actualizar defaultValues cuando user cambia
   useEffect(() => {
     if (user) {
-      reset({
-        name: user.name || '',
-        phone: user.phone || '',
-      });
+      reset({ name: user.name || '', phone: user.phone || '' });
     }
   }, [user, reset]);
 
   const onSubmit = async (data: UpdateProfileFormData) => {
     setIsLoading(true);
-    
     try {
-      // Preparar datos para actualizar
       const updateData: Partial<User> = {
         name: data.name,
         phone: data.phone || undefined,
       };
-      
-      // Solo agregar avatar si hay uno nuevo
       if (previewAvatar) {
-        // Validar tamaño del Base64 comprimido (máximo 500KB)
-        const base64Size = previewAvatar.length;
-        const maxSize = 500 * 1024; // 500KB
-        
-        if (base64Size > maxSize) {
+        if (previewAvatar.length > 500 * 1024) {
           toast.error('La imagen es demasiado grande. Intenta con una imagen más pequeña.');
           setIsLoading(false);
           return;
         }
-        
         updateData.avatar = previewAvatar;
       }
-      
       const success = await updateUser(updateData);
-      
       if (success) {
         toast.success('Perfil actualizado correctamente');
         setPreviewAvatar(null);
@@ -81,8 +83,7 @@ function PerfilContent() {
       } else {
         toast.error('Error al actualizar el perfil.');
       }
-    } catch (error) {
-      console.error('Error en onSubmit');
+    } catch {
       toast.error('Error inesperado al actualizar el perfil.');
     } finally {
       setIsLoading(false);
@@ -90,24 +91,24 @@ function PerfilContent() {
   };
 
   const handleCancel = () => {
-    reset({
-      name: user?.name || '',
-      phone: user?.phone || '',
-    });
+    reset({ name: user?.name || '', phone: user?.phone || '' });
     setPreviewAvatar(null);
     setIsEditing(false);
   };
 
-  const compressImage = (file: File, maxWidth: number = 800, maxHeight: number = 800, quality: number = 0.8): Promise<string> => {
+  const compressImage = (
+    file: File,
+    maxWidth = 800,
+    maxHeight = 800,
+    quality = 0.8,
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          // Calcular nuevas dimensiones manteniendo aspect ratio
           let width = img.width;
           let height = img.height;
-          
           if (width > maxWidth || height > maxHeight) {
             if (width > height) {
               height = (height * maxWidth) / width;
@@ -117,36 +118,18 @@ function PerfilContent() {
               height = maxHeight;
             }
           }
-
-          // Crear canvas para redimensionar y comprimir
           const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
-          
-          if (!ctx) {
-            reject(new Error('No se pudo crear el contexto del canvas'));
-            return;
-          }
-
-          // Dibujar imagen redimensionada
+          if (!ctx) { reject(new Error('No se pudo crear el contexto del canvas')); return; }
           ctx.drawImage(img, 0, 0, width, height);
-
-          // Convertir a base64 con compresión
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-          
-          // Validar tamaño final (máximo 500KB en base64)
-          const base64Size = compressedBase64.length;
-          const maxSize = 500 * 1024; // 500KB
-          
-          if (base64Size > maxSize) {
-            // Si aún es muy grande, reducir más la calidad
-            const newQuality = Math.max(0.5, quality - 0.1);
-            const moreCompressed = canvas.toDataURL('image/jpeg', newQuality);
-            resolve(moreCompressed);
-          } else {
-            resolve(compressedBase64);
-          }
+          const base64 = canvas.toDataURL('image/jpeg', quality);
+          resolve(
+            base64.length > 500 * 1024
+              ? canvas.toDataURL('image/jpeg', Math.max(0.5, quality - 0.1))
+              : base64,
+          );
         };
         img.onerror = reject;
         img.src = e.target?.result as string;
@@ -159,288 +142,245 @@ function PerfilContent() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validar tipo
     if (!file.type.startsWith('image/')) {
-      alert('El archivo debe ser una imagen');
+      toast.error('El archivo debe ser una imagen');
       return;
     }
-
-    // Validar tamaño original (máximo 5MB antes de comprimir)
     if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen debe ser menor de 5MB');
+      toast.error('La imagen debe ser menor de 5MB');
       return;
     }
-
     try {
-      // Comprimir imagen antes de crear preview
-      const compressedBase64 = await compressImage(file);
-      setPreviewAvatar(compressedBase64);
-    } catch (error) {
-      console.error('Error comprimiendo imagen');
-      alert('Error al procesar la imagen. Intenta con otra imagen.');
+      setPreviewAvatar(await compressImage(file));
+    } catch {
+      toast.error('Error al procesar la imagen. Intenta con otra imagen.');
     }
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Usuario no encontrado</p>
-          <Button
-            onClick={() => window.location.href = '/'}
-            variant="outline"
-          >
-            Volver al inicio
-          </Button>
-        </div>
+      <div className="flex items-center justify-center min-h-full p-8">
+        <p className="text-[#64748b]">Usuario no encontrado</p>
       </div>
     );
   }
 
-  const providerLabels = {
-    email: 'Email/Contraseña',
+  const providerLabels: Record<string, string> = {
+    email: 'Email / Contraseña',
     google: 'Google',
     facebook: 'Facebook',
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 bg-gray-50 py-12">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Header Section */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Mi Perfil</h1>
-            <p className="text-gray-600">Gestiona tu información personal y preferencias</p>
+    <div className="p-5 md:p-8 min-h-full">
+
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold uppercase tracking-[0.15em]" style={{ color: ACCENT }}>
+            Cuenta
+          </span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Mi Perfil</h1>
+        <p className="text-[#64748b] mt-1 text-sm">
+          Gestiona tu información personal y preferencias
+        </p>
+      </div>
+
+      <div className="grid gap-6 max-w-3xl">
+
+        {/* Profile Card */}
+        <div
+          className="rounded-2xl border p-6"
+          style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(30, 41, 59, 0.8)' }}
+        >
+          {/* Avatar + nombre */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <UserAvatar user={user} size="lg" previewSrc={previewAvatar} />
+                {isEditing && (
+                  <label
+                    htmlFor="avatar-upload"
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  </label>
+                )}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                  disabled={!isEditing || isLoading}
+                />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#f8fafc]">{user.name}</h2>
+                <p className="text-sm text-[#64748b]">{user.email}</p>
+                {isEditing && (
+                  <p className="text-xs text-[#475569] mt-1">Pasa el cursor sobre la foto para cambiarla</p>
+                )}
+              </div>
+            </div>
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#94a3b8] border border-[#1e293b] hover:bg-[#1e293b] hover:text-[#f8fafc] transition-all"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Editar
+              </button>
+            )}
           </div>
 
-          <div className="grid gap-6">
-            {/* Profile Card */}
-            <Card>
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    {/* Avatar con opción de cambiar foto */}
-                    <div className="relative group">
-                      <UserAvatar user={user} size="lg" previewSrc={previewAvatar} />
-                      {isEditing && (
-                        <label 
-                          htmlFor="avatar-upload" 
-                          className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <svg 
-                            className="w-6 h-6 text-white" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" 
-                            />
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" 
-                            />
-                          </svg>
-                        </label>
-                      )}
-                      <input
-                        id="avatar-upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleAvatarChange}
-                        disabled={!isEditing || isLoading}
-                      />
-                    </div>
-                    <div>
-                      <CardTitle className="text-2xl">{user.name}</CardTitle>
-                      <CardDescription>{user.email}</CardDescription>
-                      {isEditing && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Pasa el cursor sobre la foto para cambiarla
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {!isEditing && (
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Editar perfil
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {isEditing ? (
-                  /* Edit Mode */
-                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nombre completo</Label>
-                      <Input
-                        id="name"
-                        {...register('name')}
-                        className={errors.name ? 'border-red-500' : ''}
-                        disabled={isLoading}
-                      />
-                      {errors.name && (
-                        <p className="text-sm text-red-500">{errors.name.message}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono</Label>
-                      <Input
-                        id="phone"
-                        {...register('phone')}
-                        placeholder="+34 600 000 000"
-                        className={errors.phone ? 'border-red-500' : ''}
-                        disabled={isLoading}
-                      />
-                      {errors.phone && (
-                        <p className="text-sm text-red-500">{errors.phone.message}</p>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 pt-4">
-                      <Button
-                        type="submit"
-                        className="bg-acento-200 hover:bg-acento-100"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          'Guardar cambios'
-                        )}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleCancel}
-                        disabled={isLoading}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  </form>
-                ) : (
-                  /* View Mode */
-                  <div className="grid gap-4">
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Mail className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-500">Email</p>
-                        <p className="font-medium">{user.email}</p>
-                      </div>
-                    </div>
-
-                    {user.phone && (
-                      <div className="flex items-center gap-3 text-gray-700">
-                        <Phone className="w-5 h-5 text-gray-400" />
-                        <div>
-                          <p className="text-sm text-gray-500">Teléfono</p>
-                          <p className="font-medium">{user.phone}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Calendar className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-500">Miembro desde</p>
-                        <p className="font-medium">
-                          {user.createdAt && !isNaN(new Date(user.createdAt).getTime())
-                            ? new Date(user.createdAt).toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })
-                            : 'Fecha no disponible'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Shield className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-500">Método de acceso</p>
-                        <Badge variant="secondary" className="mt-1">
-                          {providerLabels[user.provider]}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Mail className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-500">Estado de verificación</p>
-                        <Badge
-                          variant={user.emailVerified ? 'default' : 'destructive'}
-                          className="mt-1"
-                        >
-                          {user.emailVerified ? '✓ Verificado' : '✗ No verificado'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
+          {isEditing ? (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wide">
+                  Nombre completo
+                </label>
+                <input
+                  {...register('name')}
+                  disabled={isLoading}
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#0f172a] border border-[#1e293b] text-[#f8fafc] text-sm placeholder-[#475569] focus:outline-none focus:border-[#ff385c]/50 focus:ring-1 focus:ring-[#ff385c]/30 disabled:opacity-50"
+                />
+                {errors.name && (
+                  <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Stats Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Estadísticas</CardTitle>
-                <CardDescription>Tu actividad en la plataforma</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <Calendar className="w-6 h-6 text-acento-200 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">0</p>
-                    <p className="text-sm text-gray-600">Reservas</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <Heart className="w-6 h-6 text-acento-200 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">{user.favorites?.length || 0}</p>
-                    <p className="text-sm text-gray-600">Favoritos</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <MapPin className="w-6 h-6 text-acento-200 mx-auto mb-2" />
-                    <p className="text-2xl font-bold text-gray-900">0</p>
-                    <p className="text-sm text-gray-600">Destinos</p>
-                  </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wide">
+                  Teléfono
+                </label>
+                <input
+                  {...register('phone')}
+                  placeholder="+34 600 000 000"
+                  disabled={isLoading}
+                  className="w-full px-3 py-2.5 rounded-xl bg-[#0f172a] border border-[#1e293b] text-[#f8fafc] text-sm placeholder-[#475569] focus:outline-none focus:border-[#ff385c]/50 focus:ring-1 focus:ring-[#ff385c]/30 disabled:opacity-50"
+                />
+                {errors.phone && (
+                  <p className="text-xs text-red-400 mt-1">{errors.phone.message}</p>
+                )}
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                  style={{ background: ACCENT }}
+                >
+                  {isLoading
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+                    : <><Check className="w-4 h-4" /> Guardar cambios</>}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-[#94a3b8] border border-[#1e293b] hover:bg-[#1e293b] transition-all disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" /> Cancelar
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="grid gap-2">
+              <InfoRow
+                icon={<Mail className="w-4 h-4 text-[#64748b]" />}
+                label="Email"
+                value={user.email}
+              />
+              {user.phone && (
+                <InfoRow
+                  icon={<Phone className="w-4 h-4 text-[#64748b]" />}
+                  label="Teléfono"
+                  value={user.phone}
+                />
+              )}
+              <InfoRow
+                icon={<Calendar className="w-4 h-4 text-[#64748b]" />}
+                label="Miembro desde"
+                value={
+                  user.createdAt && !isNaN(new Date(user.createdAt).getTime())
+                    ? new Date(user.createdAt).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : 'Fecha no disponible'
+                }
+              />
+              <InfoRow
+                icon={<Shield className="w-4 h-4 text-[#64748b]" />}
+                label="Método de acceso"
+                value={providerLabels[user.provider] ?? user.provider}
+              />
+              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#0f172a]">
+                <Mail className="w-4 h-4 text-[#64748b] flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-[11px] text-[#475569] uppercase tracking-wide font-semibold">
+                    Verificación
+                  </p>
+                  <span
+                    className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-0.5"
+                    style={
+                      user.emailVerified
+                        ? { color: '#34d399', background: 'rgba(52,211,153,0.12)' }
+                        : { color: '#f87171', background: 'rgba(248,113,113,0.12)' }
+                    }
+                  >
+                    {user.emailVerified ? '✓ Verificado' : '✗ No verificado'}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Stats Card */}
+        <div
+          className="rounded-2xl border p-6"
+          style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(30, 41, 59, 0.8)' }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-base font-bold text-[#f8fafc]">Estadísticas</h2>
+            <div className="h-px flex-1 bg-[#1e293b]" />
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <StatBox
+              icon={<Calendar className="w-5 h-5" style={{ color: '#0ea5e9' }} />}
+              value="0"
+              label="Reservas"
+            />
+            <StatBox
+              icon={<Heart className="w-5 h-5" style={{ color: ACCENT }} />}
+              value={String(user.favorites?.length ?? 0)}
+              label="Favoritos"
+            />
+            <StatBox
+              icon={<span className="text-lg">✈️</span>}
+              value="0"
+              label="Destinos"
+            />
           </div>
         </div>
-      </main>
 
-      <Footer />
+      </div>
     </div>
   );
 }
-
-export default function PerfilPage() {
-  return (
-    <AuthGuard>
-      <PerfilContent />
-    </AuthGuard>
-  );
-}
-
-

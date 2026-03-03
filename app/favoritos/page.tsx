@@ -8,13 +8,10 @@ import { FavoritesService } from '@/lib/favorites/favorites-service';
 import { FavoriteProperty } from '@/types/favorites';
 import FavoritesList from '@/components/favorites/FavoritesList';
 import { ROUTES } from '@/lib/constants';
+import { Heart } from 'lucide-react';
 
-/**
- * Página de Favoritos
- * 
- * Muestra todas las propiedades que el usuario ha guardado como favoritas.
- * Requiere autenticación.
- */
+const ACCENT = '#ff385c';
+
 export default function FavoritesPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -23,41 +20,33 @@ export default function FavoritesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Redirigir a login si no está autenticado
     if (!authLoading && !isAuthenticated) {
       router.push(ROUTES.LOGIN);
       return;
     }
-
-    // Cargar favoritos si está autenticado
     if (isAuthenticated && user) {
       loadFavorites();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user, authLoading, router]);
 
   const loadFavorites = async () => {
     if (!user) return;
-
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await FavoritesService.getFavoriteProperties();
-      
       if (response.success && response.data) {
         setFavorites(response.data);
       } else {
-        // Manejar errores específicos
         if (response.error?.code === 'UNAUTHORIZED') {
-          setError('Tu sesión expiró. Por favor, inicia sesión de nuevo.');
           router.push(ROUTES.LOGIN);
         } else {
           setError(response.error?.message || 'Error al cargar favoritos');
         }
         setFavorites([]);
       }
-    } catch (err) {
-      console.error('Error cargando favoritos:', err);
+    } catch {
       setError('Error al cargar favoritos. Por favor, intenta más tarde.');
       setFavorites([]);
     } finally {
@@ -65,53 +54,54 @@ export default function FavoritesPage() {
     }
   };
 
-  // Mostrar loading mientras verifica autenticación
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-acento-200"></div>
+      <div className="flex items-center justify-center min-h-full p-8">
+        <div
+          className="animate-spin rounded-full h-10 w-10 border-b-2"
+          style={{ borderColor: ACCENT }}
+        />
       </div>
     );
   }
 
-  // No mostrar nada si no está autenticado (se redirige)
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Mis Favoritos
-          </h1>
-          <p className="text-gray-600">
-            {favorites.length > 0 
-              ? `${favorites.length} ${favorites.length === 1 ? 'propiedad guardada' : 'propiedades guardadas'}`
-              : 'Tus propiedades favoritas aparecerán aquí'
-            }
-          </p>
+    <div className="p-5 md:p-8 min-h-full">
+
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-1">
+          <Heart className="w-4 h-4" style={{ color: ACCENT }} />
+          <span className="text-xs font-semibold uppercase tracking-[0.15em]" style={{ color: ACCENT }}>
+            Guardados
+          </span>
         </div>
-
-        {/* Error State */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
-            <button
-              onClick={loadFavorites}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Intentar de nuevo
-            </button>
-          </div>
-        )}
-
-        {/* Favorites List */}
-        <FavoritesList favorites={favorites} isLoading={isLoading} />
+        <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Mis Favoritos</h1>
+        <p className="text-[#64748b] mt-1 text-sm">
+          {favorites.length > 0
+            ? `${favorites.length} ${favorites.length === 1 ? 'propiedad guardada' : 'propiedades guardadas'}`
+            : 'Tus propiedades favoritas aparecerán aquí'}
+        </p>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10">
+          <p className="text-red-400 text-sm">{error}</p>
+          <button
+            onClick={loadFavorites}
+            className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+          >
+            Intentar de nuevo
+          </button>
+        </div>
+      )}
+
+      {/* Favorites List */}
+      <FavoritesList favorites={favorites} isLoading={isLoading} />
+
     </div>
   );
 }
-

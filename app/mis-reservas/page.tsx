@@ -9,16 +9,42 @@ import { deleteBooking } from '@/lib/bookings/booking-service';
 import { Booking } from '@/types/dashboard';
 import TripCard from '@/components/dashboard/guest/TripCard';
 import { ROUTES } from '@/lib/constants';
-import { Calendar, Plane, History, Trash2 } from 'lucide-react';
+import { Calendar, Plane, History } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-/**
- * Página de Mis Reservas
- * 
- * Muestra todas las reservas del usuario (futuras, activas y pasadas).
- * Requiere autenticación.
- */
+const ACCENT = '#ff385c';
+
+function SectionHeader({
+  icon,
+  iconBg,
+  title,
+  count,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  count: number;
+}) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: iconBg }}
+      >
+        {icon}
+      </div>
+      <div>
+        <h2 className="text-lg font-bold text-[#f8fafc]">{title}</h2>
+        <p className="text-xs text-[#64748b]">
+          {count} {count === 1 ? 'reserva' : 'reservas'}
+        </p>
+      </div>
+      <div className="h-px flex-1 bg-[#1e293b]" />
+    </div>
+  );
+}
+
 export default function MisReservasPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -28,34 +54,25 @@ export default function MisReservasPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Redirigir a login si no está autenticado
     if (!authLoading && !isAuthenticated) {
       router.push(ROUTES.LOGIN);
       return;
     }
-
-    // Cargar reservas si está autenticado
     if (isAuthenticated && user) {
       loadBookings();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user, authLoading, router]);
 
   const loadBookings = async () => {
     if (!user) return;
-
     setIsLoading(true);
     setError(null);
-
     try {
-      // Cargar todas las reservas del usuario
       const response = await DashboardService.getAllUserBookings(user.id);
-
       if (response.success && response.data) {
         const allBookings = response.data;
-
         const now = new Date();
-
-        // Separar en categorías
         const upcoming: Booking[] = [];
         const active: Booking[] = [];
         const past: Booking[] = [];
@@ -68,40 +85,27 @@ export default function MisReservasPage() {
             ? booking.checkOut
             : new Date(booking.checkOut);
 
-          // Reservas activas (entre check-in y check-out)
           if (checkIn <= now && checkOut > now && booking.status === 'active') {
             active.push(booking);
-          }
-          // Reservas futuras (check-in futuro y estado pending o confirmed)
-          else if (checkIn > now && (booking.status === 'pending' || booking.status === 'confirmed')) {
+          } else if (checkIn > now && (booking.status === 'pending' || booking.status === 'confirmed')) {
             upcoming.push(booking);
-          }
-          // Reservas pasadas (check-out pasado o completadas/canceladas)
-          else if (checkOut < now || booking.status === 'completed' || booking.status === 'cancelled') {
+          } else if (checkOut < now || booking.status === 'completed' || booking.status === 'cancelled') {
             past.push(booking);
-          }
-          // Reservas confirmadas futuras que no entraron en las categorías anteriores
-          else if (checkIn > now && booking.status === 'confirmed') {
+          } else if (checkIn > now && booking.status === 'confirmed') {
             upcoming.push(booking);
-          }
-          // Fallback: cualquier reserva sin categorizar va a upcoming
-          else {
+          } else {
             upcoming.push(booking);
           }
         });
 
-        // Combinar próximas y activas en una sola sección
         setUpcomingBookings([...upcoming, ...active]);
         setPastBookings(past);
       } else {
-        // Usar el mensaje de error del servicio (ya está mejorado)
-        const errorMessage = response.error?.message || 'Error al cargar reservas';
-        setError(errorMessage);
+        setError(response.error?.message || 'Error al cargar reservas');
         setUpcomingBookings([]);
         setPastBookings([]);
       }
-    } catch (err) {
-      console.error('Error inesperado cargando reservas');
+    } catch {
       setError('Error al cargar reservas');
       setUpcomingBookings([]);
       setPastBookings([]);
@@ -110,219 +114,187 @@ export default function MisReservasPage() {
     }
   };
 
-  // Función para eliminar una reserva
   const handleDeleteBooking = async (bookingId: string) => {
     try {
       const response = await deleteBooking(bookingId);
-      
-      if (response.success) {
-        // Actualizar el estado local eliminando la reserva
-        setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
-        setPastBookings(prev => prev.filter(b => b.id !== bookingId));
-        toast.success('Reserva eliminada correctamente');
-      } else {
-        setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
-        setPastBookings(prev => prev.filter(b => b.id !== bookingId));
-        toast.success('Reserva eliminada de tu historial');
-      }
-    } catch (error) {
-      console.error('Error eliminando reserva');
+      setUpcomingBookings(prev => prev.filter(b => b.id !== bookingId));
+      setPastBookings(prev => prev.filter(b => b.id !== bookingId));
+      toast.success(response.success ? 'Reserva eliminada correctamente' : 'Reserva eliminada de tu historial');
+    } catch {
       toast.error('Error al eliminar la reserva');
-      throw error;
     }
   };
 
-  // Mostrar loading mientras verifica autenticación
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-acento-200"></div>
+      <div className="flex items-center justify-center min-h-full p-8">
+        <div
+          className="animate-spin rounded-full h-10 w-10 border-b-2"
+          style={{ borderColor: ACCENT }}
+        />
       </div>
     );
   }
 
-  // No mostrar nada si no está autenticado (se redirige)
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   const totalBookings = upcomingBookings.length + pastBookings.length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Mis Reservas
-          </h1>
-          <p className="text-gray-600 mb-6">
-            {totalBookings > 0 
-              ? `${totalBookings} ${totalBookings === 1 ? 'reserva' : 'reservas'} en total`
-              : 'Tus reservas aparecerán aquí'
-            }
-          </p>
+    <div className="p-5 md:p-8 min-h-full">
 
-          {/* Estadísticas rápidas */}
-          {totalBookings > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center gap-2">
-                  <Plane className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900">{upcomingBookings.length}</div>
-                    <div className="text-sm text-gray-500">Próximas</div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-gray-600" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900">{pastBookings.length}</div>
-                    <div className="text-sm text-gray-500">Pasadas</div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-acento-200" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900">{totalBookings}</div>
-                    <div className="text-sm text-gray-500">Total</div>
-                  </div>
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold uppercase tracking-[0.15em]" style={{ color: ACCENT }}>
+            Viajes
+          </span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-black text-[#f8fafc] tracking-tight">Mis Reservas</h1>
+        <p className="text-[#64748b] mt-1 text-sm">
+          {totalBookings > 0
+            ? `${totalBookings} ${totalBookings === 1 ? 'reserva' : 'reservas'} en total`
+            : 'Tus reservas aparecerán aquí'}
+        </p>
+      </div>
+
+      {/* Stats */}
+      {totalBookings > 0 && (
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {[
+            { icon: Plane, label: 'Próximas', value: upcomingBookings.length, color: '#0ea5e9' },
+            { icon: History, label: 'Pasadas', value: pastBookings.length, color: '#64748b' },
+            { icon: Calendar, label: 'Total', value: totalBookings, color: ACCENT },
+          ].map(({ icon: Icon, label, value, color }) => (
+            <div
+              key={label}
+              className="rounded-2xl border p-4"
+              style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(30, 41, 59, 0.8)' }}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="w-5 h-5 flex-shrink-0" style={{ color }} />
+                <div>
+                  <p className="text-xl font-bold text-[#f8fafc]">{value}</p>
+                  <p className="text-xs text-[#64748b]">{label}</p>
                 </div>
               </div>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10">
+          <p className="text-red-400 text-sm">{error}</p>
+          <button
+            onClick={loadBookings}
+            className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+          >
+            Intentar de nuevo
+          </button>
+        </div>
+      )}
+
+      {/* Loading skeletons */}
+      {isLoading && (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border p-6 animate-pulse"
+              style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(30, 41, 59, 0.8)' }}
+            >
+              <div className="flex gap-4">
+                <div className="w-48 h-36 rounded-xl bg-[#1e293b]" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-5 bg-[#1e293b] rounded w-3/4" />
+                  <div className="h-4 bg-[#1e293b] rounded w-1/2" />
+                  <div className="h-4 bg-[#1e293b] rounded w-1/3" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
+      {!isLoading && (
+        <div className="space-y-10">
+          {upcomingBookings.length > 0 && (
+            <section>
+              <SectionHeader
+                icon={<Plane className="w-4 h-4" style={{ color: '#0ea5e9' }} />}
+                iconBg="rgba(14, 165, 233, 0.12)"
+                title="Próximos Viajes"
+                count={upcomingBookings.length}
+              />
+              <div className="space-y-4">
+                {upcomingBookings.map(booking => (
+                  <TripCard
+                    key={booking.id}
+                    booking={booking}
+                    onViewDetails={() => {
+                      if (booking.property?.id || booking.propertyId) {
+                        router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
+                      }
+                    }}
+                    onDelete={handleDeleteBooking}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {pastBookings.length > 0 && (
+            <section>
+              <SectionHeader
+                icon={<History className="w-4 h-4 text-[#64748b]" />}
+                iconBg="rgba(100, 116, 139, 0.12)"
+                title="Historial de Viajes"
+                count={pastBookings.length}
+              />
+              <div className="space-y-4">
+                {pastBookings.map(booking => (
+                  <TripCard
+                    key={booking.id}
+                    booking={booking}
+                    onViewDetails={() => {
+                      if (booking.property?.id || booking.propertyId) {
+                        router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
+                      }
+                    }}
+                    onDelete={handleDeleteBooking}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {totalBookings === 0 && (
+            <div className="text-center py-16">
+              <div
+                className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(30, 41, 59, 0.8)' }}
+              >
+                <Calendar className="w-10 h-10 text-[#475569]" />
+              </div>
+              <h3 className="text-lg font-bold text-[#f8fafc] mb-2">No tienes reservas aún</h3>
+              <p className="text-[#64748b] mb-6 text-sm">
+                Cuando hagas una reserva, aparecerá aquí para que puedas gestionarla.
+              </p>
+              <Link
+                href="/buscar"
+                className="inline-block px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: ACCENT }}
+              >
+                Explorar propiedades
+              </Link>
+            </div>
           )}
         </div>
+      )}
 
-        {/* Error State */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800">{error}</p>
-            <button
-              onClick={loadBookings}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Intentar de nuevo
-            </button>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="space-y-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
-                <div className="flex gap-4">
-                  <div className="w-48 h-48 bg-gray-200 rounded-lg"></div>
-                  <div className="flex-1 space-y-3">
-                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Content */}
-        {!isLoading && (
-          <div className="space-y-12">
-            {/* Próximas Reservas */}
-            {upcomingBookings.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Plane className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Próximos Viajes
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {upcomingBookings.length} {upcomingBookings.length === 1 ? 'reserva' : 'reservas'} confirmada{upcomingBookings.length > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  {upcomingBookings.map(booking => (
-                    <TripCard
-                      key={booking.id}
-                      booking={booking}
-                      onViewDetails={() => {
-                        if (booking.property?.id || booking.propertyId) {
-                          router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
-                        }
-                      }}
-                      onDelete={handleDeleteBooking}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Reservas Pasadas */}
-            {pastBookings.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <History className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Historial de Viajes
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {pastBookings.length} {pastBookings.length === 1 ? 'reserva' : 'reservas'} completada{pastBookings.length > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  {pastBookings.map(booking => (
-                    <TripCard
-                      key={booking.id}
-                      booking={booking}
-                      onViewDetails={() => {
-                        if (booking.property?.id || booking.propertyId) {
-                          router.push(`/propiedad/${booking.property?.id || booking.propertyId}`);
-                        }
-                      }}
-                      onDelete={handleDeleteBooking}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Empty State */}
-            {totalBookings === 0 && !isLoading && (
-              <div className="text-center py-12">
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Calendar className="w-12 h-12 text-gray-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No tienes reservas aún
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Cuando hagas una reserva, aparecerá aquí para que puedas gestionarla.
-                  </p>
-                  <Link
-                    href="/buscar"
-                    className="inline-block px-6 py-3 bg-acento-200 text-white font-semibold rounded-lg hover:bg-acento-100 transition-colors"
-                  >
-                    Explorar propiedades
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
-
