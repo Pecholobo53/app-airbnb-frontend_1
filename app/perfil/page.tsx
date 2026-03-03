@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { User } from '@/types/auth';
+import { DashboardService } from '@/lib/dashboard/dashboard-service';
+import { FavoritesService } from '@/lib/favorites/favorites-service';
 import UserAvatar from '@/components/auth/UserAvatar';
 import { Calendar, Mail, Phone, Heart, Shield, Loader2, Pencil, X, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -40,6 +42,18 @@ export default function PerfilPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
+  const [bookingCount, setBookingCount] = useState(0);
+  const [favoritesCount, setFavoritesCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    DashboardService.getAllUserBookings(user.id).then(res => {
+      if (res.success && res.data) setBookingCount(res.data.length);
+    });
+    FavoritesService.getFavoriteProperties().then(res => {
+      if (res.success && res.data) setFavoritesCount(res.data.length);
+    });
+  }, [user]);
 
   const {
     register,
@@ -364,17 +378,17 @@ export default function PerfilPage() {
           <div className="grid grid-cols-3 gap-4">
             <StatBox
               icon={<Calendar className="w-5 h-5" style={{ color: '#0ea5e9' }} />}
-              value="0"
+              value={String(bookingCount)}
               label="Reservas"
             />
             <StatBox
               icon={<Heart className="w-5 h-5" style={{ color: ACCENT }} />}
-              value={String(user.favorites?.length ?? 0)}
+              value={String(favoritesCount)}
               label="Favoritos"
             />
             <StatBox
               icon={<span className="text-lg">✈️</span>}
-              value="0"
+              value={String(bookingCount)}
               label="Destinos"
             />
           </div>

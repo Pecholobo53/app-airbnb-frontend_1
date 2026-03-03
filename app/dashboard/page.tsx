@@ -1,10 +1,12 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { isAdmin } from '@/lib/utils/admin';
+import { DashboardService } from '@/lib/dashboard/dashboard-service';
+import { FavoritesService } from '@/lib/favorites/favorites-service';
 import { Calendar, Heart, User, Search, TrendingUp, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -52,6 +54,8 @@ const quickLinks = [
 export default function DashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [bookingCount, setBookingCount] = useState(0);
+  const [favoritesCount, setFavoritesCount] = useState(0);
 
   // Redirigir al panel admin si el usuario es administrador
   useEffect(() => {
@@ -60,6 +64,17 @@ export default function DashboardPage() {
       router.push('/admin');
     }
   }, [isLoading, isAuthenticated, user, router]);
+
+  // Cargar stats reales
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    DashboardService.getAllUserBookings(user.id).then(res => {
+      if (res.success && res.data) setBookingCount(res.data.length);
+    });
+    FavoritesService.getFavoriteProperties().then(res => {
+      if (res.success && res.data) setFavoritesCount(res.data.length);
+    });
+  }, [isAuthenticated, user]);
 
   const now = new Date();
   const hour = now.getHours();
@@ -96,7 +111,7 @@ export default function DashboardPage() {
             style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(30, 41, 59, 0.8)' }}
           >
             <Calendar className="w-5 h-5 mb-2" style={{ color: '#0ea5e9' }} />
-            <p className="text-2xl font-bold text-[#f8fafc]">0</p>
+            <p className="text-2xl font-bold text-[#f8fafc]">{bookingCount}</p>
             <p className="text-xs text-[#64748b]">Reservas activas</p>
           </div>
           <div
@@ -104,7 +119,7 @@ export default function DashboardPage() {
             style={{ background: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(30, 41, 59, 0.8)' }}
           >
             <Heart className="w-5 h-5 mb-2" style={{ color: ACCENT }} />
-            <p className="text-2xl font-bold text-[#f8fafc]">{user?.favorites?.length ?? 0}</p>
+            <p className="text-2xl font-bold text-[#f8fafc]">{favoritesCount}</p>
             <p className="text-xs text-[#64748b]">Favoritos</p>
           </div>
           <div

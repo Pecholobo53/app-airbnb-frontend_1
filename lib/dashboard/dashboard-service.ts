@@ -682,10 +682,8 @@ export class DashboardService {
   static async getAllUserBookings(guestId: string): Promise<DashboardResponse<Booking[]>> {
 
     try {
-      // Agregar timestamp para evitar caché del navegador
-      const timestamp = Date.now();
       const response = await apiRequest<Booking[] | { bookings: Booking[] }>(
-        `/api/bookings?page=1&limit=1000&_t=${timestamp}`,
+        `/api/bookings?page=1&limit=1000`,
         { method: 'GET' }
       );
 
