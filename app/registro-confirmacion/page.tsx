@@ -1,23 +1,49 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { MailCheck, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+
 export default function RegistroConfirmacionPage() {
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('pending_verification_email');
+      if (stored) setEmail(stored);
+    } catch {
+      // sessionStorage no disponible
+    }
+  }, []);
 
   const handleResend = async () => {
+    if (!email) return;
     setResending(true);
+    setError(null);
+
     try {
-      // TODO: integrate with real resend endpoint
-      await new Promise((r) => setTimeout(r, 1500));
-      setResent(true);
+      const res = await fetch(`${API_BASE_URL}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+        mode: 'cors',
+      });
+
+      if (res.ok) {
+        setResent(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || 'No se pudo reenviar el email. Inténtalo más tarde.');
+      }
     } catch {
-      // silent fail for now
+      setError('Error de conexión. Verifica tu internet e inténtalo de nuevo.');
     } finally {
       setResending(false);
     }
@@ -50,9 +76,7 @@ export default function RegistroConfirmacionPage() {
           className="mx-auto mb-8 flex items-center justify-center"
         >
           <span className="relative flex h-24 w-24 items-center justify-center">
-            {/* Pulse ring */}
             <span className="absolute inset-0 rounded-full bg-acento-200/10 animate-ping [animation-duration:2.5s]" />
-            {/* Solid circle */}
             <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-acento-200/20 to-acento-200/5 border border-acento-200/20 backdrop-blur-sm">
               <MailCheck className="h-11 w-11 text-acento-200" strokeWidth={1.6} />
             </span>
@@ -74,12 +98,36 @@ export default function RegistroConfirmacionPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.5 }}
-          className="text-texto-200 text-sm sm:text-base leading-relaxed max-w-sm mx-auto mb-10"
+          className="text-texto-200 text-sm sm:text-base leading-relaxed max-w-sm mx-auto mb-2"
         >
           Te hemos enviado un email de confirmación.
           <br />
           Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
         </motion.p>
+
+        {/* Email hint */}
+        {email && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            className="text-xs text-texto-200/60 mb-8"
+          >
+            Enviado a <span className="text-texto-200 font-medium">{email}</span>
+          </motion.p>
+        )}
+        {!email && <div className="mb-8" />}
+
+        {/* Error message */}
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-red-400 text-sm mb-4"
+          >
+            {error}
+          </motion.p>
+        )}
 
         {/* CTA */}
         <motion.div
@@ -95,23 +143,25 @@ export default function RegistroConfirmacionPage() {
             </Button>
           </Link>
 
-          <button
-            onClick={handleResend}
-            disabled={resending || resent}
-            className="inline-flex items-center gap-2 text-sm text-texto-200 hover:text-texto-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-default mx-auto"
-          >
-            {resent ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 text-green-400" />
-                <span className="text-green-400">Email reenviado</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw className={`h-4 w-4 ${resending ? 'animate-spin' : ''}`} />
-                <span>{resending ? 'Reenviando...' : 'Reenviar email'}</span>
-              </>
-            )}
-          </button>
+          {email && (
+            <button
+              onClick={handleResend}
+              disabled={resending || resent}
+              className="inline-flex items-center gap-2 text-sm text-texto-200 hover:text-texto-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-default mx-auto"
+            >
+              {resent ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <span className="text-green-400">Email reenviado</span>
+                </>
+              ) : (
+                <>
+                  <RefreshCw className={`h-4 w-4 ${resending ? 'animate-spin' : ''}`} />
+                  <span>{resending ? 'Reenviando...' : 'Reenviar email'}</span>
+                </>
+              )}
+            </button>
+          )}
         </motion.div>
       </motion.div>
 

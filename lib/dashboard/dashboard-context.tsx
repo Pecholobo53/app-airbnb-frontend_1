@@ -195,47 +195,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     // Mostrar errores si hay, pero no romper la UI
     if (errors.length > 0) {
-      // Filtrar errores duplicados y crear mensaje único
       const uniqueErrors = Array.from(new Set(errors));
-      const errorMessage = uniqueErrors.length === 1 
-        ? uniqueErrors[0] 
-        : `${uniqueErrors.length} errores: ${uniqueErrors.slice(0, 2).join(', ')}${uniqueErrors.length > 2 ? '...' : ''}`;
-      
+      const errorMessage = uniqueErrors.join(', ');
       setState(prev => ({ ...prev, error: errorMessage }));
-      
-      // Verificar si es un error de conexión (CONNECTION_ERROR o NETWORK_ERROR)
-      const isConnectionError = errors.some(e => 
-        e.toLowerCase().includes('no se pudo conectar') || 
-        e.toLowerCase().includes('connection') ||
-        e.toLowerCase().includes('network') ||
-        e.toLowerCase().includes('conexión')
-      );
-      
-      // Verificar si es un error 404 (ruta no encontrada)
-      const is404 = errors.some(e => 
-        e.toLowerCase().includes('ruta no encontrada') || 
-        e.toLowerCase().includes('not found') ||
-        e.toLowerCase().includes('endpoint no encontrado')
-      );
-      
-      if (hasData) {
-        // Si hay al menos algunos datos, mostrar warning solo si NO es un error de conexión
-        if (!isConnectionError && !is404) {
-          toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
-        } else if (isConnectionError) {
-          // Error de conexión es crítico, mostrar siempre
-          toast.error(`Error de conexión: ${errorMessage}`, { duration: 7000 });
-        }
-      } else {
-        // Si no hay datos
-        if (is404) {
-          // No mostrar error si los endpoints no están implementados en el backend
-          // NO mostrar toast de error - el dashboard funcionará sin datos
-        } else if (isConnectionError) {
-          // Error de conexión es crítico, mostrar siempre
-          toast.error(`Error de conexión: ${errorMessage}`, { duration: 7000 });
-        } else {
-          toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+
+      // Si el dashboard cargó las estadísticas (hasData), la UI es funcional.
+      // No mostrar toast de error — el usuario ve el estado vacío correctamente.
+      // Solo mostrar error si NO hay ningún dato y NO es un 404/auth esperado.
+      if (!hasData) {
+        const isExpectedError = errors.some(e =>
+          e.toLowerCase().includes('ruta no encontrada') ||
+          e.toLowerCase().includes('not found') ||
+          e.toLowerCase().includes('no tienes autorización') ||
+          e.toLowerCase().includes('unauthorized')
+        );
+        if (!isExpectedError) {
+          toast.error('No se pudieron cargar los datos del dashboard', { duration: 4000 });
         }
       }
     } else {
@@ -330,26 +305,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     // Mostrar errores si hay, pero no romper la UI
     if (errors.length > 0) {
-      // Filtrar errores duplicados y crear mensaje único
       const uniqueErrors = Array.from(new Set(errors));
-      const errorMessage = uniqueErrors.length === 1 
-        ? uniqueErrors[0] 
-        : `${uniqueErrors.length} errores: ${uniqueErrors.slice(0, 2).join(', ')}${uniqueErrors.length > 2 ? '...' : ''}`;
-      
+      const errorMessage = uniqueErrors.join(', ');
       setState(prev => ({ ...prev, error: errorMessage }));
-      
-      if (hasData) {
-        // Si hay al menos algunos datos, mostrar warning
-        toast.warning(`Algunos datos no se pudieron cargar: ${errorMessage}`, { duration: 5000 });
-      } else {
-        // Si no hay datos, verificar si es un error 404 (ruta no encontrada)
-        const is404 = errors.some(e => e.toLowerCase().includes('ruta no encontrada') || e.toLowerCase().includes('not found'));
-        if (is404) {
-          // No mostrar error si los endpoints no están implementados en el backend
-          // El dashboard funcionará con valores por defecto (0) sin mostrar errores molestos
-          // NO mostrar toast de error - el dashboard funcionará sin datos
-        } else {
-          toast.error(`Error al cargar datos del dashboard: ${errorMessage}`, { duration: 5000 });
+
+      // Si el dashboard cargó estadísticas (hasData), la UI es funcional — no mostrar toast.
+      if (!hasData) {
+        const isExpectedError = errors.some(e =>
+          e.toLowerCase().includes('ruta no encontrada') ||
+          e.toLowerCase().includes('not found') ||
+          e.toLowerCase().includes('no tienes autorización') ||
+          e.toLowerCase().includes('unauthorized')
+        );
+        if (!isExpectedError) {
+          toast.error('No se pudieron cargar los datos del dashboard', { duration: 4000 });
         }
       }
     } else {

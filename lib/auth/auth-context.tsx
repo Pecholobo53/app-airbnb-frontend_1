@@ -256,8 +256,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (data: RegisterData): Promise<boolean> => {
     try {
       const response = await AuthService.register(data);
-      
+
       if (response.success) {
+        // Guardar email temporalmente para el botón "Reenviar verificación"
+        try {
+          sessionStorage.setItem('pending_verification_email', data.email);
+        } catch {
+          // sessionStorage no disponible — no crítico
+        }
         return true;
       } else {
         const errorMessage = response.error?.message || 'Error al crear cuenta';

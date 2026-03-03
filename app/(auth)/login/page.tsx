@@ -3,8 +3,10 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import LoginForm from '@/components/auth/LoginForm';
 import SocialAuthButtons from '@/components/auth/SocialAuthButtons';
+import LoginBanner from '@/components/auth/LoginBanner';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -24,6 +26,11 @@ export default function LoginPage() {
           Inicia sesión para continuar
         </p>
       </div>
+
+      {/* Banner de estado (verificado, token expirado, etc.) */}
+      <Suspense fallback={null}>
+        <LoginBanner />
+      </Suspense>
 
       {/* Social Auth */}
       <SocialAuthButtons />
