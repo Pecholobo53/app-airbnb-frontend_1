@@ -544,8 +544,8 @@ export default function CheckoutPage() {
       toast.error('No se pudo inicializar el pago después de varios intentos. Por favor, recarga la página.');
     }
     
-    const shouldCreateBooking = !hasExceededMaxRetries && guestInfo && billingAddress && !clientSecret && !bookingId && !isProcessing && (!hasTriedCreatePaymentRef.current || (paymentRetryCount > 0 && paymentRetryCount <= MAX_RETRIES)) && checkoutData && user;
-    const shouldCreatePaymentIntent = !hasExceededMaxRetries && guestInfo && billingAddress && !clientSecret && bookingId && !isProcessing && (!hasTriedCreatePaymentRef.current || (paymentRetryCount > 0 && paymentRetryCount <= MAX_RETRIES)) && checkoutData && user;
+    const shouldCreateBooking = !hasExceededMaxRetries && currentStep >= 2 && guestInfo && billingAddress && !clientSecret && !bookingId && !isProcessing && (!hasTriedCreatePaymentRef.current || (paymentRetryCount > 0 && paymentRetryCount <= MAX_RETRIES)) && checkoutData && user;
+    const shouldCreatePaymentIntent = !hasExceededMaxRetries && currentStep >= 2 && guestInfo && billingAddress && !clientSecret && bookingId && !isProcessing && (!hasTriedCreatePaymentRef.current || (paymentRetryCount > 0 && paymentRetryCount <= MAX_RETRIES)) && checkoutData && user;
     
     if (shouldCreateBooking) {
       hasTriedCreatePaymentRef.current = true;
