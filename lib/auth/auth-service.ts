@@ -225,4 +225,11 @@ export class AuthService {
       method: 'GET',
     });
   }
+
+  static async updateProfile(userId: string, data: Partial<User>): Promise<AuthResponse<User>> {
+    return apiRequest<User>(`/api/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
 }
