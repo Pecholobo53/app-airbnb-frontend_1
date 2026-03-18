@@ -35,7 +35,7 @@
   
   html {
     /* Luxury gradient: Midnight Navy → Deep Dark — fluye hasta el Footer */
-    background: linear-gradient(180deg, #07091A 0%, #080C18 35%, #080F1E 65%, #071428 100%);
+    background: linear-gradient(180deg, #07091A 0%, #071b3e 35%, #061530 65%, #071b3e 100%);
     background-attachment: fixed;
   }
 

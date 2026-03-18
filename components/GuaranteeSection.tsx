@@ -35,7 +35,7 @@ const pillars = [
  */
 export default function GuaranteeSection() {
   return (
-    <section className="relative overflow-hidden bg-[#080C18] py-16 lg:py-24">
+    <section className="relative overflow-hidden bg-[#071b3e] py-16 lg:py-24">
       {/* Fondo decorativo */}
       <div className="absolute inset-0 opacity-10 pointer-events-none"
         style={{

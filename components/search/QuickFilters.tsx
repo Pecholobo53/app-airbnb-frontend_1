@@ -174,7 +174,7 @@ export default function QuickFilters() {
   }, [activeIndex, goTo]);
 
   return (
-    <section className="py-8 md:py-12 bg-bg-200">
+    <section className="py-8 md:py-12 bg-[#071b3e]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6 md:mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-texto-100 mb-1 md:mb-2">

@@ -69,7 +69,7 @@ export default function HowItWorksSection() {
   return (
     <section
       className="py-16 lg:py-20"
-      style={{ background: 'linear-gradient(180deg, #07091A 0%, #080C18 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #07091A 0%, #071b3e 100%)' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
