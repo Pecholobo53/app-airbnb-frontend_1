@@ -69,7 +69,7 @@ export default function UrgencyBanner() {
   return (
     <div
       className="relative w-full overflow-hidden select-none"
-      style={{ background: '#0A0B12', borderBottom: '2px solid #FF385C' }}
+      style={{ background: '#07091A', borderBottom: '2px solid #FF385C' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
