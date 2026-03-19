@@ -7,6 +7,7 @@ import GoogleAuthCallback from '@/components/auth/GoogleAuthCallback';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { NotificationProvider } from '@/lib/notifications/notification-context';
 import { Toaster } from '@/components/ui/sonner';
+import CookieConsent from '@/components/ui/CookieConsent';
 
 const dmSans = DM_Sans({ 
   subsets: ['latin', 'latin-ext'],
@@ -34,8 +35,12 @@ export const metadata: Metadata = {
     description: 'Descubre los mejores alojamientos y experiencias únicas en Marruecos.',
   },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
   },
 };
 
@@ -65,6 +70,7 @@ export default function RootLayout({
             />
             {children}
             <Toaster richColors position="top-center" />
+            <CookieConsent />
           </NotificationProvider>
         </AuthProvider>
       </body>
