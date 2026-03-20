@@ -15,8 +15,8 @@ const sizes = {
 
 export default function BrandLogo({ variant = 'light', size = 'md', href = '/' }: BrandLogoProps) {
   const s = sizes[size];
-  const voyagerColor = variant === 'dark' ? '#ffffff' : '#1a2744';
-  const subColor = variant === 'dark' ? 'text-gray-400' : 'text-gray-500';
+  const voyagerColor = variant === 'dark' ? '#ffffff' : '#ffffff';
+  const subColor = variant === 'dark' ? 'text-gray-400' : 'text-white/60';
 
   return (
     <Link href={href} className={`inline-flex items-center ${s.gap} hover:opacity-90 transition-opacity flex-shrink-0`}>
