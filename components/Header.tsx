@@ -80,6 +80,7 @@ export default function Header() {
   const [searchValue, setSearchValue] = useState('');
   const [isSearchFilterOpen, setIsSearchFilterOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<typeof CITIES>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -252,7 +253,10 @@ export default function Header() {
               <>
                 {isAuthenticated && user ? (
                   /* Usuario autenticado - Mostrar UserMenu */
-                  <UserMenu />
+                  <UserMenu
+                    open={userMenuOpen}
+                    onOpenChange={(o) => { setUserMenuOpen(o); if (o) setMobileMenuOpen(false); }}
+                  />
                 ) : (
                   /* Usuario NO autenticado - Mostrar botones Login/Registro */
                   <>
@@ -281,7 +285,7 @@ export default function Header() {
             
             {/* Mobile Menu Button */}
             <button
-              onClick={() => setMobileMenuOpen(prev => !prev)}
+              onClick={() => { setMobileMenuOpen(prev => !prev); setUserMenuOpen(false); }}
               className="md:hidden p-2 rounded-lg border border-acento-200 hover:bg-acento-200/10 active:scale-95 transition-all"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
             >
@@ -295,36 +299,36 @@ export default function Header() {
 
         {/* Mobile nav panel */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-rose-900/40 py-3 space-y-1 bg-[#12040a]">
+          <div className="md:hidden border-t border-white/10 py-3 space-y-1 bg-[#071b3e]">
             <button
               onClick={() => { setMobileMenuOpen(false); router.push(ROUTES.HOME); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Inicio
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); router.push(ROUTES.BUSCAR); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Buscar
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); router.push('/#experiencias'); }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Experiencias
             </button>
             <a
               href="/#ofertas"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-4 py-3 text-sm font-medium text-rose-100 hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
+              className="block px-4 py-3 text-sm font-medium text-white hover:bg-white/10 active:bg-white/20 rounded-lg transition-colors"
             >
               Ofertas
             </a>
             {!isAuthenticated && (
               <div className="flex gap-2 px-4 pt-3 pb-1">
                 <Link href={ROUTES.LOGIN} onClick={() => setMobileMenuOpen(false)} className="flex-1">
-                  <Button variant="outline" className="w-full border-white/20 text-rose-100 hover:bg-white/10">Iniciar sesión</Button>
+                  <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">Iniciar sesión</Button>
                 </Link>
                 <Link href={ROUTES.REGISTRO} onClick={() => setMobileMenuOpen(false)} className="flex-1">
                   <Button className="w-full bg-acento-200 hover:bg-acento-100 text-white">Registrarse</Button>
