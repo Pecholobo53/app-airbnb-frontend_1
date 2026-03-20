@@ -87,7 +87,7 @@ export default function TrustBadges() {
           <motion.div
             key={badge.title}
             variants={itemVariants}
-            className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+            className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-acento-200/40 hover:border-acento-200 hover:bg-gray-100 transition-all duration-200"
           >
             {/* Icono */}
             <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center">
