@@ -153,7 +153,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 w-full z-50 bg-[#071b3e] backdrop-blur-md border-b border-white/10 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 h-16">
           {/* Logo */}
@@ -178,9 +178,9 @@ export default function Header() {
                   onFocus={() => searchValue.length >= 1 && setSuggestions(filterCities(searchValue))}
                 placeholder="Buscar destinos, experiencias..."
                   autoComplete="off"
-                className="w-full pl-10 pr-12 py-2 rounded-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-acento-200 focus:border-transparent transition-all text-gray-900 placeholder:text-gray-500"
+                className="w-full pl-10 pr-12 py-2 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-acento-200 focus:border-transparent transition-all"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
               <button
                 type="submit"
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-acento-200 hover:bg-acento-100 text-white rounded-full p-1.5 transition-colors"
@@ -223,23 +223,23 @@ export default function Header() {
                   router.push(ROUTES.HOME);
                 }
               }}
-              className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap"
+              className="text-white/80 hover:text-white transition-colors font-medium whitespace-nowrap"
             >
               Inicio
             </button>
             <button
               onClick={() => setIsSearchFilterOpen(true)}
-              className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap"
+              className="text-white/80 hover:text-white transition-colors font-medium whitespace-nowrap"
             >
               Buscar
             </button>
             <button
               onClick={() => router.push('/#experiencias')}
-              className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap"
+              className="text-white/80 hover:text-white transition-colors font-medium whitespace-nowrap"
             >
               Experiencias
             </button>
-            <a href="/#ofertas" className="text-texto-200 hover:text-texto-100 transition-colors font-medium whitespace-nowrap">
+            <a href="/#ofertas" className="text-white/80 hover:text-white transition-colors font-medium whitespace-nowrap">
               Ofertas
             </a>
             {/* Notificaciones - Solo si está autenticado */}
@@ -257,7 +257,7 @@ export default function Header() {
                   /* Usuario NO autenticado - Mostrar botones Login/Registro */
                   <>
                     <Link href={ROUTES.LOGIN} className="hidden sm:inline-block">
-                      <Button variant="ghost" className="font-medium">
+                      <Button variant="ghost" className="font-medium text-white hover:text-white hover:bg-white/10">
                         Iniciar sesión
                       </Button>
                     </Link>
@@ -270,9 +270,9 @@ export default function Header() {
                     {/* Mobile - Botón de búsqueda */}
                     <button 
                       onClick={() => router.push(ROUTES.BUSCAR)}
-                      className="sm:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="sm:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
                     >
-                      <Search className="w-5 h-5 text-gray-700" />
+                      <Search className="w-5 h-5 text-white" />
                     </button>
                   </>
                 )}
@@ -282,12 +282,12 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(prev => !prev)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 active:scale-95 transition-all"
+              className="md:hidden p-2 rounded-lg hover:bg-white/10 active:scale-95 transition-all"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
             >
               {mobileMenuOpen
-                ? <X className="w-5 h-5 text-gray-700" />
-                : <Menu className="w-5 h-5 text-gray-700" />
+                ? <X className="w-5 h-5 text-white" />
+                : <Menu className="w-5 h-5 text-white" />
               }
             </button>
           </div>
