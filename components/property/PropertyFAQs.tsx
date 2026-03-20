@@ -60,7 +60,7 @@ const faqs = [
  */
 export default function PropertyFAQs() {
   return (
-    <section className="py-10 border-t border-gray-100">
+    <section className="py-10 rounded-2xl bg-[#071b3e] px-6 mt-4">
       {/* Encabezado */}
       <motion.div
         className="mb-8"
@@ -70,14 +70,14 @@ export default function PropertyFAQs() {
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
         <div className="flex items-center gap-2.5 mb-1.5">
-          <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-            <HelpCircle className="w-4.5 h-4.5 text-gray-600" />
+          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+            <HelpCircle className="w-4 h-4 text-white" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-white">
             Preguntas frecuentes
           </h2>
         </div>
-        <p className="text-sm text-gray-500 ml-[42px]">
+        <p className="text-sm text-white/60 ml-[42px]">
           Todo lo que necesitas saber. Claro, directo, sin letra pequeña.
         </p>
       </motion.div>
@@ -90,17 +90,17 @@ export default function PropertyFAQs() {
         transition={{ duration: 0.45, delay: 0.1, ease: 'easeOut' }}
       >
         <Accordion type="single" collapsible className="w-full">
-          {faqs.map((faq, index) => (
+          {faqs.map((faq) => (
             <AccordionItem
               key={faq.id}
               value={faq.id}
-              className="border-b border-gray-100 last:border-b-0"
+              className="border-b border-white/10 last:border-b-0"
             >
-              <AccordionTrigger className="text-left text-sm font-medium text-gray-900 hover:no-underline hover:text-gray-700 py-4 pr-2 gap-4 group">
+              <AccordionTrigger className="text-left text-sm font-medium text-white hover:no-underline hover:text-white/80 py-4 pr-2 gap-4">
                 <span className="flex-1">{faq.question}</span>
               </AccordionTrigger>
               <AccordionContent>
-                <p className="text-sm text-gray-600 leading-relaxed pb-4 pr-8">
+                <p className="text-sm text-white/70 leading-relaxed pb-4 pr-8">
                   {faq.answer}
                 </p>
               </AccordionContent>
