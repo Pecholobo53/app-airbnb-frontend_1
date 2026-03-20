@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Home, Building2, Castle, Tent, Waves, Mountain, Trees, Palmtree, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useRef, useState, useCallback } from 'react';
 
@@ -10,81 +11,65 @@ const QUICK_FILTERS = [
     icon: Home,
     label: 'Casas',
     href: '/buscar?propertyType=house',
-    description: 'Propiedades completas ideales para familias',
-    cardBg: 'bg-orange-500/15',
-    cardBorder: 'border-orange-500/50',
-    iconCls: 'text-orange-400',
-    labelCls: 'text-orange-300',
+    description: 'Propiedades completas para familias',
+    photo: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=300&q=75',
+    accentCls: 'text-orange-300',
   },
   {
     icon: Building2,
     label: 'Apartamentos',
     href: '/buscar?propertyType=apartment',
-    description: 'Alojamientos modernos en el corazón de la ciudad',
-    cardBg: 'bg-sky-500/15',
-    cardBorder: 'border-sky-500/50',
-    iconCls: 'text-sky-400',
-    labelCls: 'text-sky-300',
+    description: 'Modernos en el centro urbano',
+    photo: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=300&q=75',
+    accentCls: 'text-sky-300',
   },
   {
     icon: Castle,
     label: 'Villas',
     href: '/buscar?propertyType=villa',
-    description: 'Lujo y exclusividad con todas las comodidades',
-    cardBg: 'bg-violet-500/15',
-    cardBorder: 'border-violet-500/50',
-    iconCls: 'text-violet-400',
-    labelCls: 'text-violet-300',
+    description: 'Lujo y exclusividad total',
+    photo: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=300&q=75',
+    accentCls: 'text-violet-300',
   },
   {
     icon: Waves,
     label: 'Playa',
     href: '/buscar?amenities=beach_access',
-    description: 'A pocos pasos del mar y la arena',
-    cardBg: 'bg-cyan-500/15',
-    cardBorder: 'border-cyan-500/50',
-    iconCls: 'text-cyan-400',
-    labelCls: 'text-cyan-300',
+    description: 'A pasos del mar y la arena',
+    photo: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=75',
+    accentCls: 'text-cyan-300',
   },
   {
     icon: Mountain,
     label: 'Montaña',
     href: '/buscar?category=mountain',
-    description: 'Vistas espectaculares y naturaleza pura',
-    cardBg: 'bg-emerald-500/15',
-    cardBorder: 'border-emerald-500/50',
-    iconCls: 'text-emerald-400',
-    labelCls: 'text-emerald-300',
+    description: 'Vistas espectaculares y naturaleza',
+    photo: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=75',
+    accentCls: 'text-emerald-300',
   },
   {
     icon: Trees,
     label: 'Cabañas',
     href: '/buscar?propertyType=cabin',
-    description: 'Escape rústico en entornos naturales',
-    cardBg: 'bg-amber-600/15',
-    cardBorder: 'border-amber-600/50',
-    iconCls: 'text-amber-400',
-    labelCls: 'text-amber-300',
+    description: 'Escape rústico en la naturaleza',
+    photo: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=300&q=75',
+    accentCls: 'text-amber-300',
   },
   {
     icon: Palmtree,
     label: 'Tropical',
     href: '/buscar?amenities=beach_access&location=valencia',
-    description: 'Destinos paradisíacos junto al mar',
-    cardBg: 'bg-lime-500/15',
-    cardBorder: 'border-lime-500/50',
-    iconCls: 'text-lime-400',
-    labelCls: 'text-lime-300',
+    description: 'Destinos paradisíacos al mar',
+    photo: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?w=300&q=75',
+    accentCls: 'text-lime-300',
   },
   {
     icon: Tent,
     label: 'Aventura',
     href: '/buscar?amenities=mountain_view&propertyType=cabin',
     description: 'Experiencias únicas en la naturaleza',
-    cardBg: 'bg-rose-500/15',
-    cardBorder: 'border-rose-500/50',
-    iconCls: 'text-rose-400',
-    labelCls: 'text-rose-300',
+    photo: 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?w=300&q=75',
+    accentCls: 'text-rose-300',
   },
 ];
 
@@ -219,30 +204,41 @@ export default function QuickFilters() {
                 <Link
                   key={filter.label}
                   href={filter.href}
-                  className={`flex-shrink-0 snap-start flex flex-col items-center justify-between
-                    w-[110px] h-[130px] sm:w-[120px] sm:h-[140px] md:w-[130px] md:h-[150px] lg:w-[140px] lg:h-[155px]
-                    p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 group cursor-pointer active:scale-95 relative
+                  className={`flex-shrink-0 snap-start relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer active:scale-95 group
+                    w-[110px] h-[140px] sm:w-[120px] sm:h-[150px] md:w-[130px] md:h-[160px] lg:w-[145px] lg:h-[170px]
                     ${isActive
-                      ? 'border-acento-200 bg-acento-200/10 shadow-[0_0_12px_rgba(255,56,92,0.25)]'
-                      : `${filter.cardBg} ${filter.cardBorder} hover:brightness-125`
+                      ? 'border-acento-200 shadow-[0_0_16px_rgba(255,56,92,0.4)]'
+                      : 'border-white/10 hover:border-white/30'
                     }`}
                 >
-                  <div className="flex-shrink-0">
-                    <Icon className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 transition-colors duration-300 ${isActive ? 'text-acento-200' : filter.iconCls}`} />
-                  </div>
-                  <div className="flex-shrink-0">
-                    <span className={`text-[11px] sm:text-xs md:text-sm font-semibold transition-colors duration-300 whitespace-nowrap ${isActive ? 'text-acento-200' : filter.labelCls}`}>
+                  {/* Foto de fondo */}
+                  <Image
+                    src={filter.photo}
+                    alt={filter.label}
+                    fill
+                    sizes="145px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    unoptimized
+                  />
+
+                  {/* Overlay degradado */}
+                  <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'bg-black/50' : 'bg-black/55 group-hover:bg-black/40'}`} />
+
+                  {/* Contenido encima */}
+                  <div className="relative z-10 flex flex-col items-center justify-end h-full p-3 gap-1">
+                    <div className={`p-1.5 rounded-lg bg-black/30 backdrop-blur-sm transition-colors duration-300 ${isActive ? 'bg-acento-200/30' : ''}`}>
+                      <Icon className={`h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 transition-colors duration-300 ${isActive ? 'text-acento-200' : 'text-white'}`} />
+                    </div>
+                    <span className={`text-[11px] sm:text-xs md:text-sm font-bold transition-colors duration-300 whitespace-nowrap drop-shadow-md ${isActive ? 'text-acento-200' : filter.accentCls}`}>
                       {filter.label}
                     </span>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center w-full pt-0.5">
-                    <span className="text-[9px] sm:text-[10px] md:text-xs text-gray-400 text-center px-0.5 line-clamp-2 leading-tight">
+                    <span className="text-[9px] sm:text-[10px] text-white/70 text-center line-clamp-2 leading-tight drop-shadow-sm hidden sm:block">
                       {filter.description}
                     </span>
                   </div>
 
                   {isActive && (
-                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-[3px] bg-acento-200 rounded-full transition-all duration-300" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-acento-200 rounded-full" />
                   )}
                 </Link>
               );

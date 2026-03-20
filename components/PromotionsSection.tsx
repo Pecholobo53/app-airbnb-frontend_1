@@ -266,7 +266,7 @@ export default function PromotionsSection() {
 
         {/* Ver más ofertas */}
         <div className="text-center mt-12">
-          <Link href="/buscar" className="btn-secondary inline-block">
+          <Link href="/ofertas" className="btn-secondary inline-block">
             Ver Todas las Ofertas
           </Link>
         </div>

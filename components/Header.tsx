@@ -282,7 +282,7 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(prev => !prev)}
-              className="md:hidden p-2 rounded-lg hover:bg-white/10 active:scale-95 transition-all"
+              className="md:hidden p-2 rounded-lg border border-acento-200 hover:bg-acento-200/10 active:scale-95 transition-all"
               aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
             >
               {mobileMenuOpen

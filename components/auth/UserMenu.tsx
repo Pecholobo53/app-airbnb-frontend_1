@@ -40,8 +40,8 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="focus:outline-none focus:ring-2 focus:ring-acento-200 rounded-full">
-        <div className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-full hover:shadow-md transition-shadow cursor-pointer">
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-2 px-3 py-2 border border-acento-200 rounded-full hover:bg-acento-200/10 transition-colors cursor-pointer">
+          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
           <UserAvatar user={user} size="sm" />
