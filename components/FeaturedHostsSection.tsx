@@ -137,15 +137,15 @@ export default function FeaturedHostsSection() {
 
               {/* Nombre y datos */}
               <div>
-                <h3 className="font-bold text-gray-900">{host.name}</h3>
-                <p className="text-xs text-acento-200 font-semibold">{host.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{host.location}</p>
+                <h3 className="font-bold text-base text-gray-900">{host.name}</h3>
+                <p className="text-sm sm:text-xs text-acento-200 font-semibold">{host.title}</p>
+                <p className="text-sm sm:text-xs text-gray-400 mt-0.5">{host.location}</p>
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-3 text-xs text-gray-500">
+              <div className="flex items-center gap-3 text-sm sm:text-xs text-gray-500">
                 <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 fill-current text-yellow-400" />
+                  <Star className="w-4 h-4 sm:w-3.5 sm:h-3.5 fill-current text-yellow-400" />
                   <span className="font-semibold text-gray-700">{host.rating}</span>
                 </span>
                 <span className="text-gray-300">·</span>
@@ -155,18 +155,18 @@ export default function FeaturedHostsSection() {
               </div>
 
               {/* Especialidad */}
-              <p className="text-xs text-gray-500 leading-relaxed border-t border-gray-50 pt-3">
+              <p className="text-sm sm:text-xs text-gray-500 leading-relaxed border-t border-gray-50 pt-3">
                 <span className="font-medium text-gray-700">Especialidad: </span>
                 {host.specialty}
               </p>
 
               {/* Quote */}
-              <blockquote className="text-xs text-gray-500 italic leading-relaxed border-l-2 border-gray-200 pl-3">
+              <blockquote className="text-sm sm:text-xs text-gray-500 italic leading-relaxed border-l-2 border-gray-200 pl-3">
                 &quot;{host.quote}&quot;
               </blockquote>
 
               {/* Desde */}
-              <p className="text-xs text-gray-400 mt-auto">{host.since}</p>
+              <p className="text-sm sm:text-xs text-gray-400 mt-auto">{host.since}</p>
             </motion.div>
           ))}
         </motion.div>

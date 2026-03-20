@@ -96,8 +96,8 @@ export default function TrustBadges() {
 
             {/* Texto */}
             <div>
-              <p className="text-sm font-semibold text-gray-900">{badge.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+              <p className="text-base sm:text-sm font-semibold text-gray-900">{badge.title}</p>
+              <p className="text-sm sm:text-xs text-gray-500 mt-0.5 leading-relaxed">
                 {badge.description}
               </p>
             </div>

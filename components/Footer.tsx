@@ -113,28 +113,6 @@ export default function Footer() {
           }}
         />
 
-        {/* Floating particles */}
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-acento-200 pointer-events-none"
-            style={{
-              left: `${15 + i * 14}%`,
-              top: `${20 + (i % 3) * 25}%`,
-              opacity: 0.4 + (i % 3) * 0.2,
-            }}
-            animate={{
-              y: [0, -18, 0],
-              opacity: [0.3, 0.7, 0.3],
-            }}
-            transition={{
-              duration: 3 + i * 0.7,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: i * 0.4,
-            }}
-          />
-        ))}
 
         {/* Content */}
         <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
