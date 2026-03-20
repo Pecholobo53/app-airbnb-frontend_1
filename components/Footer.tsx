@@ -255,27 +255,17 @@ export default function Footer() {
                 >
                   {/* Fila: input + botón */}
                   <div className="flex flex-col sm:flex-row gap-2">
-                    {/* Input con borde cónico giratorio */}
-                    <div className="relative flex-1 p-[1.5px] rounded-xl overflow-hidden">
-                      {/* Conic gradient giratorio — crea el borde animado */}
+                    {/* Input con glow rojo pulsante */}
+                    <div className="relative flex-1 rounded-xl">
+                      {/* Glow rojo pulsante alrededor del input */}
                       <motion.div
-                        className="absolute inset-0 rounded-xl"
+                        className="absolute -inset-[3px] rounded-xl pointer-events-none"
                         style={{
-                          background:
-                            'conic-gradient(from 0deg at 50% 50%, rgba(255,56,92,0) 0deg, rgba(255,56,92,0.5) 45deg, #FF385C 90deg, #ff9eb0 135deg, #FF385C 180deg, rgba(255,56,92,0.5) 225deg, rgba(255,56,92,0) 270deg, rgba(255,56,92,0) 360deg)',
+                          background: 'transparent',
+                          boxShadow: '0 0 12px 3px rgba(255,56,92,0.6), 0 0 28px 6px rgba(255,56,92,0.3)',
                         }}
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                      />
-                      {/* Glow exterior pulsante */}
-                      <motion.div
-                        className="absolute -inset-1 rounded-xl pointer-events-none"
-                        style={{
-                          background: 'radial-gradient(ellipse at center, rgba(255,56,92,0.25) 0%, transparent 70%)',
-                          filter: 'blur(8px)',
-                        }}
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                        animate={{ opacity: [0.6, 1, 0.6] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                       />
                       {/* Fondo del input */}
                       <div className="relative rounded-[10px] overflow-hidden bg-white/10">
