@@ -39,13 +39,51 @@ const messages = [
 
 const INTERVAL = 4000;
 
+// Words that get accent color highlight
+const ACCENT_WORDS = new Set([
+  '4.97', '★', '98%', '5%', '47', '24h', '48h', 'garantizado.', 'garantía', 'Impecable.',
+]);
+
+function HeadlineWords({ text, msgIndex }: { text: string; msgIndex: number }) {
+  return (
+    <>
+      {text.split(' ').map((word, i) => {
+        const isAccent = ACCENT_WORDS.has(word);
+        return (
+          <motion.span
+            key={`${msgIndex}-w${i}`}
+            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{
+              duration: 0.32,
+              delay: 0.12 + i * 0.032,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            className="inline-block mr-[0.28em]"
+            style={
+              isAccent
+                ? {
+                    background: 'linear-gradient(135deg, #FF385C 0%, #ff7e95 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }
+                : undefined
+            }
+          >
+            {word}
+          </motion.span>
+        );
+      })}
+    </>
+  );
+}
+
 export default function UrgencyBanner() {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
 
-  // Auto-advance: simplest possible timer, reads from ref to avoid stale closure
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
@@ -57,7 +95,7 @@ export default function UrgencyBanner() {
       setCurrent(prev => (prev + 1) % messages.length);
     }, INTERVAL);
     return () => clearInterval(id);
-  }, []); // runs once on mount, uses ref for paused state
+  }, []);
 
   const navigate = (delta: number) => {
     setDirection(delta);
@@ -73,18 +111,34 @@ export default function UrgencyBanner() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Shimmer sweep line */}
-      <motion.div
-        className="absolute top-0 left-0 h-px w-36 pointer-events-none"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(255,56,92,0.9), transparent)' }}
-        animate={{ x: ['-144px', '110vw'] }}
-        transition={{ duration: 3.8, repeat: Infinity, ease: 'linear', repeatDelay: 2.5 }}
-      />
-
-      {/* Radial glow */}
+      {/* Ambient radial glow behind content */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(255,56,92,0.06) 0%, transparent 65%)' }}
+        style={{
+          background: 'radial-gradient(ellipse at 50% 120%, rgba(255,56,92,0.10) 0%, transparent 60%)',
+        }}
+      />
+
+      {/* Fast shimmer sweep — top edge */}
+      <motion.div
+        className="absolute top-0 left-0 h-px w-48 pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(255,56,92,0.95), transparent)',
+        }}
+        animate={{ x: ['-192px', '110vw'] }}
+        transition={{ duration: 3.6, repeat: Infinity, ease: 'linear', repeatDelay: 2.2 }}
+      />
+
+      {/* Wide diagonal shimmer band across content */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.035) 50%, transparent 70%)',
+          backgroundSize: '200% 100%',
+        }}
+        animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'linear', repeatDelay: 3 }}
       />
 
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
@@ -98,34 +152,60 @@ export default function UrgencyBanner() {
           <ChevronLeft className="w-5 h-5" />
         </button>
 
+        {/* Live pulsing dot */}
+        <div className="flex-shrink-0 relative w-2 h-2 hidden sm:block">
+          <span className="absolute inset-0 rounded-full bg-[#FF385C] animate-ping opacity-60" />
+          <span className="relative block w-2 h-2 rounded-full bg-[#FF385C]" />
+        </div>
+
         {/* Sliding content */}
         <div className="flex-1 min-w-0 overflow-hidden flex justify-center">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={current}
               custom={direction}
-              initial={{ x: direction > 0 ? 60 : -60, opacity: 0 }}
+              initial={{ x: direction > 0 ? 50 : -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: direction > 0 ? -60 : 60, opacity: 0 }}
-              transition={{ duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
+              exit={{ x: direction > 0 ? -50 : 50, opacity: 0 }}
+              transition={{ duration: 0.34, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="flex items-start sm:items-center gap-3"
             >
-              {/* Icon */}
-              <span className="text-xl sm:text-2xl flex-shrink-0 leading-none mt-0.5 sm:mt-0" aria-hidden="true">
+              {/* Icon — spring bounce entrance */}
+              <motion.span
+                initial={{ scale: 0.4, rotate: -20, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 14, delay: 0.08 }}
+                className="text-xl sm:text-2xl flex-shrink-0 leading-none mt-0.5 sm:mt-0"
+                aria-hidden="true"
+              >
                 {msg.icon}
-              </span>
+              </motion.span>
 
-              {/* Text — two lines */}
+              {/* Text */}
               <div>
+                {/* Headline — word-by-word stagger with blur-in */}
                 <p className="text-[14px] sm:text-[15px] font-bold text-white leading-snug">
-                  {msg.headline}
+                  <HeadlineWords text={msg.headline} msgIndex={current} />
                 </p>
-                <p className="text-[12px] sm:text-[13px] text-gray-400 leading-snug mt-0.5">
+
+                {/* Sub — fade in after headline */}
+                <motion.p
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45, duration: 0.3 }}
+                  className="text-[12px] sm:text-[13px] text-gray-400 leading-snug mt-0.5"
+                >
                   {msg.sub}{' '}
-                  <span className="text-[#FF385C] font-semibold underline underline-offset-2 cursor-pointer whitespace-nowrap">
+                  {/* CTA — oscillating underline + arrow nudge */}
+                  <motion.span
+                    className="text-[#FF385C] font-semibold cursor-pointer whitespace-nowrap relative"
+                    style={{ textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                    animate={{ x: [0, 2, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+                  >
                     {msg.cta}
-                  </span>
-                </p>
+                  </motion.span>
+                </motion.p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -140,7 +220,7 @@ export default function UrgencyBanner() {
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Dots — visibles en todos los tamaños */}
+        {/* Dots */}
         <div className="flex items-center gap-1 flex-shrink-0">
           {messages.map((_, i) => (
             <button
@@ -160,12 +240,12 @@ export default function UrgencyBanner() {
 
       </div>
 
-      {/* Auto-progress bar — resets each message */}
+      {/* Auto-progress bar */}
       {!paused && (
         <motion.div
           key={`bar-${current}`}
           className="absolute bottom-0 left-0 h-[2px]"
-          style={{ background: 'rgba(255,56,92,0.4)', originX: 0 }}
+          style={{ background: 'rgba(255,56,92,0.45)', originX: 0 }}
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ duration: INTERVAL / 1000, ease: 'linear' }}
