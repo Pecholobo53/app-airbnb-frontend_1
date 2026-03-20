@@ -300,7 +300,6 @@ export default function QuickFilters() {
             </button>
           ))}
         </div>
-      </div>
 
       <style jsx>{`
         @keyframes carousel-progress {
