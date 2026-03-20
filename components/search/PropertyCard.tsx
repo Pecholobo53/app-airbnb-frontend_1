@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, Users, Bed, MapPin, Zap } from 'lucide-react';
+import { Star, Users, Bed, MapPin, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Property } from '@/types/search';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -77,7 +77,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <img
               src={imageSrc}
               alt={property.title}
-              className="max-w-full max-h-full object-contain transition-transform group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
               onError={() => handleImageError(isPlaceholder)}
             />
           ) : (
@@ -85,7 +85,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               src={imageSrc}
               alt={property.title}
               fill
-              className="object-contain transition-transform group-hover:scale-105"
+              className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               onError={() => handleImageError(isPlaceholder)}
             />
@@ -101,17 +101,17 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <>
               <button
                 onClick={prevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white active:scale-95 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white active:scale-95 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                 aria-label="Imagen anterior"
               >
-                ←
+                <ChevronLeft className="w-4 h-4 text-gray-700" />
               </button>
               <button
                 onClick={nextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 hover:bg-white active:scale-95 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white/80 hover:bg-white active:scale-95 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                 aria-label="Imagen siguiente"
               >
-                →
+                <ChevronRight className="w-4 h-4 text-gray-700" />
               </button>
               
               {/* Dots Indicator */}
