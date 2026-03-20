@@ -229,7 +229,7 @@ export default function QuickFilters() {
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={pauseTemporarily}
-            className="flex gap-3 md:gap-5 overflow-x-auto px-1 py-3 -mx-1 snap-x snap-mandatory md:justify-center md:flex-wrap"
+            className="flex gap-3 md:gap-4 overflow-x-auto px-1 py-3 -mx-1 snap-x snap-mandatory"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {visibleFilters.map((filter, i) => {
@@ -239,8 +239,8 @@ export default function QuickFilters() {
                 <Link
                   key={filter.label}
                   href={filter.href}
-                  className={`flex-shrink-0 snap-start relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer active:scale-95 group
-                    w-[110px] h-[140px] sm:w-[120px] sm:h-[150px] md:w-[130px] md:h-[160px] lg:w-[145px] lg:h-[170px]
+                  className={`snap-start relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer active:scale-95 group
+                    flex-shrink-0 w-[110px] h-[140px] sm:w-[120px] sm:h-[150px] md:flex-1 md:min-w-[130px] md:max-w-[220px] md:h-[180px] lg:h-[200px]
                     ${isActive
                       ? 'border-acento-200 shadow-[0_0_16px_rgba(255,56,92,0.4)]'
                       : 'border-white/10 hover:border-white/30'
