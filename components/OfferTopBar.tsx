@@ -86,16 +86,30 @@ export default function OfferTopBar({
               transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
             />
 
-            {/* Shimmer sweep */}
-            <motion.div
-              className="absolute inset-y-0 w-24 pointer-events-none"
-              style={{
-                background:
-                  'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)',
-              }}
-              animate={{ x: ['-96px', '110vw'] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'linear', repeatDelay: 2.5 }}
-            />
+            {/* Flame bursts — 3 yellow-orange sweeps at staggered delays */}
+            {[
+              { delay: 0,   width: 28, speed: 2.2, color: 'rgba(253,224,71,0.55)',  glow: 'rgba(253,224,71,0.18)' },
+              { delay: 1.1, width: 16, speed: 1.8, color: 'rgba(251,146,60,0.65)',  glow: 'rgba(251,146,60,0.20)' },
+              { delay: 2.0, width: 36, speed: 2.6, color: 'rgba(254,240,138,0.50)', glow: 'rgba(254,240,138,0.14)' },
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                className="absolute inset-y-0 pointer-events-none"
+                style={{
+                  width: f.width,
+                  background: `linear-gradient(90deg, transparent 0%, ${f.glow} 20%, ${f.color} 50%, ${f.glow} 80%, transparent 100%)`,
+                  filter: 'blur(2px)',
+                }}
+                animate={{ x: [`-${f.width}px`, '110vw'] }}
+                transition={{
+                  duration: f.speed,
+                  repeat: Infinity,
+                  ease: 'easeIn',
+                  repeatDelay: 3.5,
+                  delay: f.delay,
+                }}
+              />
+            ))}
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
