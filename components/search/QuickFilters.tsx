@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Home, Building2, Castle, Tent, Waves, Mountain, Trees, Palmtree, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { PropertyService } from '@/lib/properties/property-service';
 
 const QUICK_FILTERS = [
   {
@@ -14,6 +15,7 @@ const QUICK_FILTERS = [
     description: 'Propiedades completas para familias',
     photo: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=300&q=75',
     accentCls: 'text-orange-300',
+    matchRoomType: 'house',
   },
   {
     icon: Building2,
@@ -22,6 +24,7 @@ const QUICK_FILTERS = [
     description: 'Modernos en el centro urbano',
     photo: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=300&q=75',
     accentCls: 'text-sky-300',
+    matchRoomType: 'apartment',
   },
   {
     icon: Castle,
@@ -30,6 +33,7 @@ const QUICK_FILTERS = [
     description: 'Lujo y exclusividad total',
     photo: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=300&q=75',
     accentCls: 'text-violet-300',
+    matchRoomType: 'villa',
   },
   {
     icon: Waves,
@@ -38,14 +42,16 @@ const QUICK_FILTERS = [
     description: 'A pasos del mar y la arena',
     photo: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=75',
     accentCls: 'text-cyan-300',
+    matchAmenity: 'beach_access',
   },
   {
     icon: Mountain,
     label: 'Montaña',
-    href: '/buscar?category=mountain',
+    href: '/buscar?amenities=mountain_view',
     description: 'Vistas espectaculares y naturaleza',
     photo: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=75',
     accentCls: 'text-emerald-300',
+    matchAmenity: 'mountain_view',
   },
   {
     icon: Trees,
@@ -54,22 +60,25 @@ const QUICK_FILTERS = [
     description: 'Escape rústico en la naturaleza',
     photo: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=300&q=75',
     accentCls: 'text-amber-300',
+    matchRoomType: 'cabin',
   },
   {
     icon: Palmtree,
     label: 'Tropical',
-    href: '/buscar?amenities=beach_access&location=valencia',
+    href: '/buscar?amenities=beach_access',
     description: 'Destinos paradisíacos al mar',
     photo: 'https://images.unsplash.com/photo-1540202404-a2f29016b523?w=300&q=75',
     accentCls: 'text-lime-300',
+    matchAmenity: 'beach_access',
   },
   {
     icon: Tent,
     label: 'Aventura',
-    href: '/buscar?amenities=mountain_view&propertyType=cabin',
+    href: '/buscar?amenities=mountain_view',
     description: 'Experiencias únicas en la naturaleza',
     photo: 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?w=300&q=75',
     accentCls: 'text-rose-300',
+    matchAmenity: 'mountain_view',
   },
 ];
 
@@ -82,6 +91,32 @@ export default function QuickFilters() {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [visibleFilters, setVisibleFilters] = useState(QUICK_FILTERS);
+
+  // Fetch properties once and hide categories with zero results
+  useEffect(() => {
+    async function checkCategories() {
+      try {
+        const res = await PropertyService.searchProperties({ page: 1, perPage: 100, query: {}, filters: {}, sortBy: 'recommended' });
+        if (!res.success || !res.data) return;
+        const properties = res.data.properties ?? [];
+        const roomTypes = new Set(properties.map((p: any) => p.roomType));
+        const amenities = new Set(properties.flatMap((p: any) => p.amenities ?? []));
+        const filtered = QUICK_FILTERS.filter(f => {
+          if (f.matchRoomType) return roomTypes.has(f.matchRoomType);
+          if (f.matchAmenity) return amenities.has(f.matchAmenity);
+          return true;
+        });
+        // Deduplicate by label keeping first occurrence
+        const seen = new Set<string>();
+        const deduped = filtered.filter(f => { if (seen.has(f.label)) return false; seen.add(f.label); return true; });
+        if (deduped.length > 0) setVisibleFilters(deduped);
+      } catch {
+        // silently keep all filters if fetch fails
+      }
+    }
+    checkCategories();
+  }, []);
 
   const getCardStep = useCallback(() => {
     if (typeof window === 'undefined') return 120;
@@ -100,7 +135,7 @@ export default function QuickFilters() {
 
   const advanceCarousel = useCallback(() => {
     setActiveIndex((prev) => {
-      const next = (prev + 1) % QUICK_FILTERS.length;
+      const next = (prev + 1) % visibleFilters.length;
       scrollToIndex(next);
       return next;
     });
@@ -139,7 +174,7 @@ export default function QuickFilters() {
     const step = getCardStep();
     if (step <= 0) return;
     const idx = Math.round(scrollRef.current.scrollLeft / step);
-    setActiveIndex(Math.min(Math.max(idx, 0), QUICK_FILTERS.length - 1));
+    setActiveIndex(Math.min(Math.max(idx, 0), visibleFilters.length - 1));
   }, [getCardStep]);
 
   const goTo = useCallback((index: number) => {
@@ -149,12 +184,12 @@ export default function QuickFilters() {
   }, [scrollToIndex, pauseTemporarily]);
 
   const goPrev = useCallback(() => {
-    const prev = activeIndex === 0 ? QUICK_FILTERS.length - 1 : activeIndex - 1;
+    const prev = activeIndex === 0 ? visibleFilters.length - 1 : activeIndex - 1;
     goTo(prev);
   }, [activeIndex, goTo]);
 
   const goNext = useCallback(() => {
-    const next = (activeIndex + 1) % QUICK_FILTERS.length;
+    const next = (activeIndex + 1) % visibleFilters.length;
     goTo(next);
   }, [activeIndex, goTo]);
 
@@ -197,7 +232,7 @@ export default function QuickFilters() {
             className="flex gap-3 md:gap-4 overflow-x-auto px-1 py-3 -mx-1 snap-x snap-mandatory"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
-            {QUICK_FILTERS.map((filter, i) => {
+            {visibleFilters.map((filter, i) => {
               const Icon = filter.icon;
               const isActive = i === activeIndex;
               return (
@@ -248,13 +283,13 @@ export default function QuickFilters() {
 
         {/* Indicadores de progreso + barra de temporizador */}
         <div className="flex items-center justify-center gap-1.5 mt-3">
-          {QUICK_FILTERS.map((_, i) => (
+          {visibleFilters.map((_, i) => (
             <button
               key={i}
               onClick={() => goTo(i)}
               className="relative rounded-full overflow-hidden transition-all duration-300"
               style={{ width: i === activeIndex ? 24 : 8, height: 6 }}
-              aria-label={`Ir a ${QUICK_FILTERS[i].label}`}
+              aria-label={`Ir a ${visibleFilters[i].label}`}
             >
               <div className={`absolute inset-0 rounded-full transition-colors duration-300 ${i === activeIndex ? 'bg-acento-200' : 'bg-white/20 hover:bg-white/40'}`} />
               {i === activeIndex && !isPaused && (
