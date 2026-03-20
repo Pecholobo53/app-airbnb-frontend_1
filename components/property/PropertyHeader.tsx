@@ -53,9 +53,9 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
       </h1>
 
       {/* Info bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-row items-start justify-between gap-2">
         {/* Left: Ubicación y Rating */}
-        <div className="flex flex-wrap items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm flex-1 min-w-0">
           {/* Rating */}
           {rating > 0 && (
             <>
@@ -92,22 +92,19 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
         </div>
 
         {/* Right: Botones de acción */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1.5 px-2"
           >
             <Share2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Compartir</span>
+            <span className="hidden sm:inline text-xs">Compartir</span>
           </Button>
 
           {property?.id && (
-            <div className="flex items-center gap-2">
-              <FavoriteButton propertyId={property.id} size="sm" />
-              <span className="hidden sm:inline text-sm">Guardar</span>
-            </div>
+            <FavoriteButton propertyId={property.id} size="sm" />
           )}
         </div>
       </div>

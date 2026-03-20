@@ -247,7 +247,7 @@ export default function Header() {
           </nav>
 
           {/* Auth Section */}
-          <div key={authKey} className="flex items-center space-x-4 flex-shrink-0">
+          <div key={authKey} className="flex items-center gap-2 flex-shrink-0">
             {!isLoading && (
               <>
                 {isAuthenticated && user ? (

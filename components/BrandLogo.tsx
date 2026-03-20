@@ -19,15 +19,15 @@ export default function BrandLogo({ variant = 'light', size = 'md', href = '/' }
   const subColor = variant === 'dark' ? 'text-gray-400' : 'text-white/60';
 
   return (
-    <Link href={href} className={`inline-flex items-center ${s.gap} hover:opacity-90 transition-opacity flex-shrink-0`}>
-      {/* Media luna roja SVG */}
+    <Link href={href} className={`inline-flex items-center gap-1.5 md:${s.gap} hover:opacity-90 transition-opacity flex-shrink-0`}>
+      {/* Media luna roja SVG — más pequeña en mobile */}
       <svg
         width={s.moon}
         height={s.moon}
         viewBox="0 0 100 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="flex-shrink-0"
+        className="flex-shrink-0 w-7 h-7 md:w-auto md:h-auto"
       >
         <path
           d="M 70 10 A 45 45 0 1 0 70 90 A 35 35 0 1 1 70 10 Z"
@@ -37,11 +37,11 @@ export default function BrandLogo({ variant = 'light', size = 'md', href = '/' }
 
       {/* Texto */}
       <div className="flex flex-col leading-none">
-        <span className={`${s.text} font-extrabold tracking-tight leading-none`}>
+        <span className={`text-base md:${s.text} font-extrabold tracking-tight leading-none`}>
           <span style={{ color: voyagerColor }}>Voyager</span>
           <span className="text-acento-200">AuMaroc</span>
         </span>
-        <span className={`${s.sub} ${subColor} tracking-wider font-medium mt-0.5`}>
+        <span className={`hidden md:block ${s.sub} ${subColor} tracking-wider font-medium mt-0.5`}>
           voyageraumaroc.net
         </span>
       </div>
