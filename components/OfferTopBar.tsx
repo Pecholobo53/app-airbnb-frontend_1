@@ -88,9 +88,9 @@ export default function OfferTopBar({
 
             {/* Flame bursts — 3 wide yellow-orange sweeps */}
             {[
-              { delay: 0,   w: 160, speed: 2.4, peak: 'rgba(253,224,71,0.70)' },
-              { delay: 1.3, w: 100, speed: 1.9, peak: 'rgba(251,146,60,0.80)' },
-              { delay: 2.4, w: 200, speed: 2.8, peak: 'rgba(254,240,138,0.60)' },
+              { delay: 0,   w: 180, speed: 2.4, peak: 'rgba(255,200,0,1)' },
+              { delay: 1.3, w: 120, speed: 1.9, peak: 'rgba(255,120,0,1)' },
+              { delay: 2.4, w: 220, speed: 2.8, peak: 'rgba(255,230,50,1)' },
             ].map((f, i) => (
               <motion.div
                 key={i}
@@ -98,15 +98,15 @@ export default function OfferTopBar({
                 style={{
                   width: f.w,
                   background: `linear-gradient(90deg, transparent 0%, ${f.peak} 50%, transparent 100%)`,
-                  filter: 'blur(6px)',
+                  filter: 'blur(10px)',
                   mixBlendMode: 'screen',
                 }}
                 animate={{ x: [-f.w, '200vw'] }}
                 transition={{
                   duration: f.speed,
                   repeat: Infinity,
-                  ease: 'easeInOut',
-                  repeatDelay: 3,
+                  ease: [0.2, 0, 0.8, 1],
+                  repeatDelay: 2,
                   delay: f.delay,
                 }}
               />
