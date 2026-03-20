@@ -93,11 +93,17 @@ export default function HeroSection() {
               animate="visible"
               className="flex flex-col sm:flex-row gap-4"
             >
-              <Link href="#ofertas" className="btn-primary flex items-center justify-center group">
+              <Link
+                href="#ofertas"
+                className="inline-flex items-center justify-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold text-base px-8 py-4 rounded-2xl shadow-lg shadow-acento-200/30 hover:shadow-acento-200/50 transition-all duration-200 group"
+              >
                 Descubrir Colección Exclusiva
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/buscar" className="btn-secondary">
+              <Link
+                href="/buscar"
+                className="inline-flex items-center justify-center gap-2 border-2 border-gray-300 hover:border-acento-200 text-texto-100 hover:text-acento-200 font-semibold text-base px-8 py-4 rounded-2xl transition-all duration-200"
+              >
                 Explorar Destinos Premium
               </Link>
             </motion.div>

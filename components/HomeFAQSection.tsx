@@ -142,8 +142,8 @@ export default function HomeFAQSection() {
                       transition={{ duration: 0.3, ease: 'easeInOut' }}
                     >
                       <div className="px-6 pb-6">
-                        <div className="h-px bg-white/8 mb-4" />
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <div className="h-px bg-white/20 mb-4" />
+                        <p className="text-gray-300 text-sm leading-relaxed">
                           {faq.answer}
                         </p>
                       </div>

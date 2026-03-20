@@ -235,7 +235,7 @@ export default function FeaturedStaysSection() {
         <div className="sm:hidden text-center mt-8">
           <Link
             href="/buscar"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 underline underline-offset-4"
+            className="inline-flex items-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-md shadow-acento-200/20"
           >
             Ver todas las estancias
             <ArrowRight className="w-4 h-4" />

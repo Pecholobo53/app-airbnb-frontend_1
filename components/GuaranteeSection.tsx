@@ -82,11 +82,11 @@ export default function GuaranteeSection() {
                 hidden: { opacity: 0, y: 30 },
                 visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
               }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 lg:p-8 hover:bg-white/10 transition-colors"
+              className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 lg:p-8 hover:bg-white/10 hover:border-acento-200/30 hover:-translate-y-1 transition-all duration-300"
             >
               {/* Icono */}
-              <div className="w-12 h-12 rounded-xl bg-acento-200/20 flex items-center justify-center mb-5">
-                <pillar.icon className="w-6 h-6 text-acento-200" />
+              <div className="w-14 h-14 rounded-2xl bg-acento-200/20 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-acento-200/30 transition-all duration-300">
+                <pillar.icon className="w-7 h-7 text-acento-200" />
               </div>
 
               {/* Texto */}

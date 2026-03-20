@@ -132,8 +132,8 @@ export default function TestimonialsSection() {
             </p>
           </div>
 
-          {/* Controles de navegación */}
-          <div className="hidden sm:flex gap-2 flex-shrink-0">
+          {/* Controles de navegación — visibles en todos los tamaños */}
+          <div className="flex gap-2 flex-shrink-0">
             <button
               onClick={() => scroll('left')}
               className="w-10 h-10 rounded-full border border-[#1e293b] text-[#94a3b8] flex items-center justify-center hover:border-acento-200/50 hover:text-[#f1f5f9] hover:bg-[#1e293b] transition-all"
@@ -226,12 +226,10 @@ export default function TestimonialsSection() {
           ))}
         </div>
 
-        {/* Hint de pausa */}
-        {isPaused && (
-          <p className="text-center text-xs text-gray-400 mt-3">
-            Pausado — mueve el cursor para continuar
-          </p>
-        )}
+        {/* Swipe hint en mobile */}
+        <p className="sm:hidden text-center text-xs text-gray-500 mt-3 flex items-center justify-center gap-1">
+          <ChevronLeft className="w-3 h-3" /> Desliza para ver más <ChevronRight className="w-3 h-3" />
+        </p>
 
       </div>
     </section>

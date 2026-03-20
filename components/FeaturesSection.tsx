@@ -1,7 +1,8 @@
 'use client';
 
-import { Shield, Clock, Award, HeadphonesIcon } from 'lucide-react';
+import { Shield, Clock, Award, HeadphonesIcon, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const features = [
   {
@@ -91,6 +92,23 @@ export default function FeaturesSection() {
               </p>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          className="text-center mt-14"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Link
+            href="/buscar"
+            className="inline-flex items-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-acento-200/25 hover:shadow-acento-200/40 transition-all duration-200 group"
+          >
+            Explorar propiedades verificadas
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </motion.div>
 
       </div>

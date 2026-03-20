@@ -107,7 +107,7 @@ export default function HowItWorksSection() {
               {i < steps.length - 1 && (
                 <div
                   className="hidden md:block absolute top-10 left-[calc(100%-16px)] w-[calc(100%-60px)] h-px z-0"
-                  style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.07) 0%, transparent 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.2) 0%, transparent 100%)' }}
                 />
               )}
 
@@ -136,7 +136,7 @@ export default function HowItWorksSection() {
                     <div className="pt-1">
                       <span
                         className="text-5xl font-black leading-none select-none"
-                        style={{ color: 'rgba(255,255,255,0.07)' }}
+                        style={{ color: 'rgba(255,255,255,0.18)' }}
                       >
                         {step.number}
                       </span>

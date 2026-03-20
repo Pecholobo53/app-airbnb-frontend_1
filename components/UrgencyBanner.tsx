@@ -93,9 +93,9 @@ export default function UrgencyBanner() {
         <button
           onClick={() => navigate(-1)}
           aria-label="Anterior"
-          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:text-white hover:bg-white/8 transition-all duration-200"
+          className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
 
         {/* Sliding content */}
@@ -122,7 +122,7 @@ export default function UrgencyBanner() {
                 </p>
                 <p className="text-[12px] sm:text-[13px] text-gray-400 leading-snug mt-0.5">
                   {msg.sub}{' '}
-                  <span className="text-[#FF385C] font-semibold cursor-pointer hover:underline whitespace-nowrap">
+                  <span className="text-[#FF385C] font-semibold underline underline-offset-2 cursor-pointer whitespace-nowrap">
                     {msg.cta}
                   </span>
                 </p>
@@ -135,13 +135,13 @@ export default function UrgencyBanner() {
         <button
           onClick={() => navigate(1)}
           aria-label="Siguiente"
-          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-gray-600 hover:text-white hover:bg-white/8 transition-all duration-200"
+          className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Dots */}
-        <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
+        {/* Dots — visibles en todos los tamaños */}
+        <div className="flex items-center gap-1 flex-shrink-0">
           {messages.map((_, i) => (
             <button
               key={i}

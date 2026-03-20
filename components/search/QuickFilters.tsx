@@ -190,17 +190,17 @@ export default function QuickFilters() {
           {/* Flechas de navegacion - visibles en hover en desktop */}
           <button
             onClick={goPrev}
-            className="hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-bg-300 shadow-lg border border-white/10 text-gray-300 hover:text-acento-200 hover:border-acento-200 transition-all opacity-0 group-hover/carousel:opacity-100"
+            className="flex absolute -left-1 md:-left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 items-center justify-center rounded-full bg-bg-300/90 shadow-lg border border-white/10 text-gray-300 hover:text-acento-200 hover:border-acento-200 transition-all md:opacity-0 md:group-hover/carousel:opacity-100"
             aria-label="Anterior categoría"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={goNext}
-            className="hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-bg-300 shadow-lg border border-white/10 text-gray-300 hover:text-acento-200 hover:border-acento-200 transition-all opacity-0 group-hover/carousel:opacity-100"
+            className="flex absolute -right-1 md:-right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 items-center justify-center rounded-full bg-bg-300/90 shadow-lg border border-white/10 text-gray-300 hover:text-acento-200 hover:border-acento-200 transition-all md:opacity-0 md:group-hover/carousel:opacity-100"
             aria-label="Siguiente categoría"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
           </button>
 
           <div

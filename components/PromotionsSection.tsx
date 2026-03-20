@@ -14,6 +14,7 @@ import { PropertyService } from '@/lib/properties/property-service';
 export default function PromotionsSection() {
   const [featuredProperties, setFeaturedProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   
   // Helper para determinar si es Base64
@@ -61,6 +62,7 @@ export default function PromotionsSection() {
         }
       } catch (error) {
         console.error('Error cargando propiedades destacadas');
+        setHasError(true);
       } finally {
         setIsLoading(false);
       }
@@ -104,8 +106,19 @@ export default function PromotionsSection() {
     );
   }
 
-  if (featuredProperties.length === 0) {
-    return null;
+  if (hasError || featuredProperties.length === 0) {
+    if (!hasError) return null;
+    return (
+      <section id="ofertas" className="py-16 lg:py-24 bg-bg-200/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-texto-100 mb-4">Ofertas <span className="text-gradient">Exclusivas</span></h2>
+          <p className="text-texto-200 mb-6">No pudimos cargar las ofertas en este momento.</p>
+          <Link href="/buscar" className="inline-flex items-center gap-2 bg-acento-200 hover:bg-acento-100 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+            Ver todas las propiedades →
+          </Link>
+        </div>
+      </section>
+    );
   }
   return (
     <section id="ofertas" className="py-16 lg:py-24 bg-bg-200/50">
