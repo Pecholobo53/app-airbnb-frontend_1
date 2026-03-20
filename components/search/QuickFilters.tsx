@@ -229,7 +229,7 @@ export default function QuickFilters() {
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
             onTouchStart={pauseTemporarily}
-            className="flex gap-3 md:gap-4 overflow-x-auto px-1 py-3 -mx-1 snap-x snap-mandatory"
+            className="flex gap-3 md:gap-5 overflow-x-auto px-1 py-3 -mx-1 snap-x snap-mandatory md:justify-center md:flex-wrap"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
           >
             {visibleFilters.map((filter, i) => {
