@@ -86,26 +86,27 @@ export default function OfferTopBar({
               transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
             />
 
-            {/* Flame bursts — 3 yellow-orange sweeps at staggered delays */}
+            {/* Flame bursts — 3 wide yellow-orange sweeps */}
             {[
-              { delay: 0,   width: 28, speed: 2.2, color: 'rgba(253,224,71,0.55)',  glow: 'rgba(253,224,71,0.18)' },
-              { delay: 1.1, width: 16, speed: 1.8, color: 'rgba(251,146,60,0.65)',  glow: 'rgba(251,146,60,0.20)' },
-              { delay: 2.0, width: 36, speed: 2.6, color: 'rgba(254,240,138,0.50)', glow: 'rgba(254,240,138,0.14)' },
+              { delay: 0,   w: 160, speed: 2.4, peak: 'rgba(253,224,71,0.70)' },
+              { delay: 1.3, w: 100, speed: 1.9, peak: 'rgba(251,146,60,0.80)' },
+              { delay: 2.4, w: 200, speed: 2.8, peak: 'rgba(254,240,138,0.60)' },
             ].map((f, i) => (
               <motion.div
                 key={i}
                 className="absolute inset-y-0 pointer-events-none"
                 style={{
-                  width: f.width,
-                  background: `linear-gradient(90deg, transparent 0%, ${f.glow} 20%, ${f.color} 50%, ${f.glow} 80%, transparent 100%)`,
-                  filter: 'blur(2px)',
+                  width: f.w,
+                  background: `linear-gradient(90deg, transparent 0%, ${f.peak} 50%, transparent 100%)`,
+                  filter: 'blur(6px)',
+                  mixBlendMode: 'screen',
                 }}
-                animate={{ x: [`-${f.width}px`, '110vw'] }}
+                animate={{ x: [-f.w, '200vw'] }}
                 transition={{
                   duration: f.speed,
                   repeat: Infinity,
-                  ease: 'easeIn',
-                  repeatDelay: 3.5,
+                  ease: 'easeInOut',
+                  repeatDelay: 3,
                   delay: f.delay,
                 }}
               />
