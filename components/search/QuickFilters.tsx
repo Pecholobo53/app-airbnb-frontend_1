@@ -195,6 +195,7 @@ export default function QuickFilters() {
 
   return (
     <section className="py-8 md:py-12 bg-[#071b3e]">
+      {/* Heading centrado */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6 md:mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-texto-100 mb-1 md:mb-2">
@@ -204,43 +205,42 @@ export default function QuickFilters() {
             Encuentra rápidamente el lugar perfecto para tu próxima aventura
           </p>
         </div>
+      </div>
 
-        {/* Carrusel responsive con auto-scroll */}
-        <div className="relative group/carousel">
-          {/* Flechas de navegacion - visibles en hover en desktop */}
-          <button
-            onClick={goPrev}
-            className="flex absolute -left-1 md:-left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 items-center justify-center rounded-full bg-bg-300/90 shadow-lg border border-white/10 text-gray-300 hover:text-acento-200 hover:border-acento-200 transition-all md:opacity-0 md:group-hover/carousel:opacity-100"
-            aria-label="Anterior categoría"
-          >
-            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-          <button
-            onClick={goNext}
-            className="flex absolute -right-1 md:-right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 items-center justify-center rounded-full bg-bg-300/90 shadow-lg border border-white/10 text-gray-300 hover:text-acento-200 hover:border-acento-200 transition-all md:opacity-0 md:group-hover/carousel:opacity-100"
-            aria-label="Siguiente categoría"
-          >
-            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
+      {/* Carrusel full-width sin padding lateral */}
+      <div className="relative group/carousel">
+        {/* Flechas pegadas al borde de los cards */}
+        <button
+          onClick={goPrev}
+          className="flex absolute left-2 md:left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-full bg-[#071b3e]/90 shadow-lg border border-acento-200 text-acento-200 hover:bg-acento-200 hover:text-white transition-all"
+          aria-label="Anterior categoría"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button
+          onClick={goNext}
+          className="flex absolute right-2 md:right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center rounded-full bg-[#071b3e]/90 shadow-lg border border-acento-200 text-acento-200 hover:bg-acento-200 hover:text-white transition-all"
+          aria-label="Siguiente categoría"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
 
-          <div
-            ref={scrollRef}
-            onScroll={handleScroll}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            onTouchStart={pauseTemporarily}
-            className="flex gap-3 md:gap-4 overflow-x-auto px-1 py-3 -mx-1 snap-x snap-mandatory"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-          >
-            {visibleFilters.map((filter, i) => {
-              const Icon = filter.icon;
-              const isActive = i === activeIndex;
-              return (
-                <Link
-                  key={filter.label}
-                  href={filter.href}
-                  className={`snap-start relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer active:scale-95 group
-                    flex-shrink-0 w-[110px] h-[140px] sm:w-[120px] sm:h-[150px] md:flex-1 md:min-w-[130px] md:max-w-[220px] md:h-[180px] lg:h-[200px]
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          onTouchStart={pauseTemporarily}
+          className="flex gap-2 md:gap-3 overflow-x-auto px-12 md:px-14 py-3 snap-x snap-mandatory"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        >
+          {visibleFilters.map((filter, i) => {
+            const Icon = filter.icon;
+            const isActive = i === activeIndex;
+            return (
+              <Link
+                key={filter.label}
+                href={filter.href}
+                className={`snap-start relative overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer active:scale-95 group
+                  flex-shrink-0 w-[110px] h-[140px] sm:w-[120px] sm:h-[150px] md:flex-1 md:min-w-0 md:h-[180px] lg:h-[200px]
                     ${isActive
                       ? 'border-acento-200 shadow-[0_0_16px_rgba(255,56,92,0.4)]'
                       : 'border-white/10 hover:border-white/30'
@@ -292,7 +292,7 @@ export default function QuickFilters() {
               aria-label={`Ir a ${visibleFilters[i].label}`}
             >
               <div className={`absolute inset-0 rounded-full transition-colors duration-300 ${i === activeIndex ? 'bg-acento-200' : 'bg-white/20 hover:bg-white/40'}`} />
-              {i === activeIndex && !isPaused && (
+              {i === activeIndex && (
                 <div
                   className="absolute inset-y-0 left-0 bg-white/40 rounded-full animate-carousel-progress"
                 />
