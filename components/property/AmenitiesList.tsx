@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Wifi, UtensilsCrossed, Waves, Wind, Car, Dumbbell,
   Palmtree, Mountain, PawPrint, WashingMachine, Shirt,
@@ -100,22 +101,29 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
       </h2>
 
       {/* Grid de amenidades */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+      >
         {displayedAmenities.map((amenity) => {
           const Icon = getAmenityIcon(amenity);
           return (
-            <div 
-              key={amenity} 
-              className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
+            <motion.div
+              key={amenity}
+              variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+              className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-acento-200/40 transition-all duration-200 group"
             >
-              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gray-100 rounded-lg">
-                <Icon className="w-5 h-5 text-gray-700" />
+              <div className="flex-shrink-0 w-11 h-11 flex items-center justify-center bg-acento-200/8 rounded-xl border border-acento-200/20 group-hover:bg-acento-200/15 transition-colors">
+                <Icon className="w-5 h-5 text-acento-200" />
               </div>
-              <span className="text-gray-900 font-medium text-base">{getAmenityLabel(amenity)}</span>
-            </div>
+              <span className="text-gray-800 font-medium text-sm">{getAmenityLabel(amenity)}</span>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Botón Ver todas - mejorado */}
       {hasMore && (
@@ -135,18 +143,18 @@ export default function AmenitiesList({ amenities }: AmenitiesListProps) {
             <DialogTitle>Todas las amenidades</DialogTitle>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
             {validAmenities.map((amenity) => {
               const Icon = getAmenityIcon(amenity);
               return (
-                <div 
-                  key={amenity} 
-                  className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-200"
+                <div
+                  key={amenity}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-white shadow-sm hover:border-acento-200/40 hover:shadow-md transition-all group"
                 >
-                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gray-100 rounded-lg">
-                    <Icon className="w-5 h-5 text-gray-700" />
+                  <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-acento-200/8 rounded-xl border border-acento-200/20 group-hover:bg-acento-200/15 transition-colors">
+                    <Icon className="w-5 h-5 text-acento-200" />
                   </div>
-                  <span className="text-gray-900 font-medium">{getAmenityLabel(amenity)}</span>
+                  <span className="text-gray-800 font-medium text-sm">{getAmenityLabel(amenity)}</span>
                 </div>
               );
             })}
