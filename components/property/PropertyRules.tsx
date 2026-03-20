@@ -53,12 +53,12 @@ export default function PropertyRules({ property }: PropertyRulesProps) {
           return (
             <div
               key={index}
-              className="bg-gray-900 rounded-lg p-6 hover:bg-gray-800 transition-colors"
+              className="bg-acento-200 rounded-lg p-6 hover:bg-acento-100 transition-colors"
             >
               {/* Icono con fondo */}
               <div className="mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center border border-gray-700">
-                  <Icon className={`w-8 h-8 ${feature.iconColor}`} />
+                <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center border border-white/30">
+                  <Icon className="w-8 h-8 text-white" />
                 </div>
               </div>
 
@@ -68,7 +68,7 @@ export default function PropertyRules({ property }: PropertyRulesProps) {
               </h3>
 
               {/* Descripción */}
-              <p className="text-sm text-gray-300 leading-relaxed">
+              <p className="text-sm text-white/80 leading-relaxed">
                 {feature.description}
               </p>
             </div>

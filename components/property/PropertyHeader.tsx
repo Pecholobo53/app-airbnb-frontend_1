@@ -73,9 +73,9 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
           )}
 
           {/* Ubicación */}
-          <div className="flex items-center gap-1 text-gray-700">
+          <div className="flex items-center gap-1 text-acento-200">
             <MapPin className="w-4 h-4" />
-            <span className="underline cursor-pointer hover:text-gray-900">
+            <span className="underline cursor-pointer hover:text-acento-100">
               {normalizeText(city)}, {normalizeText(country)}
             </span>
           </div>
@@ -84,7 +84,7 @@ export default function PropertyHeader({ property }: PropertyHeaderProps) {
           {isSuperhost && (
             <>
               <span className="text-gray-400">•</span>
-              <span className="px-2 py-1 bg-gray-100 text-xs font-medium rounded">
+              <span className="px-2 py-1 bg-acento-200/10 text-acento-200 border border-acento-200/40 text-xs font-semibold rounded-full">
                 ⭐ Superanfitrión
               </span>
             </>

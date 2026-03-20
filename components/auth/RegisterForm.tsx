@@ -177,18 +177,18 @@ export default function RegisterForm() {
             checked={acceptTerms}
             onCheckedChange={(checked) => setValue('acceptTerms', !!checked)}
             disabled={isLoading}
-            className="mt-1"
+            className="mt-0.5 h-5 w-5 shrink-0 border-2 border-acento-200 data-[state=checked]:bg-acento-200 data-[state=checked]:border-acento-200"
           />
           <label
             htmlFor="acceptTerms"
-            className="text-sm leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            className="text-sm leading-tight text-acento-200 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
           >
             Acepto los{' '}
-            <Link href="/terminos" className="text-acento-200 hover:underline">
+            <Link href="/terminos" className="text-acento-200 underline hover:opacity-80">
               términos y condiciones
             </Link>{' '}
             y la{' '}
-            <Link href="/privacidad" className="text-acento-200 hover:underline">
+            <Link href="/privacidad" className="text-acento-200 underline hover:opacity-80">
               política de privacidad
             </Link>
           </label>
