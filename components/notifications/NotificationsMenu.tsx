@@ -82,7 +82,7 @@ export default function NotificationsMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="relative focus:outline-none rounded-full p-2 border border-acento-200 hover:bg-acento-200/10 transition-colors">
+      <DropdownMenuTrigger className="relative focus:outline-none rounded-full p-2 bg-acento-200 hover:bg-acento-100 transition-colors">
         <Bell className="w-5 h-5 text-white" />
         
         {/* Badge de contador */}
