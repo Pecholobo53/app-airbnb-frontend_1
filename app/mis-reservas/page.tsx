@@ -160,7 +160,7 @@ export default function MisReservasPage() {
 
       {/* Stats */}
       {totalBookings > 0 && (
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
           {[
             { icon: Plane, label: 'Próximas', value: upcomingBookings.length, color: '#0ea5e9' },
             { icon: History, label: 'Pasadas', value: pastBookings.length, color: '#64748b' },

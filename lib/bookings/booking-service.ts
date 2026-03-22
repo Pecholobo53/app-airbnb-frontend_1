@@ -32,6 +32,7 @@ export interface CreateBookingRequest {
   checkIn: string; // ISO date string (YYYY-MM-DD)
   checkOut: string; // ISO date string (YYYY-MM-DD)
   guests: number;
+  guestId?: string; // ID del usuario que hace la reserva
   guestInfo: GuestInfo;
   paymentMethod: string; // 'card', 'paypal', etc.
 }

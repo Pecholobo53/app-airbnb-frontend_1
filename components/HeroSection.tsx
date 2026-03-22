@@ -50,13 +50,13 @@ export default function HeroSection() {
               animate="visible"
               className="space-y-4"
             >
-              <h1 className="text-4xl lg:text-6xl font-bold text-texto-100 leading-tight">
+              <h1 className="text-4xl lg:text-6xl font-bold text-texto-100 leading-snug">
                 Donde el lujo
-                <span className="text-gradient block">
+                <span className="text-gradient block pb-2">
                   encuentra su hogar
                 </span>
               </h1>
-              <p className="text-lg text-texto-200 leading-relaxed">
+              <p className="text-lg text-texto-200 leading-relaxed mt-6">
                 Residencias de excepción seleccionadas por nuestros expertos.
                 Accede a propiedades premium en los destinos más codiciados
                 del mundo, con hasta <strong>40% de descuento</strong> en estancias seleccionadas.
@@ -119,7 +119,7 @@ export default function HeroSection() {
           >
             <div className="relative">
               <Image
-                src="https://images.pexels.com/photos/1371360/pexels-photo-1371360.jpeg?auto=compress&cs=tinysrgb&w=800"
+                src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Essaouira_fishing_boats.jpg"
                 alt="Residencia de lujo seleccionada"
                 width={800}
                 height={500}
@@ -138,12 +138,24 @@ export default function HeroSection() {
                   <div className="w-10 h-10 bg-gradient-to-r from-acento-200 to-acento-100 rounded-full" />
                   <div>
                     <div className="font-semibold text-texto-100">Villa Vista Mar</div>
-                    <div className="text-sm text-texto-200">Santorini, Grecia</div>
+                    <div className="text-sm text-texto-200">Essaouira, Marruecos</div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-lg font-bold text-texto-100">€89/noche</div>
-                  <div className="text-sm text-acento-200 font-medium">40% OFF</div>
+                  <motion.div
+                    className="text-lg font-bold text-texto-100"
+                    animate={{ y: [0, -7, 0] }}
+                    transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: 0 }}
+                  >
+                    €89/noche
+                  </motion.div>
+                  <motion.div
+                    className="text-sm text-acento-200 font-medium"
+                    animate={{ y: [0, -7, 0] }}
+                    transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: 0.45 }}
+                  >
+                    40% OFF
+                  </motion.div>
                 </div>
               </motion.div>
             </div>

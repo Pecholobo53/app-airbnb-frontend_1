@@ -8,6 +8,7 @@ import HeaderSearchFilter from '@/components/search/HeaderSearchFilter';
 import BrandLogo from '@/components/BrandLogo';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/constants';
@@ -162,7 +163,7 @@ export default function Header() {
 
           {/* Barra de búsqueda - Desktop con autocompletado */}
           <div ref={wrapperRef} className="hidden md:flex flex-1 max-w-md mx-4 relative">
-          <form 
+          <form
             onSubmit={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -171,6 +172,19 @@ export default function Header() {
               className="w-full"
           >
             <div className="relative w-full">
+              {/* Glow rojo pulsante — igual que newsletter */}
+              <motion.div
+                className="absolute inset-0 rounded-full pointer-events-none"
+                style={{ background: 'transparent' }}
+                animate={{
+                  boxShadow: [
+                    '0 0 8px 2px rgba(255,56,92,0.45), 0 0 18px 4px rgba(255,56,92,0.2)',
+                    '0 0 14px 4px rgba(255,56,92,0.75), 0 0 32px 8px rgba(255,56,92,0.35)',
+                    '0 0 8px 2px rgba(255,56,92,0.45), 0 0 18px 4px rgba(255,56,92,0.2)',
+                  ],
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
               <input
                 type="text"
                 value={searchValue}
@@ -179,7 +193,7 @@ export default function Header() {
                   onFocus={() => searchValue.length >= 1 && setSuggestions(filterCities(searchValue))}
                 placeholder="Buscar destinos, experiencias..."
                   autoComplete="off"
-                className="w-full pl-10 pr-12 py-2 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-acento-200 focus:border-transparent transition-all"
+                className="w-full pl-10 pr-12 py-2 rounded-full border border-acento-200/50 bg-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-acento-200 focus:border-acento-200 transition-all"
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
               <button

@@ -98,7 +98,7 @@ export default function GuestInfoForm({
             id="name"
             type="text"
             {...register('name')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none text-gray-900 bg-white"
             placeholder="Tu nombre completo"
             autoComplete="name"
             disabled={isLoading}
@@ -119,7 +119,7 @@ export default function GuestInfoForm({
               id="email"
               type="email"
               {...register('email')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none text-gray-900 bg-white"
               placeholder="tu@email.com"
               autoComplete="email"
               disabled={isLoading}
@@ -138,7 +138,7 @@ export default function GuestInfoForm({
               id="phone"
               type="tel"
               {...register('phone')}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-acento-200 focus:border-transparent outline-none text-gray-900 bg-white"
               placeholder="+34 612 345 678"
               autoComplete="tel"
               disabled={isLoading}

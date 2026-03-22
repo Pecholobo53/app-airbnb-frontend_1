@@ -180,10 +180,11 @@ export default function LoginForm() {
           checked={rememberMe}
           onCheckedChange={(checked) => setValue('rememberMe', !!checked)}
           disabled={isLoading}
+          className="border-acento-200 data-[state=checked]:bg-acento-200 data-[state=checked]:border-acento-200"
         />
         <label
           htmlFor="rememberMe"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+          className="text-sm font-medium leading-none text-acento-200 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
         >
           Recordarme
         </label>

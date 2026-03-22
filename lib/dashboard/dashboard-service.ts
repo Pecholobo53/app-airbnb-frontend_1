@@ -146,9 +146,6 @@ async function apiRequest<T>(
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
       ...(options.headers as Record<string, string>),
     };
 
@@ -166,8 +163,6 @@ async function apiRequest<T>(
       response = await fetch(url, {
         ...options,
         headers,
-        mode: 'cors', // Modo CORS explícito
-        // Nota: No usamos credentials: 'include' porque usamos Authorization header
       });
     } catch (fetchError) {
       console.error('❌ [DASHBOARD SERVICE] Error en fetch');
@@ -786,6 +781,25 @@ export class DashboardService {
           message: errorMessage,
         },
       };
+    }
+  }
+
+  /**
+   * Obtiene solo el total de reservas del usuario (sin descargar los datos).
+   * Usa limit=1 para que el backend devuelva { bookings, pagination: { total } }.
+   */
+  static async getUserBookingCount(): Promise<number> {
+    try {
+      const response = await apiRequest<{ bookings: Booking[]; pagination: { total: number } }>(
+        `/api/bookings?page=1&limit=1`,
+        { method: 'GET' }
+      );
+      if (response.success && response.data && !Array.isArray(response.data)) {
+        return (response.data as any).pagination?.total ?? 0;
+      }
+      return 0;
+    } catch {
+      return 0;
     }
   }
 

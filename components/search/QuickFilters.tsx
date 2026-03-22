@@ -58,7 +58,7 @@ const QUICK_FILTERS = [
     label: 'Cabañas',
     href: '/buscar?propertyType=cabin',
     description: 'Escape rústico en la naturaleza',
-    photo: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=300&q=75',
+    photo: 'https://images.unsplash.com/photo-1542718610-a1d656d1884c?w=300&q=75',
     accentCls: 'text-amber-300',
     matchRoomType: 'cabin',
   },
@@ -110,7 +110,10 @@ export default function QuickFilters() {
         // Deduplicate by label keeping first occurrence
         const seen = new Set<string>();
         const deduped = filtered.filter(f => { if (seen.has(f.label)) return false; seen.add(f.label); return true; });
-        if (deduped.length > 0) setVisibleFilters(deduped);
+        if (deduped.length > 0) {
+          setVisibleFilters(deduped);
+          setActiveIndex(0);
+        }
       } catch {
         // silently keep all filters if fetch fails
       }
@@ -139,7 +142,7 @@ export default function QuickFilters() {
       scrollToIndex(next);
       return next;
     });
-  }, [scrollToIndex]);
+  }, [scrollToIndex, visibleFilters.length]);
 
   useEffect(() => {
     if (isPaused) {
@@ -264,10 +267,10 @@ export default function QuickFilters() {
                     <div className={`p-1.5 rounded-lg bg-black/30 backdrop-blur-sm transition-colors duration-300 ${isActive ? 'bg-acento-200/30' : ''}`}>
                       <Icon className={`h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 transition-colors duration-300 ${isActive ? 'text-acento-200' : 'text-white'}`} />
                     </div>
-                    <span className={`text-[11px] sm:text-xs md:text-sm font-bold transition-colors duration-300 whitespace-nowrap drop-shadow-md ${isActive ? 'text-acento-200' : filter.accentCls}`}>
+                    <span className="text-[11px] sm:text-xs md:text-sm font-bold whitespace-nowrap drop-shadow-md text-acento-200">
                       {filter.label}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] text-white/70 text-center line-clamp-2 leading-tight drop-shadow-sm hidden sm:block">
+                    <span className="text-[11px] sm:text-[12px] font-bold text-acento-200/80 text-center line-clamp-2 leading-tight drop-shadow-sm hidden sm:block">
                       {filter.description}
                     </span>
                   </div>

@@ -68,6 +68,7 @@ const itemVariants = {
 export default function HowItWorksSection() {
   return (
     <section
+      id="experiencias"
       className="py-16 lg:py-20"
       style={{ background: 'linear-gradient(180deg, #07091A 0%, #071b3e 100%)' }}
     >

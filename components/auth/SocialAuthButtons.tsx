@@ -24,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 const REDIRECT_URI = 'https://www.voyageraumaroc.net';
 
 function buildGoogleAuthUrl(): string {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
+  const clientId = (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '').trim();
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -56,7 +56,7 @@ export default function SocialAuthButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full h-12 font-medium active:scale-95 transition-transform"
+        className="w-full h-12 font-medium active:scale-95 transition-transform text-gray-800 border-2 border-acento-200 hover:bg-gray-50 hover:border-acento-100"
         onClick={handleGoogleLogin}
         disabled={isLoadingGoogle}
       >

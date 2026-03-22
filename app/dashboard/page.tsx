@@ -65,14 +65,15 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated, user, router]);
 
-  // Cargar stats reales
+  // Cargar stats reales en paralelo
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-    DashboardService.getAllUserBookings(user.id).then(res => {
-      if (res.success && res.data) setBookingCount(res.data.length);
-    });
-    FavoritesService.getFavoriteProperties().then(res => {
-      if (res.success && res.data) setFavoritesCount(res.data.length);
+    Promise.all([
+      DashboardService.getUserBookingCount(),
+      FavoritesService.getFavoriteProperties(),
+    ]).then(([count, favoritesRes]) => {
+      setBookingCount(count);
+      if (favoritesRes.success && favoritesRes.data) setFavoritesCount(favoritesRes.data.length);
     });
   }, [isAuthenticated, user]);
 

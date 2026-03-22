@@ -47,11 +47,12 @@ export default function PerfilPage() {
 
   useEffect(() => {
     if (!user) return;
-    DashboardService.getAllUserBookings(user.id).then(res => {
-      if (res.success && res.data) setBookingCount(res.data.length);
-    });
-    FavoritesService.getFavoriteProperties().then(res => {
-      if (res.success && res.data) setFavoritesCount(res.data.length);
+    Promise.all([
+      DashboardService.getUserBookingCount(),
+      FavoritesService.getFavoriteProperties(),
+    ]).then(([count, favoritesRes]) => {
+      setBookingCount(count);
+      if (favoritesRes.success && favoritesRes.data) setFavoritesCount(favoritesRes.data.length);
     });
   }, [user]);
 
@@ -216,7 +217,7 @@ export default function PerfilPage() {
                 {isEditing && (
                   <label
                     htmlFor="avatar-upload"
-                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -375,7 +376,7 @@ export default function PerfilPage() {
             <h2 className="text-base font-bold text-[#f8fafc]">Estadísticas</h2>
             <div className="h-px flex-1 bg-[#1e293b]" />
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             <StatBox
               icon={<Calendar className="w-5 h-5" style={{ color: '#0ea5e9' }} />}
               value={String(bookingCount)}

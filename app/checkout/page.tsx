@@ -420,6 +420,7 @@ export default function CheckoutPage() {
               checkIn: checkInStr,
               checkOut: checkOutStr,
               guests: params.guests.adults + (params.guests.children || 0),
+              guestId: user.id,
               guestInfo: {
                 name: user.name || 'Usuario',
                 email: user.email || '',
@@ -568,6 +569,7 @@ export default function CheckoutPage() {
             checkIn: checkInStr,
             checkOut: checkOutStr,
             guests: checkoutData.guests.adults + (checkoutData.guests.children || 0),
+            guestId: user.id,
             guestInfo: {
               name: guestInfo.name || user.name || '',
               email: guestInfo.email || user.email || '',
@@ -1010,6 +1012,7 @@ export default function CheckoutPage() {
         checkIn: checkInStr,
         checkOut: checkOutStr,
         guests: checkoutData.guests.adults + (checkoutData.guests.children || 0),
+        guestId: user.id,
         guestInfo: {
           name: guestInfo.name || user.name || '',
           email: guestInfo.email || user.email || '',
