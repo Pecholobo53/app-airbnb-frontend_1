@@ -52,7 +52,11 @@ export default function NotificationsMenu() {
       older: [] as typeof notifications,
     };
 
-    notifications.forEach(notif => {
+    const sorted = [...notifications].sort((a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    sorted.forEach(notif => {
       const notifDate = new Date(notif.createdAt);
       notifDate.setHours(0, 0, 0, 0);
 

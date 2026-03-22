@@ -98,8 +98,11 @@ export default function MisReservasPage() {
           }
         });
 
-        setUpcomingBookings([...upcoming, ...active]);
-        setPastBookings(past);
+        const byCreatedDesc = (a: Booking, b: Booking) =>
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+
+        setUpcomingBookings([...upcoming, ...active].sort(byCreatedDesc));
+        setPastBookings(past.sort(byCreatedDesc));
       } else {
         setError(response.error?.message || 'Error al cargar reservas');
         setUpcomingBookings([]);
